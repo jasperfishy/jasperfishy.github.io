@@ -11,16 +11,6 @@ const apps = [
     tags: ["React", "Tailwind CSS", "GitHub Pages"],
     isFeatured: true,
   },
-  {
-    id: "chief-local-gmail-bridge",
-    title: "Chief Local Gmail Bridge",
-    subtitle: "Secure AI context connector.",
-    link: "https://jasperfish.com",
-    description:
-      "A local integration utility bridging a custom AI model environment to personal Gmail context safely without public cloud exposure.",
-    tags: ["Node.js", "AI Integration", "Gmail API"],
-    isFeatured: false,
-  },
 ];
 
 const cardBase =
