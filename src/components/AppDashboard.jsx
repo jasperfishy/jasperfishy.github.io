@@ -6,8 +6,10 @@ const apps = [
     title: "FocusDrop",
     subtitle: "A tiny ADHD utility app to stay on track.",
     link: "https://focusdrop.jasperfish.com",
+    installLink: "https://focusdrop.jasperfish.com/?install=1",
+    downloadLink: "https://focusdrop.jasperfish.com/index.html",
     description:
-      "A lightweight, distraction-free companion app optimized for managing ADHD workflows, focusing task execution, and breaking down mental drag.",
+      "A lightweight, distraction-free companion app optimized for managing ADHD workflows, focusing task execution, and breaking down mental drag. Installs on desktop and phone, works offline, and can nudge you about the thoughts you dropped.",
     tags: ["React", "Tailwind CSS", "GitHub Pages"],
     isFeatured: true,
   },
@@ -42,6 +44,13 @@ function Icon({ name, className = "h-5 w-5" }) {
     ),
     sparkle: (
       <path d="m12 3 2.3 6.7L21 12l-6.7 2.3L12 21l-2.3-6.7L3 12l6.7-2.3L12 3Z" />
+    ),
+    download: (
+      <>
+        <path d="M12 3v12" />
+        <path d="m7 11 5 5 5-5" />
+        <path d="M5 21h14" />
+      </>
     ),
   };
 
@@ -315,6 +324,30 @@ function AppCard({ app, onLaunch }) {
           Launch App
           <Icon name="arrow" className="h-4 w-4" />
         </button>
+
+        {app.installLink ? (
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <a
+              href={app.installLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Install ${app.title} on this device`}
+              className={`inline-flex items-center gap-2 rounded-xl border border-zinc-700/70 bg-white/5 px-4 py-2.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-white/10 hover:text-white ${focusRing}`}
+            >
+              <Icon name="download" className="h-4 w-4" />
+              Install on desktop or phone
+            </a>
+            {app.downloadLink ? (
+              <a
+                href={app.downloadLink}
+                download={`${app.title}.html`}
+                className={`inline-flex items-center gap-2 text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-200 ${focusRing}`}
+              >
+                Download offline copy
+              </a>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </article>
   );
