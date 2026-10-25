@@ -1,16 +1,26 @@
-# React + Vite
+# Jasperfish
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The portfolio at https://jasperfish.com, featuring FocusDrop. React and Vite; static hosting through GitHub Pages from `main:/`.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```sh
+npm install
+npm run dev
+```
 
-## React Compiler
+Open `/index.source.html` during development. `index.html` is the compiled Pages entry, not the editable source.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```sh
+npm run lint
+npm run build:pages
+npm run preview -- --host 127.0.0.1 --port 4187
+```
 
-## Expanding the ESLint configuration
+The Pages command builds the source, copies the generated assets and self-hosted fonts to the repository root, and updates `index.html`. Previous hashed bundles remain available for cached page loads. Committing and pushing the prepared files to `main` triggers Pages deployment.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Design and behaviour
+
+See [DESIGN.md](DESIGN.md). The capture demo is temporary React state only; it does not store or send thoughts. Opening FocusDrop loads the existing app in a native dialog, with keyboard dismissal, focus restoration, and an external link. The installation link goes directly to the app's own installation guidance.
+
+The actual FocusDrop app is maintained in a separate repository. Editing this website must not overwrite its code or browser data. Manrope's font licence is included under `public/fonts/OFL.txt`.
