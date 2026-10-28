@@ -11,3 +11,5 @@ await cp(source('assets'), target('assets'), { recursive: true });
 await cp(source('fonts'), target('fonts'), { recursive: true });
 await copyFile(source('favicon.svg'), target('favicon.svg'));
 await copyFile(source('index.source.html'), target('index.html'));
+// Preserve the standalone dinosaur PWA at /dino/ across portfolio builds.
+await cp(source('dino'), target('dino'), { recursive: true });
