@@ -2,6 +2,8 @@
 
 Standalone original dinosaur PWA at https://jasperfish.com/dino/.
 
+On first opening, an optional first-name prompt personalizes instructions, speech, greetings and celebrations. The app/install title stays Dino Meadow. The name is stored only in device localStorage, excluded from backups and network requests, and can be changed or removed through Parents. Skip keeps generic instructions. Shared runtime files contain no specific child's name.
+
 Edit public/dino/ and mirror to dino/ for branch-based GitHub Pages publication. Vite includes public/dino/ in dist; scripts/prepare-pages.mjs copies it back to the root on build:pages. The portfolio homepage does not need to change.
 
 100 activities means 20 mechanics with five variations; 120 colouring compositions combine 12 dinosaur silhouettes and 10 scenes. This is independent code and art, not a clone of Dino Fun or a reconstruction of its undocumented game inventory.
