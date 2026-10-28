@@ -1,4 +1,4 @@
-import { cp, copyFile } from 'node:fs/promises';
+import { cp, copyFile, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const root = new URL('../', import.meta.url);
@@ -11,5 +11,6 @@ await cp(source('assets'), target('assets'), { recursive: true });
 await cp(source('fonts'), target('fonts'), { recursive: true });
 await copyFile(source('favicon.svg'), target('favicon.svg'));
 await copyFile(source('index.source.html'), target('index.html'));
-// Preserve the standalone dinosaur PWA at /dino/ across portfolio builds.
-await cp(source('dino'), target('dino'), { recursive: true });
+// Publish every discovered local app, not only the first one added.
+const apps = JSON.parse(await readFile(new URL('../src/data/apps.json', import.meta.url), 'utf8'));
+for (const app of apps) if (app.folder) await cp(source(app.folder), target(app.folder), { recursive: true });

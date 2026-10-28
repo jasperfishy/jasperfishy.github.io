@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/discover-apps.mjs",
+    "prebuild": "node scripts/discover-apps.mjs",
     "dev": "vite",
     "build": "vite build",
     "build:pages": "npm run build && node scripts/prepare-pages.mjs",
