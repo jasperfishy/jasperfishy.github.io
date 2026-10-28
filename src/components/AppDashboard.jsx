@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import apps from "../data/apps.json";
 
 const APP_URL = "https://focusdrop.jasperfish.com";
 
@@ -78,92 +79,6 @@ function DropMark() {
         strokeLinecap="round"
       />
     </svg>
-  );
-}
-
-function WaterArtwork() {
-  return (
-    <div className="water-art" aria-hidden="true">
-      <svg className="water-scene" viewBox="0 0 600 490" fill="none">
-        <defs>
-          <radialGradient id="pool">
-            <stop stopColor="#649dff" stopOpacity=".24" />
-            <stop offset="1" stopColor="#649dff" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient
-            id="droplet"
-            x1="255"
-            y1="95"
-            x2="360"
-            y2="300"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#e4f3ff" />
-            <stop offset=".28" stopColor="#9dcfff" />
-            <stop offset=".65" stopColor="#729bf5" />
-            <stop offset="1" stopColor="#3d56b9" />
-          </linearGradient>
-          <linearGradient
-            id="rim"
-            x1="230"
-            y1="130"
-            x2="355"
-            y2="290"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="white" stopOpacity=".8" />
-            <stop offset="1" stopColor="#829df2" stopOpacity=".1" />
-          </linearGradient>
-        </defs>
-        <ellipse cx="305" cy="342" rx="290" ry="140" fill="url(#pool)" />
-        <g stroke="#8eb4ed">
-          <ellipse cx="305" cy="346" rx="254" ry="105" opacity=".08" />
-          <ellipse cx="305" cy="346" rx="200" ry="80" opacity=".13" />
-          <ellipse cx="305" cy="346" rx="144" ry="55" opacity=".21" />
-          <ellipse cx="305" cy="346" rx="87" ry="31" opacity=".34" />
-          <ellipse cx="305" cy="346" rx="40" ry="13" opacity=".45" />
-        </g>
-        <path
-          d="M304 93C285 140 227 201 227 240a77 77 0 0 0 154 0c0-39-58-100-77-147Z"
-          fill="url(#droplet)"
-          stroke="url(#rim)"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M252 233c-5 25 8 48 29 55"
-          stroke="white"
-          strokeOpacity=".65"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M307 119c12 32 51 78 57 108"
-          stroke="white"
-          strokeOpacity=".24"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <circle cx="430" cy="119" r="3" fill="#acccff" opacity=".6" />
-        <circle cx="179" cy="260" r="2" fill="#acccff" opacity=".5" />
-        <circle cx="395" cy="299" r="2" fill="#acccff" opacity=".7" />
-      </svg>
-      <div className="floating-thought thought-one">
-        <span className="thought-dot" />
-        That idea for later
-        <svg viewBox="0 0 20 20">
-          <path d="m5 10 3 3 7-7" />
-        </svg>
-      </div>
-      <div className="floating-thought thought-two">
-        <span className="tiny-drop">
-          <DropMark />
-        </span>
-        A little room to think.
-      </div>
-      <span className="water-caption">
-        Let it land. Come back when you’re ready.
-      </span>
-    </div>
   );
 }
 
@@ -382,7 +297,7 @@ export default function AppDashboard() {
             </span>
           </a>
           <nav aria-label="Main navigation">
-            <a href="#focusdrop">The app</a>
+            <a href="#apps">The apps</a>
             <a href="#about">The idea</a>
             <a
               className="nav-github"
@@ -395,30 +310,27 @@ export default function AppDashboard() {
           </nav>
         </header>
         <main id="main">
-          <section className="hero" aria-labelledby="hero-title">
-            <div className="hero-copy">
-              <p className="intro-line">
-                <span />
-                Small apps, made with care.
-              </p>
-              <h1 id="hero-title">
-                A little less noise.
-                <br />A little more
-                <br />
-                headspace.
-              </h1>
-              <p className="hero-description">
-                Thoughtful tools for busy minds. Built to make the everyday feel
-                a little lighter, one small thing at a time.
-              </p>
-              <a className="button button-primary" href="#focusdrop">
-                Meet FocusDrop <Icon name="arrow" />
-              </a>
-              <span className="hero-note">
-                Something useful. Nothing overwhelming.
-              </span>
+          <section id="apps" className="app-directory" aria-labelledby="apps-title">
+            <div className="directory-intro">
+              <p>Small apps, made with care.</p>
+              <h1 id="apps-title">A little focus.<br />A little play.</h1>
+              <p>A home for all my apps. Find something useful, something playful,
+                or a new little world to explore.</p>
             </div>
-            <WaterArtwork />
+            <div className="directory-heading"><h2>Explore the apps</h2><span>{apps.length} apps to discover</span></div>
+            <div className="app-catalogue">
+              {apps.map(app => (
+                <article className={'catalogue-card ' + (app.id === 'dino' ? 'catalogue-play' : '')} key={app.id}>
+                  <div className="catalogue-identity">
+                    {app.icon ? <img src={app.icon} alt="" width="72" height="72" /> : <span className="catalogue-icon"><DropMark /></span>}
+                    <div><p>{app.category}</p><h3>{app.name}</h3></div>
+                  </div>
+                  <p className="catalogue-description">{app.description}</p>
+                  <a className="button button-primary" href={app.url}>Open {app.name}<Icon name="arrow" /></a>
+                </article>
+              ))}
+            </div>
+            <p className="directory-note">Choose an app to open it. Each has its own place to play or work.</p>
           </section>
           <section
             id="focusdrop"
@@ -426,7 +338,7 @@ export default function AppDashboard() {
             aria-labelledby="focusdrop-title"
           >
             <div className="section-heading">
-              <span>Made for a mind with a lot on it</span>
+              <span>A closer look at FocusDrop</span>
               <span className="project-status">
                 <span />
                 Ready when you are
@@ -521,8 +433,9 @@ export default function AppDashboard() {
                 to get out of the way.
               </p>
               <p>
-                FocusDrop is one of those ideas: a quiet place to put a thought,
-                so you don’t have to keep carrying it.
+                From a quiet place to collect your thoughts to a colourful world
+                for little dinosaur explorers, every app starts with someone
+                who could use it.
               </p>
               <a
                 className="inline-link"
@@ -577,8 +490,8 @@ export default function AppDashboard() {
             <span>jasperfish.</span>
           </a>
           <p>A little curiosity. A little more headspace.</p>
-          <a href={APP_URL} target="_blank" rel="noopener noreferrer">
-            Open FocusDrop <Icon name="external" />
+          <a href="#apps">
+            Explore all apps <Icon name="arrow" />
           </a>
         </footer>
       </div>

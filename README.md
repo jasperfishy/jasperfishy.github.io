@@ -1,6 +1,12 @@
 # Jasperfish
 
-The portfolio at https://jasperfish.com, featuring FocusDrop. React and Vite; static hosting through GitHub Pages from `main:/`.
+The app directory at https://jasperfish.com, featuring FocusDrop and Dino Meadow. React and Vite; static hosting through GitHub Pages from `main:/`.
+
+## Adding an app
+
+- Local apps: put the app in `public/<app-name>/` with an `index.html` and a `manifest.webmanifest` (or `manifest.json`) containing `name`, `description`, and optionally `icons`. The build discovers these apps, creates homepage cards, and copies them to their published folders.
+- Apps hosted elsewhere or on a subdomain: add an entry to `apps.external.json` with a unique `id`, `name`, `description`, HTTPS `url`, and optional `category`.
+- Run `npm run build:pages`, review, commit and push. `src/data/apps.json` is generated; do not edit it by hand. Discovery happens at build time, not by scanning DNS or live hosting accounts. To remove a local listing, remove its source manifest/app from the public tree; old published folders require separate deliberate cleanup.
 
 ## Development
 

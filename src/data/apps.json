@@ -1,0 +1,18 @@
+[
+  {
+    "id": "focusdrop",
+    "name": "FocusDrop",
+    "description": "A calm place to capture thoughts, revisit ideas, and take one small step.",
+    "url": "https://focusdrop.jasperfish.com",
+    "category": "A little more headspace"
+  },
+  {
+    "id": "dino",
+    "name": "Dino Meadow",
+    "description": "100 gentle activities and 120 dinosaur colouring pages",
+    "url": "/dino/",
+    "icon": "/dino/icon-192.png",
+    "category": "Made to explore",
+    "folder": "dino"
+  }
+]
