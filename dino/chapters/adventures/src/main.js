@@ -103,6 +103,18 @@ function saveState() {
   updateSoundButton();
 }
 
+function notifyHubSettings() {
+  if (!EMBEDDED) return;
+  window.parent.postMessage({
+    type: "du-settings-update",
+    name: state.name,
+    sound: state.sound,
+    difficulty: state.difficulty,
+    speech: state.speech,
+    calmCelebrations: state.calmCelebrations
+  }, location.origin);
+}
+
 function escapeHtml(value) {
   return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
@@ -330,7 +342,7 @@ function openParentSettings() {
       state.difficulty = card.querySelector("#difficulty").value;
       state.speech = card.querySelector("#speechSetting").checked;
       state.calmCelebrations = card.querySelector("#calmSetting").checked;
-      saveState(); closeDialog(); renderHome(); showToast("Settings saved for this device.");
+      saveState(); notifyHubSettings(); closeDialog(); showToast("Settings saved for this device.");
     });
     card.querySelector("#replayWelcome").addEventListener("click", function () { closeDialog(); playIntro(true); });
   });
@@ -1084,7 +1096,7 @@ registerModule("daddy", mountDaddy);
 
 document.getElementById("homeButton").addEventListener("click", exitActivity);
 document.getElementById("parentButton").addEventListener("click", openParentGate);
-soundButton.addEventListener("click", function () { state.sound = !state.sound; saveState(); if (state.sound) sound("tap"); });
+soundButton.addEventListener("click", function () { state.sound = !state.sound; saveState(); notifyHubSettings(); if (state.sound) sound("tap"); });
 updateSoundButton();
 
 if (EMBEDDED) {
@@ -1092,10 +1104,16 @@ if (EMBEDDED) {
     if (event.origin !== location.origin || !event.data || event.data.type !== "du-settings") return;
     const nextName = String(event.data.name || "").trim().replace(/\s+/g, " ").slice(0, 24);
     const nextSound = typeof event.data.sound === "boolean" ? event.data.sound : state.sound;
-    const changed = nextName !== state.name || nextSound !== state.sound;
+    const nextDifficulty = ["gentle", "curious", "adventurer"].includes(event.data.difficulty) ? event.data.difficulty : state.difficulty;
+    const nextSpeech = typeof event.data.speech === "boolean" ? event.data.speech : state.speech;
+    const nextCalm = typeof event.data.calmCelebrations === "boolean" ? event.data.calmCelebrations : state.calmCelebrations;
+    const changed = nextName !== state.name || nextSound !== state.sound || nextDifficulty !== state.difficulty || nextSpeech !== state.speech || nextCalm !== state.calmCelebrations;
     state.name = nextName;
     state.nameAsked = true;
     state.sound = nextSound;
+    state.difficulty = nextDifficulty;
+    state.speech = nextSpeech;
+    state.calmCelebrations = nextCalm;
     if (changed) saveState();
     if (currentActivity && activeContext) {
       activeContext.playerName = state.name;
