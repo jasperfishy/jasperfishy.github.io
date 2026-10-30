@@ -122,5 +122,19 @@ document.addEventListener('click',async e=>{
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){window.speechSynthesis?.cancel();if(art?.dirty)persistArt();}});
 goHome();
-if(!profile.asked)nameDialog(true);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(async()=>{offline=true;}).catch(()=>{offline=false;});
+if(!profile.asked && !(window.top && window.top !== window.self))nameDialog(true);
+if('serviceWorker'in navigator && !(window.top && window.top !== window.self))navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(async()=>{offline=true;}).catch(()=>{offline=false;});
+if(window.top && window.top !== window.self) {
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.type !== 'du-settings') return;
+    try {
+      const n = e.data.name;
+      if (n !== profile.name) {
+        profile = { name: n, asked: true };
+        try { localStorage.setItem('dm-profile', JSON.stringify(profile)); } catch (err) {}
+      }
+      personalizeView();
+    } catch (err) {}
+  });
+  setTimeout(function () { try { window.top.postMessage({ type: 'du-ready' }, location.origin); } catch (err) {} }, 0);
+}
