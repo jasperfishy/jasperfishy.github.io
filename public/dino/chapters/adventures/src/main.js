@@ -949,9 +949,9 @@ function mountColoring(context) {
 
 function mountDaddy(context) {
   const species = DINOSAURS.slice(0, Math.min(DINOSAURS.length, 5 + (context.level - 1) * 2));
-  context.stage.innerHTML = stageTitle(context, "🏃", "Naughty Daddy", "Choose a dinosaur friend to catch Daddy Ellis in a silly chase.") +
-    '<div class="daddy-intro"><div class="daddy-avatar"><img src="./assets/daddy-ellis.png" alt="" class="daddy-face"></div><div><strong>Daddy Ellis is on the run!</strong><p>' + escapeHtml(context.message("Steer your dinosaur with the big arrows and give Daddy a friendly tag.")) + '</p></div></div>' +
-    '<div class="species-row" id="speciesRow"></div><p class="gentle-hint">' + escapeHtml(context.message("Choose a dinosaur to begin. More prehistoric friends join as your levels grow.")) + '</p>';
+  context.stage.innerHTML = stageTitle(context, "🏃", "Naughty Daddy", "Pick a dinosaur, then guide it through a lively garden chase!") +
+    '<div class="daddy-intro"><div class="daddy-avatar"><img src="./assets/daddy-ellis.png" alt="" class="daddy-face"></div><div><strong>Daddy Ellis is on the run!</strong><p>' + escapeHtml(context.message("Move your dinosaur with the arrows. Daddy runs through the garden, so keep chasing him!")) + '</p></div></div>' +
+    '<div class="species-row" id="speciesRow"></div><p class="gentle-hint">' + escapeHtml(context.message("Choose your dinosaur friend. The garden is full of room to run!")) + '</p>';
   const row = context.stage.querySelector("#speciesRow");
   row.innerHTML = species.map(function (dino, index) {
     return '<button class="species-choice" data-species="' + index + '"><span>' + dino.icon + '</span><small>' + dino.name + '</small></button>';
@@ -960,67 +960,94 @@ function mountDaddy(context) {
     button.addEventListener("click", function () { runChase(species[Number(button.dataset.species)]); });
   });
   function runChase(dino) {
-    const size = Math.min(7, 5 + Math.floor(context.challenge / 3));
-    const dinoPos = { x: 0, y: size - 1 };
-    const daddyPos = { x: size - 1, y: 0 };
-    const rocks = new Set(size >= 6 ? [(size + 1) + "," + (size - 2)] : []);
+    const columns = [9, 22, 35, 48, 61, 74, 87];
+    const lanes = [30, 54, 78];
+    const dinoPos = { x: 0, y: 2 };
+    const daddyPos = { x: 6, y: 0 };
+    const childName = state.name || "little explorer";
     let turns = 0;
-    let roarReady = true;
-    function distance(a, b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
-    function drawChase() {
-      const cells = [];
-      for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-          let content = "";
-          let cls = "chase-cell";
-          if (dinoPos.x === x && dinoPos.y === y) { content = dino.icon; cls += " dino-cell"; }
-          else if (daddyPos.x === x && daddyPos.y === y) { content = '<img src="./assets/daddy-ellis.png" alt="" class="daddy-token">'; cls += " daddy-cell"; }
-          else if (rocks.has(x + "," + y)) { content = "🌿"; cls += " rock-cell"; }
-          else content = "·";
-          cells.push('<span class="' + cls + '" aria-hidden="true">' + content + '</span>');
-        }
-      }
-      context.stage.innerHTML = stageTitle(context, dino.icon, "Catch Daddy!", context.message("Use the arrows to guide " + dino.name + " around the meadow.")) +
-        '<div class="chase-status"><span>🦖 ' + dino.name + '</span><span>Turns ' + turns + '</span><span>Daddy Ellis 🏃</span></div>' +
-        '<div class="chase-board" style="--chase-size:' + size + '">' + cells.join("") + '</div>' +
-        '<div class="chase-controls"><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-move="up" aria-label="Move up">↑</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button>' +
-        '<button class="chase-arrow" data-move="left" aria-label="Move left">←</button><button class="chase-roar" id="roarButton"' + (roarReady ? "" : " disabled") + '>📣 Roar!</button><button class="chase-arrow" data-move="right" aria-label="Move right">→</button>' +
-        '<button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-move="down" aria-label="Move down">↓</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button></div>' +
-        '<p class="gentle-hint" id="chaseHint">' + escapeHtml(context.message("No timer, no worries. Daddy pauses for a giggle too.")) + '</p>';
-      context.stage.querySelectorAll("[data-move]").forEach(function (button) { button.addEventListener("click", function () { moveDino(button.dataset.move); }); });
+    let finished = false;
+    let daddyTimer;
+    function sceneDino() {
+      return '<svg viewBox="0 0 150 110" aria-hidden="true"><path d="M36 69Q12 53 8 35q-2 30 27 43" fill="#70b98a" stroke="#286552" stroke-width="4"/><ellipse cx="70" cy="70" rx="43" ry="27" fill="#88cd96" stroke="#286552" stroke-width="4"/><path d="M84 60q5-35 28-40 24-5 31 17 4 15-11 21l-19 2-10 17" fill="#96d69b" stroke="#286552" stroke-width="4"/><path d="M57 90v12m34-12v12" stroke="#438e67" stroke-width="12" stroke-linecap="round"/><path d="m50 35 7-15 10 15m8-2 8-16 10 21" fill="#f4c46d" stroke="#286552" stroke-width="3"/><circle cx="126" cy="28" r="7" fill="white"/><circle cx="128" cy="29" r="3.5" fill="#173f3d"/><circle cx="129" cy="28" r="1.2" fill="white"/></svg>';
+    }
+    function drawScene() {
+      context.stage.innerHTML = stageTitle(context, dino.icon, "Catch Daddy!", context.message("Guide your dinosaur through the garden. Daddy is moving — chase him and give him a friendly tag!")) +
+        '<div class="daddy-chase-status"><span>🐾 Chase ' + turns + '</span><span>' + dino.name + ' is running!</span><span>Daddy Ellis 🏃</span></div>' +
+        '<div class="daddy-chase-scene" id="daddyChaseScene" aria-label="A garden scene with a running dinosaur chasing Daddy Ellis"><div class="chase-sun">☀️</div><div class="chase-cloud cloud-one">☁️</div><div class="chase-cloud cloud-two">☁️</div><div class="chase-tree tree-one">🌳</div><div class="chase-tree tree-two">🌲</div><div class="chase-bush bush-one">🌿🌼</div><div class="chase-bush bush-two">🌿🌸</div><div class="chase-path"></div>' +
+        '<div class="chase-runner chase-dino-runner" id="chaseDino" style="left:' + columns[dinoPos.x] + '%;top:' + lanes[dinoPos.y] + '%">' + sceneDino() + '<span class="chase-species">' + dino.icon + ' ' + escapeHtml(dino.name) + '</span></div>' +
+        '<div class="chase-runner daddy-runner" id="chaseDaddy" style="left:' + columns[daddyPos.x] + '%;top:' + lanes[daddyPos.y] + '%"><img src="./assets/daddy-ellis.png" alt=""/><span>Daddy Ellis</span><i>🏃</i></div><div class="chase-puff" id="chasePuff">💨</div><div class="chase-speech" id="chaseSpeech">Catch me, ' + escapeHtml(childName) + '!</div></div>' +
+        '<div class="chase-controls"><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-run="up" aria-label="Run up the path">↑</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-run="left" aria-label="Run left">←</button><button class="chase-roar" id="roarButton">📣 Roar!</button><button class="chase-arrow" data-run="right" aria-label="Run right">→</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-run="down" aria-label="Run down the path">↓</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button></div>' +
+        '<p class="gentle-hint" id="chaseHint">Use the arrows to run. Daddy is dashing around the garden!</p>';
+      context.stage.querySelectorAll("[data-run]").forEach(function (button) { button.addEventListener("click", function () { moveDino(button.dataset.run); }); });
       context.stage.querySelector("#roarButton").addEventListener("click", function () {
-        if (!roarReady) return;
-        roarReady = false; turns += 1; sound("roar");
-        context.stage.querySelector("#chaseHint").textContent = context.message("Roar! Daddy stopped to laugh!");
-        if (distance(dinoPos, daddyPos) <= 2) { catchDaddy(); return; }
-        window.setTimeout(function () { if (currentActivity === "daddy") { roarReady = true; drawChase(); } }, 600);
+        context.sound("roar");
+        const speech = context.stage.querySelector("#chaseSpeech");
+        speech.textContent = "ROAR! Daddy stopped to laugh!";
+        speech.classList.add("speech-pop");
+        window.setTimeout(function () { if (speech.isConnected) { speech.textContent = "Catch me, " + childName + "!"; speech.classList.remove("speech-pop"); } }, 900);
+        if (turns > 3 && distance(dinoPos, daddyPos) <= 3) catchDaddy();
       });
       context.stage.onkeydown = function (event) {
         const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
         if (map[event.key]) { event.preventDefault(); moveDino(map[event.key]); }
       };
+      paintPositions();
+      const chaseScene = context.stage.querySelector("#daddyChaseScene");
+      const dinoNode = context.stage.querySelector("#chaseDino");
+      let draggingDino = false;
+      dinoNode.addEventListener("pointerdown", function (event) { if (finished) return; draggingDino = true; dinoNode.setPointerCapture(event.pointerId); event.preventDefault(); });
+      dinoNode.addEventListener("pointermove", function (event) {
+        if (!draggingDino || finished) return;
+        const rect = chaseScene.getBoundingClientRect();
+        const px = (event.clientX - rect.left) / rect.width * 100;
+        const py = (event.clientY - rect.top) / rect.height * 100;
+        const nextX = columns.reduce(function (best, value, i) { return Math.abs(value - px) < Math.abs(columns[best] - px) ? i : best; }, 0);
+        const nextY = lanes.reduce(function (best, value, i) { return Math.abs(value - py) < Math.abs(lanes[best] - py) ? i : best; }, 0);
+        if (nextX === dinoPos.x && nextY === dinoPos.y) return;
+        dinoPos.x = nextX; dinoPos.y = nextY; turns += 1;
+        context.sound("tap");
+        if (turns % 2 === 0) moveDaddy(); else paintPositions();
+      });
+      dinoNode.addEventListener("pointerup", function (event) { draggingDino = false; if (dinoNode.hasPointerCapture(event.pointerId)) dinoNode.releasePointerCapture(event.pointerId); });
     }
-    function moveDino(direction) {
-      const move = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[direction];
-      const nx = dinoPos.x + move[0]; const ny = dinoPos.y + move[1];
-      if (nx < 0 || ny < 0 || nx >= size || ny >= size || rocks.has(nx + "," + ny)) {
-        context.sound("tap"); context.stage.querySelector("#chaseHint").textContent = context.message("The meadow path is that way, little explorer."); return;
-      }
-      dinoPos.x = nx; dinoPos.y = ny; turns += 1; roarReady = true; context.sound("tap");
-      if (distance(dinoPos, daddyPos) <= 1) { catchDaddy(); return; }
-      if (turns % (context.challenge < 3 ? 2 : 1) === 0) moveDaddy();
-      if (distance(dinoPos, daddyPos) <= 1) { catchDaddy(); return; }
-      drawChase();
+    function distance(a, b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
+    function paintPositions() {
+      const dinoNode = context.stage.querySelector("#chaseDino");
+      const daddyNode = context.stage.querySelector("#chaseDaddy");
+      if (!dinoNode || !daddyNode) return;
+      dinoNode.style.left = columns[dinoPos.x] + "%"; dinoNode.style.top = lanes[dinoPos.y] + "%";
+      daddyNode.style.left = columns[daddyPos.x] + "%"; daddyNode.style.top = lanes[daddyPos.y] + "%";
+      dinoNode.classList.toggle("run-left", daddyPos.x < dinoPos.x);
+      dinoNode.classList.remove("running"); void dinoNode.offsetWidth; dinoNode.classList.add("running");
+      daddyNode.classList.remove("running"); void daddyNode.offsetWidth; daddyNode.classList.add("running");
+      const puff = context.stage.querySelector("#chasePuff"); if (puff) { puff.style.left = columns[daddyPos.x] + "%"; puff.style.top = (lanes[daddyPos.y] + 12) + "%"; }
+      if (distance(dinoPos, daddyPos) <= 1) catchDaddy();
     }
     function moveDaddy() {
-      const options = [[0, -1], [0, 1], [-1, 0], [1, 0]].map(function (delta) {
-        return { x: daddyPos.x + delta[0], y: daddyPos.y + delta[1] };
-      }).filter(function (pos) { return pos.x >= 0 && pos.y >= 0 && pos.x < size && pos.y < size && !rocks.has(pos.x + "," + pos.y); });
-      if (!options.length) return;
-      const farthest = options.sort(function (a, b) { return distance(b, dinoPos) - distance(a, dinoPos); })[0];
-      if (Math.random() > 0.2) { daddyPos.x = farthest.x; daddyPos.y = farthest.y; }
+      if (finished || currentActivity !== "daddy") { window.clearInterval(daddyTimer); return; }
+      const candidates = [[0,-1],[0,1],[-1,0],[1,0]].map(function (v) { return {x:daddyPos.x+v[0],y:daddyPos.y+v[1]}; }).filter(function (p) { return p.x>=0 && p.x<columns.length && p.y>=0 && p.y<lanes.length; });
+      if (!candidates.length) return;
+      const runAway = turns < 12;
+      candidates.sort(function (a,b) { return (runAway ? distance(b,dinoPos)-distance(a,dinoPos) : distance(a,dinoPos)-distance(b,dinoPos)); });
+      const best = candidates.slice(0, Math.min(2,candidates.length));
+      const next = best[Math.floor(Math.random()*best.length)];
+      daddyPos.x = next.x; daddyPos.y = next.y; paintPositions();
+      if (Math.random() > .55) { const speech=context.stage.querySelector("#chaseSpeech"); if(speech) speech.textContent = turns < 12 ? "You can’t catch me!" : "I’m slowing down!"; }
+    }
+    function moveDino(direction) {
+      if (finished) return;
+      const delta = {up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[direction];
+      const nx=dinoPos.x+delta[0], ny=dinoPos.y+delta[1];
+      if(nx<0||nx>=columns.length||ny<0||ny>=lanes.length) { context.sound("tap"); return; }
+      dinoPos.x=nx; dinoPos.y=ny; turns+=1; context.sound("tap");
+      const hint=context.stage.querySelector("#chaseHint"); if(hint) hint.textContent="Run, " + dino.name + "! Daddy is dashing to another part of the garden.";
+      if(turns%2===0) moveDaddy(); else paintPositions();
+      if(!finished && distance(dinoPos,daddyPos)<=1) catchDaddy();
     }
     function catchDaddy() {
+      if (finished) return;
+      finished = true; window.clearInterval(daddyTimer);
       context.stage.innerHTML = stageTitle(context, dino.icon, "The great dino gulp!", context.message("Watch the dinosaur catch and gobble Daddy in this silly pretend-play chase!")) +
         '<div class="daddy-caught daddy-swallow-scene" aria-label="A friendly dinosaur swallows Daddy in a pretend-play chase">' +
           '<span class="swallow-species">' + dino.icon + ' ' + escapeHtml(dino.name) + '</span>' +
@@ -1052,8 +1079,12 @@ function mountDaddy(context) {
       const continueButton = context.stage.querySelector("#daddyContinue");
       window.setTimeout(function () {
         if (!scene.isConnected || currentActivity !== "daddy") return;
-        caption.textContent = "Daddy slides right into the dinosaur’s open mouth…";
-      }, 950);
+        caption.textContent = "The dinosaur opens wide and Daddy scoots closer…";
+      }, 1100);
+      window.setTimeout(function () {
+        if (!scene.isConnected || currentActivity !== "daddy") return;
+        caption.textContent = "Daddy is sliding right into the dinosaur’s mouth…";
+      }, 2450);
       window.setTimeout(function () {
         if (!scene.isConnected || currentActivity !== "daddy") return;
         scene.classList.add("swallowed");
@@ -1063,12 +1094,13 @@ function mountDaddy(context) {
         continueButton.hidden = false;
         context.sound("good");
         context.speak(context.message("Gulp! The dinosaur swallowed Daddy in a silly pretend-play chase. Daddy is safe and ready to play again."));
-      }, 2600);
+      }, 3800);
       continueButton.addEventListener("click", function () {
         context.advance("Daddy was gobbled up in a puff of dino magic, then popped back safe for another chase!");
       });
     }
-    drawChase();
+    drawScene();
+    daddyTimer = window.setInterval(moveDaddy, Math.max(780, 1250 - context.level * 55));
   }
 }
 
