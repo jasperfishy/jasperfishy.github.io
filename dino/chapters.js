@@ -23,6 +23,14 @@ export const chapters = [
     url: 'chapters/meadow/index.html',
     storagePrefix: 'dm-',
   },
+  {
+    id: 'drive',
+    title: 'Dino Car Studio',
+    subtitle: '6 dinosaur worlds · race rivals · unlock 48 cars',
+    icon: '🏎️',
+    url: 'chapters/drive/index.html',
+    storagePrefix: 'dino-car-studio-v1',
+  },
 ];
 
 // Original quick-play activities use the same hub shell and launch directly

@@ -1,7 +1,7 @@
 // Dinosaur Universe — hub service worker.
 // The ONLY service worker in the combined app. Chapter pages do not register
 // their own when embedded (they check window.self === window.top).
-const VERSION = 'du-v7';
+const VERSION = 'du-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -27,6 +27,16 @@ const ASSETS = [
   './chapters/meadow/icon.svg',
   './chapters/meadow/icon-192.png',
   './chapters/meadow/icon-512.png',
+  // Dino Car Studio chapter
+  './chapters/drive/index.html',
+  './chapters/drive/css/style.css',
+  './chapters/drive/js/main.js',
+  './chapters/drive/js/data-cars.js',
+  './chapters/drive/js/data-scenes.js',
+  './chapters/drive/js/render-car.js',
+  './chapters/drive/js/screens/customize.js',
+  './chapters/drive/js/screens/drive.js',
+  './chapters/drive/js/screens/garage.js',
   // Original play modules (the hub is their shared shell)
   './chapters/adventures/index.html',
   './chapters/adventures/manifest.webmanifest',
