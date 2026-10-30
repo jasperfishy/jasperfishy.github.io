@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#4a8f3c">
+<title>Dino Park</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%90%96%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/park.css">
+</head>
+<body>
+<header id="topbar">
+  <button id="homeBtn" class="icon-btn" aria-label="Home">🏠</button>
+  <h1 id="title">Dino Park</h1>
+  <button id="soundBtn" class="icon-btn" aria-label="Sound">🔊</button>
+</header>
+
+<main id="menu" class="screen">
+  <div class="hero">
+    <div class="hero-art" aria-hidden="true">🦖🌋🦕</div>
+    <p>10 games for little palaeontologists. No reading needed.</p>
+  </div>
+  <div id="gameGrid" class="grid"></div>
+</main>
+
+<main id="game" class="screen hidden">
+  <div id="gameHeader">
+    <button id="backBtn" class="icon-btn" aria-label="Back">←</button>
+    <h2 id="gameTitle"></h2>
+    <div id="gameStatus" class="status"></div>
+  </div>
+  <div id="gameArea"></div>
+</main>
+
+<div id="winOverlay" class="overlay hidden">
+  <div class="win-card">
+    <div class="win-emoji">🎉</div>
+    <h3 id="winText">Great job!</h3>
+    <div class="win-btns">
+      <button id="againBtn" class="btn">Play again</button>
+      <button id="menuBtn" class="btn ghost">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/dino.js"></script>
+<script src="js/games.js"></script>
+<script>
+// Chapter bridge: receive shared name/sound from the hub, announce readiness.
+window.addEventListener('message', (e) => {
+  if (!e.data || e.data.type !== 'du-settings') return;
+  const d = e.data;
+  try {
+    const t = document.querySelector('#title');
+    if (t) t.textContent = d.name ? 'Dino Park · ' + d.name : 'Dino Park';
+    const b = document.querySelector('#soundBtn');
+    if (b) {
+      const on = b.textContent.trim() === '🔊';
+      if (on !== !!d.sound) b.click();
+    }
+  } catch {}
+});
+if (window.top && window.top !== window.self) {
+  window.top.postMessage({ type: 'du-ready' }, location.origin);
+}
+</script>
+</body>
+</html>

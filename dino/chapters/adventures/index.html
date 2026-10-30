@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#163f42">
+  <meta name="description" content="A warm, playful dinosaur world with puzzles, coloring, fossil hunts and friendly adventures.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Dino Universe">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Dinosaur Universe</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <div class="sky-glow" aria-hidden="true"></div>
+  <header class="topbar">
+    <button class="brand-button" id="homeButton" aria-label="Dinosaur Universe home">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span class="brand-copy"><strong>Dinosaur Universe</strong><small>A little world of big discoveries</small></span>
+    </button>
+    <div class="top-actions">
+      <button class="round-button" id="soundButton" aria-label="Turn sounds off" title="Sound">♫</button>
+      <button class="round-button" id="parentButton" aria-label="Parent settings" title="Parent settings">⚙</button>
+    </div>
+  </header>
+  <main id="app" class="app-shell" tabindex="-1"></main>
+  <div id="dialogLayer" class="dialog-layer" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "Dinosaur Universe",
+  "short_name": "Dino Universe",
+  "description": "A growing collection of gentle dinosaur games, puzzles and creative play.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f3e8",
+  "theme_color": "#163f42",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
