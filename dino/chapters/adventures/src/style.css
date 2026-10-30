@@ -325,6 +325,23 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .daddy-pop { position: absolute; top: 27px; right: 23%; width: 67px; height: 67px; overflow: hidden; border: 4px solid #fff; border-radius: 50%; box-shadow: 0 5px 13px rgba(24,62,64,.14); animation: daddy-pop .8s cubic-bezier(.2,1.5,.45,1) infinite alternate; }
 .daddy-pop-face { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
 .daddy-caught p { position: absolute; left: 0; right: 0; bottom: 12px; margin: 0; color: var(--forest); font-weight: 900; }
+.daddy-swallow-scene { min-height: 240px; background:radial-gradient(ellipse at 53% 86%,#fff6da,#e6f4e4 68%,#d1eaf0); }
+.swallow-dino { position:absolute; left:1%; bottom:5px; width:min(68%,285px); height:auto; overflow:visible; filter:drop-shadow(0 8px 5px rgba(31,75,57,.13)); }
+.swallow-jaw { transform-box:view-box; transform-origin:179px 94px; animation:daddy-jaw-chomp 2.6s ease-in-out both; }
+.swallow-belly { transform-origin:122px 130px; animation:daddy-belly-giggle .48s ease-in-out 4 1.75s; }
+.swallow-species { position:absolute; z-index:3; top:11px; left:13px; padding:6px 11px; border:1px solid rgba(255,255,255,.8); border-radius:999px; background:rgba(255,255,255,.76); color:var(--forest); font-size:11px; font-weight:900; }
+.daddy-swallow-face { position:absolute; z-index:2; left:76%; top:19%; width:66px; height:66px; overflow:hidden; border:4px solid #fff; border-radius:50%; background:#ffe4bf; box-shadow:0 5px 13px rgba(24,62,64,.18); animation:daddy-swallow 2.6s cubic-bezier(.54,.02,.77,.45) both; }
+.swallow-gulp { position:absolute; z-index:4; top:15px; right:9%; padding:9px 14px; transform:scale(.3) rotate(-12deg); border:3px solid #fff; border-radius:18px 18px 18px 5px; background:#ffd56f; color:#69442d; font-size:clamp(17px,4vw,24px); font-weight:1000; opacity:0; text-shadow:0 1px rgba(255,255,255,.8); }
+.daddy-swallow-scene.swallowed .swallow-gulp { animation:swallow-gulp-pop .45s cubic-bezier(.2,1.5,.45,1) both; }
+.swallow-caption { z-index:4; bottom:9px !important; padding:0 8px; font-size:clamp(12px,3vw,15px); text-shadow:0 1px 4px rgba(255,255,255,.95); }
+.swallow-safety { max-width:500px; margin:0 auto 10px; text-align:center; }
+.daddy-swallow-scene.swallowed .swallow-jaw { animation:none; transform:rotate(0); }
+.daddy-swallow-scene.swallowed .daddy-swallow-face { animation:none; transform:scale(.04); opacity:0; visibility:hidden; }
+@keyframes daddy-jaw-chomp { 0%,12% { transform:rotate(0); } 30%,62% { transform:rotate(31deg); } 80%,100% { transform:rotate(0); } }
+@keyframes daddy-swallow { 0% { left:76%; top:19%; transform:rotate(0) scale(1); opacity:1; } 38% { left:67%; top:16%; transform:rotate(-8deg) scale(.92); opacity:1; } 75% { left:56%; top:25%; transform:rotate(11deg) scale(.64); opacity:1; } 100% { left:50%; top:30%; transform:rotate(25deg) scale(.04); opacity:0; } }
+@keyframes daddy-belly-giggle { 0%,100% { transform:scale(1); } 45% { transform:scale(1.12,.9); } }
+@keyframes swallow-gulp-pop { from { transform:scale(.3) rotate(-12deg); opacity:0; } to { transform:scale(1) rotate(7deg); opacity:1; } }
+@media (prefers-reduced-motion:reduce) { .swallow-jaw,.daddy-swallow-face,.swallow-belly { animation:none !important; } .swallow-gulp { transform:none; opacity:1; } }
 .center-button { display: block; margin: 0 auto; }
 .jigsaw-reference { width: min(205px, 80%); margin: 0 auto 12px; padding: 7px; border-radius: 14px; background: #f0f5eb; text-align: center; }
 .jigsaw-reference span { display: block; color: var(--muted); font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }

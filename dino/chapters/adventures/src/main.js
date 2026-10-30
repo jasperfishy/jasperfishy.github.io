@@ -1009,12 +1009,52 @@ function mountDaddy(context) {
       if (Math.random() > 0.2) { daddyPos.x = farthest.x; daddyPos.y = farthest.y; }
     }
     function catchDaddy() {
-      context.stage.innerHTML = stageTitle(context, dino.icon, "Daddy caught!", context.message("A tickly dinosaur chomp — and Daddy pops back out safe and giggling!")) +
-        '<div class="daddy-caught"><span class="daddy-chomp">' + dino.icon + '</span><span class="daddy-pop"><img src="./assets/daddy-ellis.png" alt="" class="daddy-pop-face"></span><p>Nom! Pop! “That was a silly chase!”</p></div>' +
-        '<button class="primary-button center-button" id="daddyAgain">Play another chase →</button>';
-      context.sound("good"); speak(context.message("Daddy is safe and ready for another game!"));
-      context.stage.querySelector("#daddyAgain").addEventListener("click", function () { runChase(dino); });
-      window.setTimeout(function () { if (currentActivity === "daddy") context.advance("Daddy popped out giggling. Pick another dinosaur for the next chase!"); }, 1100);
+      context.stage.innerHTML = stageTitle(context, dino.icon, "The great dino gulp!", context.message("Watch the dinosaur catch and gobble Daddy in this silly pretend-play chase!")) +
+        '<div class="daddy-caught daddy-swallow-scene" aria-label="A friendly dinosaur swallows Daddy in a pretend-play chase">' +
+          '<span class="swallow-species">' + dino.icon + ' ' + escapeHtml(dino.name) + '</span>' +
+          '<svg class="swallow-dino" viewBox="0 0 260 180" role="img" aria-label="A friendly green dinosaur opens its mouth wide">' +
+            '<ellipse cx="111" cy="162" rx="96" ry="9" fill="#244e43" opacity=".15"/>' +
+            '<path d="M63 113Q38 100 20 82q-2 29 35 47Z" fill="#63ad79" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
+            '<path d="M48 128Q49 94 86 87l49 6q26 10 28 36l-20 18H80q-29 0-32-19Z" fill="#83c889" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
+            '<path d="M86 136v21m39-23 1 23" stroke="#438e67" stroke-width="13" stroke-linecap="round"/><path d="M76 157h22m18 0h22" stroke="#286552" stroke-width="4" stroke-linecap="round"/>' +
+            '<path d="M122 103q4-35 22-53 17-22 48-19 31 2 47 21l14 20q2 10-13 13l-34 4-20 19Z" fill="#94d294" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
+            '<path d="M177 84q34 8 75-9l-7 27q-32 16-67 0Z" fill="#93475c" stroke="#623a47" stroke-width="3" stroke-linejoin="round"/>' +
+            '<path d="m193 86 8 11 7-9 8 10 7-11 8 8 8-11" fill="#fff8e5" stroke="#dfd3b5" stroke-width="2" stroke-linejoin="round"/>' +
+            '<path class="swallow-jaw" d="M179 94q32 14 68-4-1 24-22 31-27 6-46-11Z" fill="#76be83" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
+            '<path d="m193 105 8-1 5 9 7-2 4 9" fill="none" stroke="#fff8e5" stroke-width="4" stroke-linecap="round"/>' +
+            '<circle cx="208" cy="56" r="9" fill="#fff"/><circle cx="211" cy="57" r="4.5" fill="#173f3d"/><circle cx="212" cy="55" r="1.7" fill="#fff"/>' +
+            '<path d="M229 73q7-4 12 1" fill="none" stroke="#286552" stroke-width="3" stroke-linecap="round"/>' +
+            '<path class="swallow-belly" d="M91 129q28 16 57 1" fill="none" stroke="#d4edb8" stroke-width="5" stroke-linecap="round"/>' +
+          '</svg>' +
+          '<span class="daddy-swallow-face"><img src="./assets/daddy-ellis.png" alt="Daddy Ellis" class="daddy-pop-face"></span>' +
+          '<span class="swallow-gulp" aria-hidden="true">GULP!</span>' +
+          '<p class="swallow-caption" id="daddySwallowCaption" aria-live="polite">The dinosaur opens its great big mouth…</p>' +
+        '</div>' +
+        '<p class="gentle-hint swallow-safety" id="swallowSafety" hidden>It is only pretend-play magic — Daddy pops back safe and ready for another chase.</p>' +
+        '<button class="primary-button center-button" id="daddyContinue" hidden>Daddy bounced back! Play again →</button>';
+      context.sound("roar");
+      const scene = context.stage.querySelector(".daddy-swallow-scene");
+      const caption = context.stage.querySelector("#daddySwallowCaption");
+      const gulp = context.stage.querySelector(".swallow-gulp");
+      const safety = context.stage.querySelector("#swallowSafety");
+      const continueButton = context.stage.querySelector("#daddyContinue");
+      window.setTimeout(function () {
+        if (!scene.isConnected || currentActivity !== "daddy") return;
+        caption.textContent = "Daddy slides right into the dinosaur’s open mouth…";
+      }, 950);
+      window.setTimeout(function () {
+        if (!scene.isConnected || currentActivity !== "daddy") return;
+        scene.classList.add("swallowed");
+        gulp.setAttribute("aria-hidden", "false");
+        caption.textContent = "GULP! The dinosaur has eaten Daddy!";
+        safety.hidden = false;
+        continueButton.hidden = false;
+        context.sound("good");
+        context.speak(context.message("Gulp! The dinosaur swallowed Daddy in a silly pretend-play chase. Daddy is safe and ready to play again."));
+      }, 2600);
+      continueButton.addEventListener("click", function () {
+        context.advance("Daddy was gobbled up in a puff of dino magic, then popped back safe for another chase!");
+      });
     }
     drawChase();
   }
