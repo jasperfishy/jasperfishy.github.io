@@ -1,4 +1,4 @@
-const CACHE_NAME = "dinosaur-universe-shell-v11";
+const CACHE_NAME = "dinosaur-universe-shell-v12";
 const CORE_FILES = [
   "./",
   "./index.html",

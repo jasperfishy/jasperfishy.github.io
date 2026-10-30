@@ -1,7 +1,7 @@
 // Dinosaur Universe — hub service worker.
 // The ONLY service worker in the combined app. Chapter pages do not register
 // their own when embedded (they check window.self === window.top).
-const VERSION = 'du-v5';
+const VERSION = 'du-v6';
 const ASSETS = [
   './',
   './index.html',
