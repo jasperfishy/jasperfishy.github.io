@@ -42,9 +42,12 @@ body {
 .pill.primary { background: var(--accent-2); color: #fff; }
 #hub { padding: 16px; max-width: 720px; margin: 0 auto; }
 .worlds-section, .activities-section { margin: 20px 0 28px; }
+.section-kicker { display: inline-block; margin-bottom: 5px; color: #568077; font-size: .68rem; font-weight: 900; letter-spacing: .12em; }
 .worlds-section > h2, .activities-heading h2 { margin: 0; font-size: 1.2rem; letter-spacing: -.02em; }
 .worlds-section > p, .activities-heading p { margin: 5px 0 12px; color: #54706d; font-size: .9rem; line-height: 1.45; }
+.activities-section { padding: 17px 16px 5px; border: 1px solid #cfe5dc; border-radius: 24px; background: linear-gradient(145deg,rgba(255,255,255,.76),rgba(230,245,235,.9)); }
 .activities-heading { margin: 0 0 12px; }
+.activities-heading .section-kicker { color: #9b6c37; }
 .module-group { margin: 19px 0 24px; }
 .module-group h3 { margin: 0 0 9px; color: #47736c; font-size: .92rem; font-weight: 800; }
 .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 9px; }
@@ -116,6 +119,8 @@ body {
   padding: 20px;
   max-width: 440px;
   width: 100%;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0,0,0,.25);
 }
 .modal h2 { margin: 0 0 8px; }
@@ -129,6 +134,11 @@ body {
   margin-top: 6px;
 }
 .modal .row { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.modal .row input[type="checkbox"] { width: 19px; height: 19px; margin: 0; accent-color: var(--accent-2); }
+.setting-field { display: grid; gap: 6px; margin: 13px 0 !important; font-size: .9rem; }
+.setting-field input, .setting-field select { width: 100%; min-height: 43px; padding: 9px 11px; border: 2px solid #cfe8e2; border-radius: 12px; background: #fff; color: var(--ink); font: inherit; }
+.setting-field input:focus-visible, .setting-field select:focus-visible { outline: 3px solid #e9c46a; outline-offset: 2px; }
+.setting-error { min-height: 1em; margin: 5px 0; color: #a13d3d; font-size: .82rem; }
 .subtle { font-size: .85rem; opacity: .7; }
 .toolbar { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 #toast {

@@ -1,5 +1,5 @@
 // Dinosaur Universe — hub shell.
-// Shared state: name (du-name), sound (du-sound). Chapters get these via postMessage.
+// Shared state: child name and parent preferences. Chapters receive them via postMessage.
 import { chapters, activities } from './chapters.js';
 
 const hub = document.querySelector('#hub');
@@ -9,8 +9,18 @@ const stageTitle = document.querySelector('#stageTitle');
 const toastEl = document.querySelector('#toast');
 let toastTimer;
 
-const settings = { sound: true };
-try { settings.sound = JSON.parse(localStorage.getItem('du-sound') ?? 'true') !== false; } catch {}
+function readJson(key) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null') || {}; } catch { return {}; }
+}
+const savedSettings = readJson('du-parent-settings');
+const previousAdventureSettings = readJson('dinosaur-universe-player-v1');
+const settings = {
+  sound: true,
+  difficulty: savedSettings.difficulty || previousAdventureSettings.difficulty || 'curious',
+  speech: typeof savedSettings.speech === 'boolean' ? savedSettings.speech : Boolean(previousAdventureSettings.speech),
+  calmCelebrations: typeof savedSettings.calmCelebrations === 'boolean' ? savedSettings.calmCelebrations : Boolean(previousAdventureSettings.calmCelebrations),
+};
+try { settings.sound = JSON.parse(localStorage.getItem('du-sound') ?? JSON.stringify(savedSettings.sound ?? previousAdventureSettings.sound ?? true)) !== false; } catch {}
 let name = '';
 try { name = localStorage.getItem('du-name') || ''; } catch {}
 
@@ -20,14 +30,15 @@ function toast(text) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { toastEl.style.display = 'none'; }, 3500);
 }
-function saveSound() {
+function saveSettings() {
   try { localStorage.setItem('du-sound', JSON.stringify(settings.sound)); } catch {}
+  try { localStorage.setItem('du-parent-settings', JSON.stringify({ sound: settings.sound, difficulty: settings.difficulty, speech: settings.speech, calmCelebrations: settings.calmCelebrations })); } catch {}
   document.querySelector('#soundBtn').textContent = settings.sound ? '🔊' : '🔇';
   broadcast();
 }
 function broadcast() {
   if (frame && frame.contentWindow) {
-    frame.contentWindow.postMessage({ type: 'du-settings', name, sound: settings.sound }, location.origin);
+    frame.contentWindow.postMessage({ type: 'du-settings', name, sound: settings.sound, difficulty: settings.difficulty, speech: settings.speech, calmCelebrations: settings.calmCelebrations }, location.origin);
   }
 }
 
@@ -36,6 +47,17 @@ window.addEventListener('message', (e) => {
   if (e.origin !== location.origin || e.source !== frame.contentWindow || !e.data) return;
   if (e.data.type === 'du-ready') broadcast();
   if (e.data.type === 'du-back') renderMenu();
+  if (e.data.type === 'du-settings-update') {
+    const nextName = String(e.data.name || '').trim().replace(/\s+/g, ' ').slice(0, 24);
+    if (nextName && !/^[A-Za-zÀ-ÖØ-öø-ÿ' -]{1,24}$/.test(nextName)) return;
+    name = nextName;
+    try { localStorage.setItem('du-name', name); } catch {}
+    if (typeof e.data.sound === 'boolean') settings.sound = e.data.sound;
+    if (['gentle', 'curious', 'adventurer'].includes(e.data.difficulty)) settings.difficulty = e.data.difficulty;
+    if (typeof e.data.speech === 'boolean') settings.speech = e.data.speech;
+    if (typeof e.data.calmCelebrations === 'boolean') settings.calmCelebrations = e.data.calmCelebrations;
+    saveSettings();
+  }
 });
 
 // ---------- Name dialog (shared, carried over from Dino Meadow) ----------
@@ -88,20 +110,47 @@ function parentsDialog() {
   root.innerHTML = `
   <div class="modal-backdrop">
     <div class="modal">
-      <h2>Parents</h2>
-      <p class="subtle">Small controls for the whole universe. Saved on this device only.</p>
-      <label class="row"><input type="checkbox" id="set-sound" ${settings.sound ? 'checked' : ''}> Sound effects</label>
-      <p class="subtle">Speech and calm celebrations are set inside each chapter. Pictures and progress stay on this device.</p>
-      <div class="toolbar">
-        <button class="pill primary" id="save-parents">Save</button>
-        <button class="pill" id="close-parents">Close</button>
-      </div>
+      <h2>Parents’ settings</h2>
+      <p class="subtle">Personalise Dinosaur Universe. These choices are saved on this device.</p>
+      <form id="parent-settings-form">
+        <label class="setting-field" for="set-name">Child’s first name
+          <input type="text" id="set-name" maxlength="24" value="${name.replace(/[&<>\"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[c]))}" autocomplete="off" autocapitalize="words">
+        </label>
+        <label class="setting-field" for="set-difficulty">Starting challenge
+          <select id="set-difficulty">
+            <option value="gentle" ${settings.difficulty === 'gentle' ? 'selected' : ''}>Little Explorer</option>
+            <option value="curious" ${settings.difficulty === 'curious' ? 'selected' : ''}>Curious Explorer</option>
+            <option value="adventurer" ${settings.difficulty === 'adventurer' ? 'selected' : ''}>Dino Adventurer</option>
+          </select>
+        </label>
+        <label class="row"><input type="checkbox" id="set-sound" ${settings.sound ? 'checked' : ''}> Sound effects</label>
+        <label class="row"><input type="checkbox" id="set-speech" ${settings.speech ? 'checked' : ''}> Speak gentle instructions</label>
+        <label class="row"><input type="checkbox" id="set-calm" ${settings.calmCelebrations ? 'checked' : ''}> Use calmer celebrations</label>
+        <p class="subtle">Name and sound are shared across the whole game. Challenge, speech and calmer rewards apply to the original activities; Dino Park and Dino Meadow keep their chapter-specific options.</p>
+        <p class="setting-error" id="parent-settings-error" role="status"></p>
+        <div class="toolbar">
+          <button class="pill primary" type="submit">Save settings</button>
+          <button class="pill" type="button" id="close-parents">Close</button>
+        </div>
+      </form>
     </div>
   </div>`;
-  document.querySelector('#save-parents').onclick = () => {
+  document.querySelector('#parent-settings-form').onsubmit = (event) => {
+    event.preventDefault();
+    const nextName = document.querySelector('#set-name').value.trim().replace(/\s+/g, ' ').slice(0, 24);
+    if (nextName && !/^[A-Za-zÀ-ÖØ-öø-ÿ' -]{1,24}$/.test(nextName)) {
+      document.querySelector('#parent-settings-error').textContent = 'Use letters, spaces, apostrophes or hyphens for the first name.';
+      return;
+    }
+    name = nextName;
+    settings.difficulty = document.querySelector('#set-difficulty').value;
     settings.sound = document.querySelector('#set-sound').checked;
-    saveSound();
+    settings.speech = document.querySelector('#set-speech').checked;
+    settings.calmCelebrations = document.querySelector('#set-calm').checked;
+    try { localStorage.setItem('du-name', name); } catch {}
+    saveSettings();
     root.innerHTML = '';
+    if (stage.hidden) renderMenu();
     toast('Settings saved.');
   };
   document.querySelector('#close-parents').onclick = () => { root.innerHTML = ''; };
@@ -131,7 +180,7 @@ function renderMenu() {
       <h1>${hello}</h1>
       <p>Where shall we go${name ? ', ' + name : ''}?</p>
     </section>
-    <section class="worlds-section"><h2>Explore a dinosaur world</h2><p>Open a whole world of games and discoveries.</p>
+    <section class="worlds-section"><span class="section-kicker">FULL GAME CHAPTERS</span><h2>Explore a dinosaur world</h2><p>Each tile opens a complete collection from one of the original games.</p>
     <div class="chapter-grid">
       ${chapters.map((c) => `
         <button class="chapter-card" data-chapter="${c.id}">
@@ -140,7 +189,7 @@ function renderMenu() {
           <span class="chapter-sub">${c.subtitle}</span>
       </button>`).join('')}
     </div></section>
-    <section class="activities-section"><div class="activities-heading"><h2>Pick an activity</h2><p>Little adventures, creative play and discoveries all live here.</p></div>${activityGroups}</section>
+    <section class="activities-section"><div class="activities-heading"><span class="section-kicker">${activities.length} NEW QUICK-PLAY GAMES</span><h2>Dinosaur Universe originals</h2><p>These games were made for this shared universe. They are separate activities, beyond the full Dino Park and Dino Meadow chapters above.</p></div>${activityGroups}</section>
     <button class="pill" id="renameBtn">✏️ Change name</button>`;
   for (const c of chapters) {
     document.querySelector(`[data-chapter="${c.id}"]`).onclick = () => openChapter(c);
@@ -165,7 +214,7 @@ function openChapter(c) {
 }
 
 // ---------- Boot ----------
-document.querySelector('#soundBtn').onclick = () => { settings.sound = !settings.sound; saveSound(); };
+document.querySelector('#soundBtn').onclick = () => { settings.sound = !settings.sound; saveSettings(); };
 document.querySelector('#parentsBtn').onclick = parentsDialog;
 document.querySelector('#backBtn').onclick = renderMenu;
 document.querySelector('#soundBtn').textContent = settings.sound ? '🔊' : '🔇';

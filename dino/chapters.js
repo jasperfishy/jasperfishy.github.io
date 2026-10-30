@@ -10,7 +10,7 @@ export const chapters = [
   {
     id: 'park',
     title: 'Dino Park',
-    subtitle: '10 puzzle games',
+    subtitle: '10 puzzle games · full Park chapter',
     icon: '🦖',
     url: 'chapters/park/index.html',
     storagePrefix: 'dino_',
@@ -18,7 +18,7 @@ export const chapters = [
   {
     id: 'meadow',
     title: 'Dino Meadow',
-    subtitle: '100 activities + colouring book',
+    subtitle: '20 game types · 100 variations · 120-page colouring book',
     icon: '🌿',
     url: 'chapters/meadow/index.html',
     storagePrefix: 'dm-',
