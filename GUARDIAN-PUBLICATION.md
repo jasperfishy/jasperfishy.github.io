@@ -6,6 +6,7 @@ These pages are drafts, not approved privacy or contractual statements. Do not m
 
 - Operating organisation and privacy contact: Southern Taxis Ltd, 98 Warren Road, Brighton BN2 6BA; enquiries@southerntaxis.co.uk.
 - These details have been added to all three pages. The responsible organisation is distinguished from the technical contact.
+- Steve confirmed that no existing privacy or retention policy is available. See GUARDIAN-RETENTION-PROPOSAL.md for suggested starting points and the review/implementation needed before adoption. The public privacy draft continues to reflect the current lack of a verified comprehensive deletion schedule.
 
 ## Required facts
 
