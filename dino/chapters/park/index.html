@@ -2,67 +2,67 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#4a8f3c">
 <title>Dino Park</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%90%96%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%A6%96%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../fx/du-fx.css">
 <link rel="stylesheet" href="css/park.css">
 </head>
 <body>
 <header id="topbar">
-  <button id="homeBtn" class="icon-btn" aria-label="Home">🏠</button>
+  <button id="homeBtn" class="icon-btn" aria-label="Back">🏠</button>
   <h1 id="title">Dino Park</h1>
-  <button id="soundBtn" class="icon-btn" aria-label="Sound">🔊</button>
+  <button id="soundBtn" class="icon-btn" aria-label="Turn sound off">🔊</button>
 </header>
 
 <main id="menu" class="screen">
-  <div class="hero">
-    <div class="hero-art" aria-hidden="true">🦖🌋🦕</div>
-    <p>10 games for little palaeontologists. No reading needed.</p>
-  </div>
+  <section class="park-hero">
+    <svg class="ph-volcano" viewBox="0 0 220 170" aria-hidden="true"><path d="M8 170 L74 52 Q110 34 146 52 L212 170Z" fill="#8a5d44"/><path d="M74 52 Q110 64 146 52 Q110 42 74 52Z" fill="#ff7a3d" class="ph-crater"/><path d="M100 60 q-6 36 -22 70 M118 60 q10 32 28 70" stroke="#ff9b50" stroke-width="6" fill="none" stroke-linecap="round" class="ph-lava"/></svg>
+    <i class="ph-smoke" style="--d:0s"></i><i class="ph-smoke" style="--d:1.5s"></i><i class="ph-smoke" style="--d:3s"></i>
+    <div class="ph-text"><h2>Welcome to Dino Park!</h2><p id="heroSub">12 games · hatch your own dinosaurs</p></div>
+    <div class="egg-card" id="eggCard" aria-live="polite"></div>
+  </section>
+  <section class="den-section">
+    <h3>🏡 Your Dino Den <small id="denCount"></small></h3>
+    <div class="den" id="den"></div>
+  </section>
+  <h3 class="games-h">🎮 Pick a game</h3>
   <div id="gameGrid" class="grid"></div>
 </main>
 
 <main id="game" class="screen hidden">
   <div id="gameHeader">
-    <button id="backBtn" class="icon-btn" aria-label="Back">←</button>
-    <h2 id="gameTitle"></h2>
-    <div id="gameStatus" class="status"></div>
+    <button id="backBtn" class="icon-btn" aria-label="Back to the games">←</button>
+    <div class="gh-mid"><h2 id="gameTitle"></h2><div id="pips" aria-label="Round"></div></div>
+    <div id="helper" aria-hidden="true"></div>
   </div>
-  <div id="gameArea"></div>
+  <div id="say" class="say" role="status" aria-live="polite"></div>
+  <div id="gameArea" class="game-area"></div>
 </main>
 
 <div id="winOverlay" class="overlay hidden">
   <div class="win-card">
-    <div class="win-emoji">🎉</div>
+    <div id="winDino" class="win-dino"></div>
     <h3 id="winText">Great job!</h3>
+    <div id="winStars" class="win-stars"></div>
+    <div class="egg-meter-wrap"><div id="eggMeter" class="egg-meter"></div><p id="winNext" class="win-next"></p></div>
     <div class="win-btns">
       <button id="againBtn" class="btn">Play again</button>
+      <button id="nextBtn" class="btn alt">Next game ▶</button>
       <button id="menuBtn" class="btn ghost">Menu</button>
     </div>
   </div>
 </div>
+<div id="hatch" class="overlay hidden"></div>
 
-<script src="js/dino.js"></script>
-<script src="js/games.js"></script>
-<script>
-// Chapter bridge: receive shared name/sound from the hub, announce readiness.
-window.addEventListener('message', (e) => {
-  if (!e.data || e.data.type !== 'du-settings') return;
-  const d = e.data;
-  try {
-    const t = document.querySelector('#title');
-    if (t) t.textContent = d.name ? 'Dino Park · ' + d.name : 'Dino Park';
-    const b = document.querySelector('#soundBtn');
-    if (b) {
-      const on = b.textContent.trim() === '🔊';
-      if (on !== !!d.sound) b.click();
-    }
-  } catch {}
-});
-if (window.top && window.top !== window.self) {
-  window.top.postMessage({ type: 'du-ready' }, location.origin);
-}
-</script>
+<script src="../../fx/du-dino.js"></script>
+<script src="../../fx/du-fx.js"></script>
+<script src="../../fx/du-ambient.js"></script>
+<script src="js/core.js"></script>
+<script src="js/games1.js"></script>
+<script src="js/games2.js"></script>
+<script src="js/games3.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

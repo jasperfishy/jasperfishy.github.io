@@ -31,11 +31,20 @@ export const chapters = [
     url: 'chapters/drive/index.html',
     storagePrefix: 'dino-car-studio-v1',
   },
+  {
+    id: 'adventures',
+    title: 'Dino Adventures',
+    subtitle: '21 adventures · chase Daddy · help Mummy · hatch, build, rescue',
+    icon: '🎈',
+    url: 'chapters/adventures/index.html',
+    storagePrefix: 'dinosaur-universe-player-v1',
+  },
 ];
 
 // Original quick-play activities use the same hub shell and launch directly
 // into their module. Add a new module here and in adventures/src/main.js.
 export const activities = [
+  { id: 'rescue', title: 'The Great Dino Rescue', subtitle: 'A seven-chapter quest to save Mummy and Daddy', icon: '🏇', category: 'Adventures' },
   { id: 'builder', title: 'Build a Dinosaur', subtitle: 'Fit the dinosaur parts together', icon: '🦖', category: 'Puzzles' },
   { id: 'jigsaw', title: 'Dino Picture Jigsaw', subtitle: 'Piece together a prehistoric scene', icon: '🧩', category: 'Puzzles' },
   { id: 'fossil', title: 'Fossil Explorer', subtitle: 'Brush away the earth and discover bones', icon: '🦴', category: 'Discovery' },
@@ -56,5 +65,6 @@ export const activities = [
   { id: 'skymail', title: 'Prehistoric Sky Mail', subtitle: 'Deliver little surprises to ancient flying friends', icon: '📮', category: 'Adventures' },
   { id: 'weather', title: 'Dino Weather Workshop', subtitle: 'Help prehistoric friends feel just right in every kind of weather', icon: '🌦️', category: 'Discovery' },
   { id: 'coloring', title: 'Coloring Studio', subtitle: 'Colour dinosaur scenes and keep your art', icon: '🎨', category: 'Creative' },
+  { id: 'quest', title: 'Dino Quest: The Lost Egg', subtitle: 'Climb a mountain, find a cave, save an egg', icon: '⛰️', category: 'Adventures' },
   { id: 'daddy', title: 'Naughty Daddy', subtitle: 'Guide a dinosaur through a silly chase', icon: '🏃', category: 'Adventures' },
 ];

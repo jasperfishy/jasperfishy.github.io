@@ -1,0 +1,108 @@
+/* Animated people rig: a 200 x 330 design box scaled with --k */
+.du-person { position: relative; display: inline-block; width: calc(200px * var(--k, 1)); height: calc(330px * var(--k, 1)); vertical-align: bottom; }
+.p-rig { position: absolute; left: 0; top: 0; width: 200px; height: 330px; transform: scale(var(--k, 1)); transform-origin: 0 0; }
+.p-rig > div, .p-head > i, .p-head > span { position: absolute; }
+.p-shadow { left: 40px; bottom: 0; width: 120px; height: 14px; border-radius: 50%; background: rgba(20,60,58,.18); }
+.p-torso { left: 56px; top: 132px; width: 88px; height: 106px; border-radius: 30px 30px 16px 16px; background: var(--sweater); box-shadow: inset 0 -8px 0 rgba(0,0,0,.08), inset 0 6px 0 rgba(255,255,255,.12); transform-origin: 50% 100%; z-index: 3; }
+.p-collar { position: absolute; left: 24px; top: 0; width: 40px; height: 20px; border-radius: 0 0 24px 24px; background: var(--skin); }
+.p-arm { top: 144px; width: 24px; height: 92px; border-radius: 14px; background: var(--sleeve); transform-origin: 50% 12px; z-index: 4; }
+.p-al { left: 40px; } .p-ar { left: 136px; }
+.p-hand { position: absolute; left: 1px; bottom: -8px; width: 22px; height: 22px; border-radius: 50%; background: var(--skin); }
+.p-hold { position: absolute; left: -12px; bottom: -34px; font-size: 40px; line-height: 1; display: none; }
+.du-person.holding .p-hold { display: block; }
+.p-leg { top: 228px; width: 30px; height: 86px; border-radius: 12px 12px 8px 8px; background: var(--pants); transform-origin: 50% 8px; z-index: 2; }
+.p-l { left: 66px; } .p-r { left: 104px; }
+.p-foot { position: absolute; left: -4px; bottom: -8px; width: 42px; height: 18px; border-radius: 14px 18px 8px 8px; background: var(--shoe); }
+.p-head { left: 40px; z-index: 6; transform-origin: 50% 94%; }
+.p-head img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.p-head img.p-round { border-radius: 50%; box-shadow: 0 0 0 4px #fff, 0 4px 8px rgba(0,0,0,.25); }
+.p-lid { height: 0; border-radius: 0 0 60% 60%; transform-origin: 50% 0; transition: height .2s; z-index: 2; box-shadow: 0 2px 0 rgba(60,30,10,.4); }
+.p-mouth { height: 0; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 80%, #ff8a8a 0 28%, #5b1a24 30%); transform: translate(-50%, -50%) scale(0); transition: transform .15s; z-index: 2; }
+.p-blush { width: 20%; height: 8%; border-radius: 50%; background: #ff7e8e; opacity: 0; transition: opacity .3s; filter: blur(3px); z-index: 1; }
+.p-sweat, .p-stars, .p-zzz { opacity: 0; pointer-events: none; font-size: 22px; z-index: 5; }
+.p-sweat { right: -14px; top: 4px; } .p-stars { left: 50%; top: -22px; transform: translateX(-50%); letter-spacing: 2px; white-space: nowrap; } .p-zzz { right: -16px; top: -14px; font-size: 26px; }
+
+/* idle: breathing + a slow blink */
+.du-person .p-torso { animation: pp-breathe 3.4s ease-in-out infinite; animation-delay: var(--d); }
+.du-person .p-head { animation: pp-headidle 4.6s ease-in-out infinite; animation-delay: var(--d); }
+.du-person .p-lid { animation: pp-blink 4.8s infinite; animation-delay: var(--d); }
+@keyframes pp-breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.02, 1.03); } }
+@keyframes pp-headidle { 0%,100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.8deg) translateY(-1px); } }
+@keyframes pp-blink { 0%,92%,100% { height: 0; } 95% { height: 7%; } }
+
+/* walk & run */
+.du-person[data-state="walk"] .p-l, .du-person[data-state="walk"] .p-ar { animation: pp-swing .9s ease-in-out infinite; }
+.du-person[data-state="walk"] .p-r, .du-person[data-state="walk"] .p-al { animation: pp-swing .9s ease-in-out infinite reverse; }
+.du-person[data-state="walk"] .p-torso, .du-person[data-state="walk"] .p-head { animation: pp-bob .45s ease-in-out infinite; }
+.du-person[data-state="run"] .p-l, .du-person[data-state="run"] .p-ar { animation: pp-swing-big .42s ease-in-out infinite; }
+.du-person[data-state="run"] .p-r, .du-person[data-state="run"] .p-al { animation: pp-swing-big .42s ease-in-out infinite reverse; }
+.du-person[data-state="run"] .p-torso, .du-person[data-state="run"] .p-head { animation: pp-bob .21s ease-in-out infinite; }
+.du-person[data-state="run"] .p-rig { transform: scale(var(--k, 1)) rotate(5deg); }
+@keyframes pp-swing { 0%,100% { transform: rotate(-26deg); } 50% { transform: rotate(26deg); } }
+@keyframes pp-swing-big { 0%,100% { transform: rotate(-48deg); } 50% { transform: rotate(48deg); } }
+@keyframes pp-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+/* panic: arms up, shaking, scream, sweat */
+.du-person[data-state="panic"] .p-al { animation: pp-flail .22s ease-in-out infinite; transform: rotate(160deg); }
+.du-person[data-state="panic"] .p-ar { animation: pp-flail .22s ease-in-out infinite reverse; transform: rotate(-160deg); }
+.du-person[data-state="panic"] .p-l, .du-person[data-state="panic"] .p-r { animation: pp-swing-big .3s ease-in-out infinite; }
+.du-person[data-state="panic"] .p-r { animation-direction: reverse; }
+.du-person[data-state="panic"] .p-head { animation: pp-shake .16s linear infinite; }
+.du-person[data-state="panic"] .p-torso { animation: pp-bob .16s ease-in-out infinite; }
+.du-person[data-state="panic"] .p-mouth, .du-person[data-state="roar"] .p-mouth { transform: translate(-50%, -50%) scale(1); }
+.du-person[data-state="panic"] .p-sweat { opacity: 1; animation: pp-sweat .5s ease-out infinite; }
+.du-person[data-state="panic"] .p-lid { animation: none; height: 0; }
+@keyframes pp-flail { 0%,100% { transform: rotate(150deg); } 50% { transform: rotate(185deg); } }
+@keyframes pp-shake { 0%,100% { transform: translate(-2px, 0) rotate(-4deg); } 50% { transform: translate(2px, -2px) rotate(4deg); } }
+@keyframes pp-sweat { 0% { transform: translate(0, 0); opacity: 1; } 100% { transform: translate(14px, -16px); opacity: 0; } }
+
+/* caught: squashed, dizzy stars */
+.du-person[data-state="caught"] .p-rig { transform: scale(var(--k, 1)) translate(-18px, 92px) scale(1.18, .72); }
+.du-person[data-state="caught"] .p-head { animation: pp-dizzy 1s ease-in-out infinite; }
+.du-person[data-state="caught"] .p-stars { opacity: 1; animation: pp-spin 1.2s linear infinite; }
+.du-person[data-state="caught"] .p-lid { height: 7%; animation: none; }
+.du-person[data-state="caught"] .p-al { transform: rotate(40deg); } .du-person[data-state="caught"] .p-ar { transform: rotate(-40deg); }
+@keyframes pp-dizzy { 0%,100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
+@keyframes pp-spin { from { transform: translateX(-50%) rotate(0); } to { transform: translateX(-50%) rotate(360deg); } }
+
+/* tired / yawn / sleep */
+.du-person[data-state="tired"] .p-head { animation: pp-droop 3.4s ease-in-out infinite; }
+.du-person[data-state="tired"] .p-torso { animation: pp-slump 3.4s ease-in-out infinite; }
+.du-person[data-state="tired"] .p-lid { animation: pp-sleepy 4s ease-in-out infinite; }
+.du-person[data-state="tired"] .p-al, .du-person[data-state="tired"] .p-ar { transform: rotate(4deg); }
+.du-person[data-state="yawn"] .p-head { animation: pp-yawn 2.4s ease-in-out infinite; }
+.du-person[data-state="yawn"] .p-mouth { animation: pp-mouth 2.4s ease-in-out infinite; }
+.du-person[data-state="yawn"] .p-lid { animation: none; height: 7%; }
+.du-person[data-state="yawn"] .p-ar { transform: rotate(150deg); }
+.du-person[data-state="sleep"] .p-lid { animation: none; height: 7%; }
+.du-person[data-state="sleep"] .p-head { animation: pp-droop 5s ease-in-out infinite; }
+.du-person[data-state="sleep"] .p-torso { animation: pp-breathe 4s ease-in-out infinite; }
+.du-person[data-state="sleep"] .p-zzz { opacity: 1; animation: pp-zzz 2.8s ease-in-out infinite; }
+@keyframes pp-droop { 0%,100% { transform: rotate(7deg) translateY(4px); } 50% { transform: rotate(11deg) translateY(7px); } }
+@keyframes pp-slump { 0%,100% { transform: scale(1, .97); } 50% { transform: scale(1.02, .94); } }
+@keyframes pp-sleepy { 0%,40%,100% { height: 3%; } 55%,75% { height: 7%; } }
+@keyframes pp-yawn { 0%,100% { transform: rotate(0); } 30%,70% { transform: rotate(-8deg) translateY(-3px); } }
+@keyframes pp-mouth { 0%,100% { transform: translate(-50%,-50%) scale(0); } 30%,70% { transform: translate(-50%,-50%) scale(1.15); } }
+@keyframes pp-zzz { 0% { transform: translate(0,6px) scale(.6); opacity: 0; } 40% { opacity: 1; } 100% { transform: translate(10px,-22px) scale(1.2); opacity: 0; } }
+
+/* happy / wave / sit / lie */
+.du-person[data-state="happy"] .p-rig { animation: pp-hop .6s cubic-bezier(.3,.7,.4,1) infinite; }
+.du-person[data-state="happy"] .p-blush { opacity: .55; }
+.du-person[data-state="happy"] .p-al { transform: rotate(150deg); } .du-person[data-state="happy"] .p-ar { transform: rotate(-150deg); }
+@keyframes pp-hop { 0%,100% { transform: scale(var(--k, 1)) translateY(0); } 45% { transform: scale(var(--k, 1)) translateY(-18px); } }
+.du-person[data-state="wave"] .p-ar { animation: pp-wave .7s ease-in-out infinite; transform: rotate(-150deg); }
+@keyframes pp-wave { 0%,100% { transform: rotate(-135deg); } 50% { transform: rotate(-175deg); } }
+.du-person[data-state="sit"] .p-l { transform: translateY(-40px) scaleY(.6) rotate(8deg); }
+.du-person[data-state="sit"] .p-r { transform: translateY(-40px) scaleY(.6) rotate(-8deg); }
+.du-person[data-state="sit"] .p-rig { transform: scale(var(--k, 1)) translateY(40px); }
+.du-person[data-state="lie"] { width: calc(330px * var(--k, 1)); height: calc(200px * var(--k, 1)); }
+.du-person[data-state="lie"] .p-rig { transform: scale(var(--k, 1)) translate(330px, 0) rotate(90deg); }
+.du-person[data-state="lie"] .p-l, .du-person[data-state="lie"] .p-r, .du-person[data-state="lie"] .p-al, .du-person[data-state="lie"] .p-ar { animation: none; transform: none; }
+.du-person.blush .p-blush { opacity: .6; }
+@media (prefers-reduced-motion: reduce) { .du-person * { animation-duration: .01s !important; animation-iteration-count: 1 !important; } }
+
+/* flags that layer on top of a pose (used by the lying-in-bed pose) */
+.du-person.drowsy .p-lid { animation: pp-sleepy 4s ease-in-out infinite; }
+.du-person.sleeping .p-lid { animation: none; height: 7%; }
+.du-person.sleeping .p-zzz { opacity: 1; animation: pp-zzz 2.8s ease-in-out infinite; }
+.du-person.sleeping .p-head { animation: none; }

@@ -1,0 +1,78 @@
+/* Dino Quest — the lost egg of Mount Roar */
+.dq-pick { max-width: 760px; margin: 0 auto; text-align: center; padding: 8px; }
+.dq-pick h2 { font-size: clamp(1.5rem, 5vw, 2.2rem); margin: 6px 0; }
+.dq-dinos { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 14px; }
+.dq-dino { background: #fff; border: 3px solid #cfe6d4; border-radius: 22px; padding: 10px; cursor: pointer; font: inherit; transition: transform .18s cubic-bezier(.3,.9,.4,1.4), box-shadow .2s; }
+.dq-dino:hover { transform: translateY(-5px) scale(1.04); box-shadow: 0 10px 20px rgba(20,80,60,.2); border-color: #ffb84d; }
+.dq-dino span { display: block; }
+
+.dq { display: grid; place-items: center; padding: 4px; }
+.dq-area { position: relative; width: min(100%, calc((100dvh - 150px) * 1.6)); aspect-ratio: 8 / 5; border-radius: 26px; overflow: hidden; container-type: size; background: #8fd8f0; box-shadow: 0 14px 34px rgba(6,38,35,.3), inset 0 0 0 4px rgba(255,255,255,.4); touch-action: none; }
+.dq-world { position: absolute; inset: 0; }
+.dq-world > * { position: absolute; }
+.dq-sky { inset: 0; }
+.dq-par { left: 0; width: 200%; background-repeat: repeat-x; background-size: 50% 100%; animation: dq-scroll 14s linear infinite; animation-play-state: paused; }
+.walking .dq-par { animation-play-state: running; }
+.dq-par.far { top: 28%; height: 36%; animation-duration: 40s; opacity: .85; }
+.dq-par.mid { top: 36%; height: 38%; animation-duration: 22s; }
+.dq-par.near { bottom: 0; height: 34%; animation-duration: 9s; }
+@keyframes dq-scroll { to { transform: translateX(-50%); } }
+.dq-sun { right: 8%; top: 7%; width: 12%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #fff6c4, #ffd45e 60%, #ffb92e); box-shadow: 0 0 0 10px rgba(255,214,102,.25), 0 0 40px 14px rgba(255,214,102,.5); animation: hs-sunpulse 4s ease-in-out infinite; }
+.dq-cloud { left: 0; width: var(--w, 80px); height: 22px; background: rgba(255,255,255,.92); border-radius: 99px; animation: dq-cloud 55s linear infinite; }
+.dq-cloud::before { content: ""; position: absolute; left: 20%; top: -60%; width: 46%; height: 150%; border-radius: 50%; background: inherit; }
+@keyframes dq-cloud { from { transform: translateX(-20%); } to { transform: translateX(1400%); } }
+.dq-bird { left: -5%; font-size: 4cqw; animation: dq-bird 16s linear infinite; font-style: normal; }
+@keyframes dq-bird { to { transform: translate(120cqw, -6cqh); } }
+
+.dq-dino-wrap { z-index: 2; filter: drop-shadow(0 6px 5px rgba(0,50,30,.25)); }
+.dq-carry { position: absolute; left: 36%; top: -22%; font-size: 4.4cqw; animation: dq-carry 1.2s ease-in-out infinite; }
+@keyframes dq-carry { 50% { transform: translateY(-5px) rotate(8deg); } }
+.dq-egg { left: 62%; top: 66%; font-size: 8cqw; background: none; border: 0; cursor: pointer; z-index: 3; filter: drop-shadow(0 0 14px #fff6a0); animation: dq-glow 1.4s ease-in-out infinite; }
+@keyframes dq-glow { 50% { filter: drop-shadow(0 0 26px #ffe14d); } }
+
+.dq-mtn { inset: 0; width: 100%; height: 100%; }
+.dq-boulder { left: 46%; top: 8%; font-size: 8cqw; z-index: 4; cursor: pointer; animation: dq-roll 2.6s linear infinite; filter: drop-shadow(0 6px 4px rgba(0,0,0,.3)); }
+.dq-boulder.gone { animation: none; transition: transform .8s, opacity .8s; transform: translate(-30cqw, 40cqh) rotate(-400deg); opacity: 0; }
+@keyframes dq-roll { from { transform: translate(18cqw, -6cqh) rotate(0); } to { transform: translate(-30cqw, 52cqh) rotate(-540deg); } }
+.dq-farcave { right: 4%; top: 18%; z-index: 1; font-size: 9cqw; display: flex; align-items: center; opacity: .75; }
+.dq-farcave b { font-size: 4cqw; color: #fff; margin-left: 4px; animation: dq-q 1s ease-in-out infinite; }
+.dq-farcave.glow { opacity: 1; animation: dq-glow 1s ease-in-out infinite; }
+@keyframes dq-q { 50% { transform: translateY(-8px) scale(1.2); } }
+
+.dq-cavebg { inset: 0; background: radial-gradient(ellipse at 50% 100%, #4b3a6b, #2a1f45 60%, #18102c); }
+.dq-cavebg::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 24%; background: #120c22; clip-path: polygon(0 0, 100% 0, 100% 55%, 95% 100%, 90% 55%, 84% 85%, 78% 50%, 70% 100%, 62% 45%, 55% 90%, 47% 50%, 40% 100%, 33% 55%, 25% 85%, 17% 50%, 9% 100%, 4% 55%, 0 70%); }
+.dq-cavebg::after { content: ""; position: absolute; left: -5%; right: -5%; bottom: 0; height: 24%; background: #1f1636; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.dq-dark { inset: 0; z-index: 2; pointer-events: none; --lx: 18%; --ly: 66%; background: radial-gradient(circle at var(--lx) var(--ly), rgba(255,220,120,.12) 0, transparent 11%, rgba(0,0,0,.86) 28%); transition: opacity 1.4s; }
+.dq-dark.lit { opacity: 0; }
+.dq-spot { z-index: 1; width: 9cqw; height: 9cqw; font-size: 6cqw; line-height: 1; background: none; border: 0; cursor: pointer; transform: translate(-50%, -50%); }
+.dq-spot.crystal { filter: drop-shadow(0 0 10px #7ee8ff); animation: dq-twinkle 1.6s ease-in-out infinite; }
+.dq-spot.hatch { z-index: 4; font-size: 9cqw; animation: dq-wob .5s ease-in-out infinite; }
+.dq-spot.got { animation: none; transform: translate(-50%, -80%) scale(1.8); opacity: 0; transition: .5s; }
+@keyframes dq-twinkle { 50% { filter: drop-shadow(0 0 20px #bff5ff) brightness(1.4); } }
+@keyframes dq-wob { 0%,100% { transform: translate(-50%,-50%) rotate(-12deg); } 50% { transform: translate(-50%,-50%) rotate(12deg); } }
+.dq-bat { left: -6%; font-size: 4cqw; font-style: normal; z-index: 1; animation: dq-batfly 7s linear infinite; }
+@keyframes dq-batfly { 0% { transform: translate(0, 0); } 25% { transform: translate(30cqw, 6cqh); } 50% { transform: translate(60cqw, -3cqh); } 75% { transform: translate(90cqw, 5cqh); } 100% { transform: translate(112cqw, 0); } }
+.dq-nest { right: 4%; top: 18%; width: 30%; z-index: 1; }
+.dq-nest .dq-mum { display: block; width: 100%; }
+.dq-nest i { position: absolute; left: 30%; bottom: -14%; font-size: 7cqw; font-style: normal; }
+.dq-nest.wobble i { animation: dq-hop .4s ease-in-out infinite; }
+.dq-baby { left: 62%; top: 62%; width: 12%; z-index: 3; animation: dq-hop .9s ease-in-out infinite; }
+@keyframes dq-hop { 50% { transform: translateY(-14px); } }
+
+.dq-cap { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); width: min(92%, 640px); z-index: 6; background: rgba(255,255,255,.95); color: #17403a; border-radius: 22px; padding: 10px 18px; font-size: clamp(.95rem, 2.8cqw, 1.5rem); font-weight: 700; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,.25); border: 3px solid #ffd45e; }
+.dq-cap.pop { animation: dq-pop .35s cubic-bezier(.3,1.4,.5,1); }
+@keyframes dq-pop { from { transform: translateX(-50%) scale(.85); opacity: 0; } }
+.dq-choice { position: absolute; z-index: 7; left: 50%; top: 8%; transform: translateX(-50%); width: min(94%, 560px); background: rgba(255,255,255,.96); border-radius: 24px; padding: 12px 16px; text-align: center; box-shadow: 0 12px 28px rgba(0,0,0,.3); animation: dq-pop .35s cubic-bezier(.3,1.4,.5,1); }
+.dq-choice p { margin: 0 0 8px; font-weight: 800; font-size: clamp(1rem, 3cqw, 1.5rem); }
+.dq-choice div { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.dq-choice button { font: inherit; font-weight: 800; padding: 10px 16px; border-radius: 18px; border: 3px solid #cfe6d4; background: #f2fbf3; cursor: pointer; display: flex; gap: 8px; align-items: center; transition: transform .15s; }
+.dq-choice button:hover { transform: scale(1.06); border-color: #ffb84d; }
+.dq-choice button span { font-size: 1.6em; }
+.dq-real { position: absolute; z-index: 8; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(90%, 460px); background: #fffbea; border-radius: 26px; padding: 16px; text-align: center; box-shadow: 0 0 0 6px #ffd45e, 0 18px 40px rgba(0,0,0,.4); animation: dq-popc .45s cubic-bezier(.3,1.4,.5,1); }
+@keyframes dq-popc { from { transform: translate(-50%, -50%) scale(.7) rotate(-4deg); opacity: 0; } }
+.dq-real-tag { display: inline-block; background: #17a37f; color: #fff; font-weight: 800; letter-spacing: .1em; font-size: .75rem; border-radius: 99px; padding: 3px 12px; }
+.dq-real-art { font-size: 6rem; line-height: 1.2; animation: dq-hop 1.4s ease-in-out infinite; }
+.dq-real img, .dq-real video { width: 100%; max-height: 38cqh; object-fit: cover; border-radius: 16px; margin: 8px 0; }
+.dq-real p { margin: 6px 0 10px; font-weight: 700; font-size: clamp(.9rem, 2.4cqw, 1.2rem); }
+.dq-real small { display: block; opacity: .6; margin-bottom: 8px; }
+.dq-real button { font: inherit; font-weight: 800; padding: 10px 22px; border-radius: 99px; border: 0; background: #ff9f43; color: #fff; cursor: pointer; }

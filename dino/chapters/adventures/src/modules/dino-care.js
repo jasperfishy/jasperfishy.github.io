@@ -30,7 +30,7 @@ export function mountDinoCare(context) {
 
   function beginCare(creature) {
     dinosaur = creature;
-    const count = Math.min(CARE_TASKS.length, 3 + Math.floor(Math.max(0, context.challenge) / 2));
+    const count = Math.min(CARE_TASKS.length, 5 + Math.floor(Math.max(0, context.challenge) / 2));
     const offset = (context.level - 1) % CARE_TASKS.length;
     tasks = CARE_TASKS.slice(offset).concat(CARE_TASKS.slice(0, offset)).slice(0, count);
     completed = new Set();

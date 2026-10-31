@@ -10,7 +10,7 @@ const SHAPES = [
 ];
 
 export function mountShapeSafari(context) {
-  const rounds = Math.min(9, 3 + context.challenge);
+  const rounds = Math.min(9, 6 + context.challenge);
   const choiceCount = Math.min(SHAPES.length, 4 + Math.floor(context.challenge / 2));
   let round = 0;
   let target = null;

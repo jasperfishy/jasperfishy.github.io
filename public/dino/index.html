@@ -5,16 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b6e5f">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="description" content="Dinosaur Universe brings Dino Park, Dino Meadow and Dino Car Studio together in one place. Free, no ads, no accounts.">
+<meta name="description" content="Dinosaur Universe — Dino Park, Dino Meadow, Dino Car Studio and 21 more games in one place. Free, no ads, no accounts.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="fx/du-fx.css">
 <link rel="stylesheet" href="hub.css">
 <title>Dinosaur Universe</title>
 </head>
 <body>
 <header id="hubbar">
-  <h1 id="brand">🦕 Dinosaur Universe</h1>
+  <h1 id="brand"><span class="brand-dino" aria-hidden="true">🦕</span> Dinosaur Universe</h1>
   <div class="tools">
     <button id="soundBtn" class="pill" aria-label="Sound">🔊</button>
     <button id="parentsBtn" class="pill" aria-label="Parents">🧑‍👧 Parents</button>
@@ -23,13 +24,17 @@
 <main id="hub"></main>
 <div id="stage" hidden>
   <div id="stagebar">
-    <button id="backBtn" class="pill" aria-label="Back to the menu">◀ Menu</button>
+    <button id="backBtn" class="pill back" aria-label="Back to the menu">◀ Menu</button>
     <span id="stageTitle"></span>
   </div>
+  <div id="loader" aria-hidden="true"></div>
   <iframe id="chapter" title="Chapter"></iframe>
 </div>
 <div id="modal-root"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="fx/du-dino.js"></script>
+<script src="fx/du-fx.js"></script>
+<script src="fx/du-ambient.js"></script>
 <script type="module" src="hub.js"></script>
 <script>if("serviceWorker" in navigator && window.self === window.top){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").catch(function(){});});}</script>
 </body>

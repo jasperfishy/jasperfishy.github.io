@@ -1,7 +1,7 @@
 const HATCHLINGS = ["🦖", "🦕", "🐣", "🦎", "🦕", "🦖"];
 
 export function mountHatchling(context) {
-  const tapsNeeded = Math.min(10, 3 + context.challenge);
+  const tapsNeeded = Math.min(12, 6 + context.challenge);
   let taps = 0;
   context.stage.innerHTML = '<div class="stage-heading"><span class="stage-emoji" aria-hidden="true">🥚</span>' +
     '<h2>Hatchling nursery</h2><p>' + escapeText(context.message("Help a tiny dinosaur hatch, then choose its first little toy.")) + '</p></div>' +
