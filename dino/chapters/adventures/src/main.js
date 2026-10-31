@@ -9,6 +9,9 @@ import { mountDinoCare } from "./modules/dino-care.js";
 import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js";
 import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js";
 import { mountDinoParade } from "./modules/dino-parade.js";
+import { mountDaddyChase } from "./modules/daddy-chase.js";
+import { mountDinoQuest } from "./modules/dino-quest.js";
+import { mountDinoRescue } from "./modules/dino-rescue.js";
 import { mountDinoConstellations } from "./modules/dino-constellations.js";
 import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js";
 
@@ -75,6 +78,7 @@ const COLOR_PAGES = [
 ];
 
 const ACTIVITIES = [
+  { id: "rescue", title: "The Great Dino Rescue", icon: "🏇", category: "Adventures", tint: "#ffe3b8", description: "A big seven-chapter quest! Ride a dinosaur through forest, canyon, cave, lava and sky to save Mummy and Daddy." },
   { id: "builder", title: "Build a Dinosaur", icon: "🦖", category: "Puzzles", tint: "#e4f2dc", description: "Pick up each part and drop it into its place." },
   { id: "jigsaw", title: "Dino Picture Jigsaw", icon: "🧩", category: "Puzzles", tint: "#e6e3f5", description: "Piece together a colourful prehistoric scene." },
   { id: "fossil", title: "Fossil Explorer", icon: "🦴", category: "Discovery", tint: "#f6e9d7", description: "Brush away the earth and discover a dinosaur." },
@@ -95,6 +99,7 @@ const ACTIVITIES = [
   { id: "skymail", title: "Prehistoric Sky Mail", icon: "📮", category: "Adventures", tint: "#dceef5", description: "Deliver little surprises to pterosaurs and other prehistoric flying friends." },
   { id: "weather", title: "Dino Weather Workshop", icon: "🌦️", category: "Discovery", tint: "#e2f0ec", description: "Notice the weather and help prehistoric friends find what they need." },
   { id: "coloring", title: "Coloring Studio", icon: "🎨", category: "Creative", tint: "#f7e1d7", description: "Colour dinosaur scenes and save your artwork." },
+  { id: "quest", title: "Dino Quest: The Lost Egg", icon: "⛰️", category: "Adventures", tint: "#dcebd2", description: "Climb Mount Roar, find a cave and bring a lost egg home to its mummy." },
   { id: "daddy", title: "Naughty Daddy", icon: "🏃", category: "Adventures", tint: "#f5e4cb", description: "Pick a dinosaur and catch Daddy Ellis in a silly chase." }
 ];
 
@@ -127,12 +132,13 @@ function personalized(message) {
 }
 
 function speak(message) {
-  if (!state.speech || !("speechSynthesis" in window)) return;
+  if (!state.speech || !("speechSynthesis" in window)) return false;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(message);
   utterance.rate = 0.9;
   utterance.pitch = 1.08;
   window.speechSynthesis.speak(utterance);
+  return true;
 }
 
 function sound(kind) {
@@ -172,18 +178,17 @@ function updateSoundButton() {
 }
 
 function heroDinoSvg() {
-  return '<svg viewBox="0 0 420 300" role="img" aria-label="A friendly dinosaur in a sunny meadow">' +
-    '<ellipse cx="208" cy="274" rx="150" ry="18" fill="#184f48" opacity=".16"/>' +
-    '<circle cx="340" cy="52" r="28" fill="#ffd36d"/>' +
-    '<path d="M0 224Q84 158 164 221t142-8 114 9v78H0Z" fill="#7cc28a"/>' +
-    '<path d="M0 254q92-43 167 0t253-5v51H0Z" fill="#41896d"/>' +
-    '<path d="M106 182c0-53 41-91 95-91h73c38 0 64 21 64 50 0 20-12 33-32 38l-18 4v48c0 16-13 29-29 29h-12v-40h-24v40h-19v-40h-29c-40 0-69-15-69-38Z" fill="#91d09c" stroke="#236455" stroke-width="6" stroke-linejoin="round"/>' +
-    '<path d="m144 107 16-31 18 30m18-36 20-34 20 36m14 0 21-29 12 40" fill="#f2a46e" stroke="#236455" stroke-width="5" stroke-linejoin="round"/>' +
-    '<path d="m108 180-54-24 7 20 47 24" fill="#91d09c" stroke="#236455" stroke-width="6" stroke-linejoin="round"/>' +
-    '<circle cx="307" cy="130" r="6" fill="#163f42"/><circle cx="309" cy="128" r="2" fill="white"/>' +
-    '<path d="M326 151q-14 13-28 1" fill="none" stroke="#236455" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M74 246q12-19 23 0m245-4q13-22 25 0" fill="none" stroke="#f7efc8" stroke-width="6" stroke-linecap="round"/>' +
-    '</svg>';
+  const F = window.DUFX;
+  if (!F || !F.dinoHTML) return '';
+  return '<div class="adv-hero" aria-label="A friendly dinosaur in a sunny meadow with Daddy and Mummy waving">' +
+    '<i class="ah-sun"></i><i class="ah-cloud c1"></i><i class="ah-cloud c2"></i>' +
+    '<span class="ah-ptero">' + F.dinoHTML('ptero', { color: 'pink' }) + '</span>' +
+    '<i class="ah-hill h1"></i><i class="ah-hill h2"></i>' +
+    '<span class="ah-rex" data-pet>' + F.dinoHTML('trex', { state: 'idle' }) + '</span>' +
+    '<span class="ah-tricera">' + F.dinoHTML('tricera', { state: 'walk' }) + '</span>' +
+    '<span class="ah-mum">' + F.personHTML('courtney', { state: 'wave', size: .34 }) + '</span>' +
+    '<span class="ah-dad">' + F.personHTML('daddy', { state: 'wave', size: .34 }) + '</span>' +
+    '<i class="ah-fl" style="left:8%"></i><i class="ah-fl" style="left:44%;--d:-1s"></i><i class="ah-fl" style="left:92%;--d:-2s"></i></div>';
 }
 
 function levelOf(id) { return Math.max(1, Number(state.levels[id] || 1)); }
@@ -210,12 +215,12 @@ function renderHome() {
       '<span class="progress-count">' + state.stars + ' ⭐</span></section>' +
     '<div class="section-heading" id="adventures"><h2>Pick a little adventure</h2><p>More levels, surprises and dinosaur friends are waiting as you play.</p></div>' +
     '<div class="filter-row" id="filterRow"></div><div class="activity-grid" id="activityGrid"></div>' +
-    '<section class="chapter-note"><span class="chapter-star">✦</span><div><strong>More dinosaur worlds are being prepared</strong><p>Dino Meadow and Chief’s Dino Park are planned as chapters in this shared universe, with their features and saved data reviewed before they are brought in.</p></div><span class="chapter-tag">EXPANDABLE WORLDS</span></section>' +
     '<p class="footer-note">Made for curious little explorers · Grown-up settings are tucked safely away</p>';
   document.getElementById("exploreButton").addEventListener("click", function () { document.getElementById("adventures").scrollIntoView({ behavior: "smooth" }); });
   document.getElementById("colorQuickButton").addEventListener("click", function () { openActivity("coloring"); });
   renderFilters();
   renderActivityCards();
+  if (window.DUFX && DUFX.dinoPets) { DUFX.dinoPets(app); DUFX.ambient('meadow'); }
 }
 
 function renderFilters() {
@@ -348,6 +353,12 @@ function openParentSettings() {
   });
 }
 
+// The original short games now run as a journey of several rounds that grow harder, with a progress bar,
+// a little celebration between rounds and one big reward at the end.
+const ROUND_IDS = ["builder", "jigsaw", "fossil", "memory", "picnic", "hatchling", "trail", "shapes", "beat", "habitat", "discoveries", "care", "moonbeam", "parade", "constellations", "skymail", "weather"];
+const AMBIENT = { constellations: "night", moonbeam: "night", fossil: "desert", weather: "rain", skymail: "wind", habitat: "meadow", picnic: "sun", hatchling: "sun", care: "sun" };
+function roundsFor(level) { return Math.min(5, 3 + Math.floor((level - 1) / 2)); }
+
 function openActivity(id) {
   const activity = ACTIVITIES.find(function (item) { return item.id === id; });
   if (!activity) return;
@@ -363,6 +374,7 @@ function openActivity(id) {
     level: level,
     challenge: challengeOf(id),
     playerName: state.name,
+    speechEnabled: state.speech,
     stage: document.getElementById("gameStage"),
     advance: finishLevel,
     message: personalized,
@@ -370,9 +382,45 @@ function openActivity(id) {
     speak: speak,
     notify: showToast
   };
-  activeContext = context;
+  activeContext = context; context.stage._ctx = context;
   const moduleMount = getModule(id);
-  if (moduleMount) moduleMount(context);
+  if (window.DUFX && DUFX.ambient) DUFX.ambient(AMBIENT[id] || "meadow");
+  if (moduleMount && ROUND_IDS.indexOf(id) >= 0) runRounds(context, moduleMount, level);
+  else if (moduleMount) moduleMount(context);
+}
+
+function runRounds(context, mount, baseLevel) {
+  const total = roundsFor(baseLevel);
+  let round = 1, busy = false;
+  const banner = document.querySelector(".level-banner");
+  const bar = document.createElement("div");
+  bar.className = "round-bar"; bar.id = "roundBar";
+  banner.insertAdjacentElement("afterend", bar);
+  function paint() {
+    let dots = "";
+    for (let i = 1; i <= total; i++) dots += '<i class="rb-dot' + (i < round ? " done" : i === round ? " now" : "") + '">' + (i < round ? "⭐" : i === total ? "🏆" : i) + "</i>";
+    bar.innerHTML = '<span class="rb-label">Round ' + round + " of " + total + "</span>" + dots;
+  }
+  paint();
+  const finalAdvance = context.advance;
+  context.advance = function (message) {
+    if (busy) return;
+    if (round >= total) { bar.classList.add("all-done"); finalAdvance(message); return; }
+    busy = true;
+    const F = window.DUFX;
+    if (F) { F.sfx.win(); const r = context.stage.getBoundingClientRect(); F.burst(r.left + r.width / 2, r.top + r.height / 3, { kind: "stars", n: 22 }); F.floatText && F.floatText(r.left + r.width / 2, r.top + r.height / 2, "Round " + round + " done! ⭐"); }
+    round += 1; paint();
+    const ids = ["Super", "Brilliant", "Fantastic", "Dino-mite", "Roarsome"];
+    context.stage.innerHTML = '<div class="round-interlude"><div class="ri-dino">' + (F && F.dinoHTML ? F.dinoHTML(["trex", "tricera", "stego", "bronto", "raptor"][round % 5], { state: "happy" }) : "🦖") + '</div><h2>' + ids[round % 5] + '! Round ' + (round - 1) + ' complete.</h2><p>Get ready for round ' + round + ' of ' + total + '…</p></div>';
+    window.setTimeout(function () {
+      if (!document.contains(context.stage)) return;
+      context.stage.innerHTML = "";
+      context.level = baseLevel + round - 1;
+      busy = false;
+      mount(context);
+    }, 2000);
+  };
+  mount(context);
 }
 
 function finishLevel(message) {
@@ -440,7 +488,7 @@ const PARTS = [
 ];
 
 function mountBuilder(context) {
-  const count = Math.min(PARTS.length, 4 + Math.floor(context.challenge / 1.5));
+  const count = Math.min(PARTS.length, 6 + Math.floor(context.challenge / 2));
   const parts = PARTS.slice(0, count);
   context.stage.innerHTML = stageTitle(context, "🦖", "Build a dinosaur", "Pick up a dinosaur part and drop it on its matching place.") +
     '<div class="assemble-layout"><div class="assemble-board"><svg class="dino-silhouette" viewBox="0 0 300 190" aria-hidden="true">' +
@@ -531,14 +579,15 @@ function jigsawScene() {
 
 function mountJigsaw(context) {
   const challenge = context.challenge;
-  const rows = challenge < 3 ? 2 : 3;
-  const cols = challenge < 2 ? 2 : 3;
+  const rows = challenge < 5 ? 2 : 3;
+  const cols = 3;
   const total = rows * cols;
-  const image = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(jigsawScene()) + '")';
+  const image = 'data:image/svg+xml;base64,' + window.btoa(jigsawScene());
+  const imageBackground = "url('" + image + "')";
   let tiles = shuffle(Array.from({ length: total }, function (_, index) { return index; }));
   let selected = -1;
   context.stage.innerHTML = stageTitle(context, "🧩", "Dino picture jigsaw", "Tap one piece, then another, to put the picture back together.") +
-    '<div class="jigsaw-reference"><span>Picture clue</span><div style="background-image:' + image + '"></div></div>' +
+    '<figure class="jigsaw-reference"><figcaption>Picture clue</figcaption><img src="' + image + '" alt="The complete dinosaur meadow picture" /></figure>' +
     '<div class="jigsaw-board" id="jigsawBoard" style="--jigsaw-cols:' + cols + ';--jigsaw-rows:' + rows + '"></div>' +
     '<p class="gentle-hint" id="jigsawHint">' + escapeHtml(context.message("Every piece belongs in a special spot.")) + '</p>';
   const board = context.stage.querySelector("#jigsawBoard");
@@ -548,15 +597,24 @@ function mountJigsaw(context) {
       const y = Math.floor(piece / cols);
       const px = cols === 1 ? 0 : (x / (cols - 1)) * 100;
       const py = rows === 1 ? 0 : (y / (rows - 1)) * 100;
-      return '<button class="jigsaw-tile' + (selected === index ? " selected" : "") + '" data-index="' + index + '" aria-label="Picture piece ' + (index + 1) + '" style="background-image:' + image + ';background-size:' + (cols * 100) + '% ' + (rows * 100) + '%;background-position:' + px + '% ' + py + '%"></button>';
+      return '<button class="jigsaw-tile' + (selected === index ? " selected" : "") + '" data-index="' + index + '" aria-pressed="' + (selected === index) + '" aria-label="Picture piece ' + (index + 1) + '" style="background-image:' + imageBackground + ';background-size:' + (cols * 100) + '% ' + (rows * 100) + '%;background-position:' + px + '% ' + py + '%"></button>';
     }).join("");
     board.querySelectorAll(".jigsaw-tile").forEach(function (tile) {
       tile.addEventListener("click", function () {
         const index = Number(tile.dataset.index);
-        if (selected < 0) { selected = index; context.sound("tap"); draw(); return; }
-        if (selected === index) { selected = -1; draw(); return; }
+        if (selected < 0) {
+          selected = index; context.sound("tap"); draw();
+          context.stage.querySelector("#jigsawHint").textContent = context.message("Piece " + (index + 1) + " is selected. Choose another piece to swap it.");
+          return;
+        }
+        if (selected === index) {
+          selected = -1; draw();
+          context.stage.querySelector("#jigsawHint").textContent = context.message("Piece unselected. Choose a piece, then another to swap them.");
+          return;
+        }
         [tiles[selected], tiles[index]] = [tiles[index], tiles[selected]];
-        selected = -1; context.sound("tap"); draw();
+        selected = -1; context.sound("good"); draw();
+        context.stage.querySelector("#jigsawHint").textContent = context.message("Lovely swap! Keep going until the picture is back together.");
         if (tiles.every(function (item, place) { return item === place; })) window.setTimeout(function () { context.advance("You put the whole dinosaur picture back together!"); }, 250);
       });
     });
@@ -566,7 +624,7 @@ function mountJigsaw(context) {
 
 function mountFossil(context) {
   const challenge = context.challenge;
-  const targetCount = Math.min(8, 3 + Math.floor(challenge / 1.25));
+  const targetCount = Math.min(8, 6 + Math.floor(challenge / 2));
   const cellCount = Math.min(30, Math.max(12, targetCount * 3));
   const targets = new Set(shuffle(Array.from({ length: cellCount }, function (_, i) { return i; })).slice(0, targetCount));
   let found = 0;
@@ -594,7 +652,7 @@ function mountFossil(context) {
 }
 
 function mountMemory(context) {
-  const pairs = Math.min(8, 3 + Math.floor(context.challenge / 1.5));
+  const pairs = Math.min(8, 5 + Math.floor(context.challenge / 2));
   const icons = ["🦖", "🦕", "🥚", "🦴", "🌋", "🌿", "🐾", "🪽"];
   const deck = shuffle(icons.slice(0, pairs).concat(icons.slice(0, pairs)));
   let first = null;
@@ -629,7 +687,7 @@ function mountMemory(context) {
 }
 
 function mountPicnic(context) {
-  const rounds = Math.min(8, 2 + context.challenge);
+  const rounds = Math.min(10, 5 + context.challenge);
   const foods = [
     { icon: "🥬", label: "leafy greens", type: "plants" },
     { icon: "🍓", label: "berries", type: "plants" },
@@ -675,7 +733,7 @@ function mountPicnic(context) {
 }
 
 function mountTrail(context) {
-  const length = Math.min(16, 5 + context.challenge * 2);
+  const length = Math.min(16, 8 + context.challenge * 2);
   let next = 1;
   const order = shuffle(Array.from({ length: 16 }, function (_, index) { return index; })).slice(0, length);
   context.stage.innerHTML = stageTitle(context, "👣", "Footprint trail", "Tap the footprints in number order to see who has been here.") +
@@ -947,163 +1005,6 @@ function mountColoring(context) {
   draw();
 }
 
-function mountDaddy(context) {
-  const species = DINOSAURS.slice(0, Math.min(DINOSAURS.length, 5 + (context.level - 1) * 2));
-  context.stage.innerHTML = stageTitle(context, "🏃", "Naughty Daddy", "Pick a dinosaur, then guide it through a lively garden chase!") +
-    '<div class="daddy-intro"><div class="daddy-avatar"><img src="./assets/daddy-ellis.png" alt="" class="daddy-face"></div><div><strong>Daddy Ellis is on the run!</strong><p>' + escapeHtml(context.message("Move your dinosaur with the arrows. Daddy runs through the garden, so keep chasing him!")) + '</p></div></div>' +
-    '<div class="species-row" id="speciesRow"></div><p class="gentle-hint">' + escapeHtml(context.message("Choose your dinosaur friend. The garden is full of room to run!")) + '</p>';
-  const row = context.stage.querySelector("#speciesRow");
-  row.innerHTML = species.map(function (dino, index) {
-    return '<button class="species-choice" data-species="' + index + '"><span>' + dino.icon + '</span><small>' + dino.name + '</small></button>';
-  }).join("");
-  row.querySelectorAll("[data-species]").forEach(function (button) {
-    button.addEventListener("click", function () { runChase(species[Number(button.dataset.species)]); });
-  });
-  function runChase(dino) {
-    const columns = [9, 22, 35, 48, 61, 74, 87];
-    const lanes = [30, 54, 78];
-    const dinoPos = { x: 0, y: 2 };
-    const daddyPos = { x: 6, y: 0 };
-    const childName = state.name || "little explorer";
-    let turns = 0;
-    let finished = false;
-    let daddyTimer;
-    function sceneDino() {
-      return '<svg viewBox="0 0 150 110" aria-hidden="true"><path d="M36 69Q12 53 8 35q-2 30 27 43" fill="#70b98a" stroke="#286552" stroke-width="4"/><ellipse cx="70" cy="70" rx="43" ry="27" fill="#88cd96" stroke="#286552" stroke-width="4"/><path d="M84 60q5-35 28-40 24-5 31 17 4 15-11 21l-19 2-10 17" fill="#96d69b" stroke="#286552" stroke-width="4"/><path d="M57 90v12m34-12v12" stroke="#438e67" stroke-width="12" stroke-linecap="round"/><path d="m50 35 7-15 10 15m8-2 8-16 10 21" fill="#f4c46d" stroke="#286552" stroke-width="3"/><circle cx="126" cy="28" r="7" fill="white"/><circle cx="128" cy="29" r="3.5" fill="#173f3d"/><circle cx="129" cy="28" r="1.2" fill="white"/></svg>';
-    }
-    function drawScene() {
-      context.stage.innerHTML = stageTitle(context, dino.icon, "Catch Daddy!", context.message("Guide your dinosaur through the garden. Daddy is moving — chase him and give him a friendly tag!")) +
-        '<div class="daddy-chase-status"><span>🐾 Chase ' + turns + '</span><span>' + dino.name + ' is running!</span><span>Daddy Ellis 🏃</span></div>' +
-        '<div class="daddy-chase-scene" id="daddyChaseScene" aria-label="A garden scene with a running dinosaur chasing Daddy Ellis"><div class="chase-sun">☀️</div><div class="chase-cloud cloud-one">☁️</div><div class="chase-cloud cloud-two">☁️</div><div class="chase-tree tree-one">🌳</div><div class="chase-tree tree-two">🌲</div><div class="chase-bush bush-one">🌿🌼</div><div class="chase-bush bush-two">🌿🌸</div><div class="chase-path"></div>' +
-        '<div class="chase-runner chase-dino-runner" id="chaseDino" style="left:' + columns[dinoPos.x] + '%;top:' + lanes[dinoPos.y] + '%">' + sceneDino() + '<span class="chase-species">' + dino.icon + ' ' + escapeHtml(dino.name) + '</span></div>' +
-        '<div class="chase-runner daddy-runner" id="chaseDaddy" style="left:' + columns[daddyPos.x] + '%;top:' + lanes[daddyPos.y] + '%"><img src="./assets/daddy-ellis.png" alt=""/><span>Daddy Ellis</span><i>🏃</i></div><div class="chase-puff" id="chasePuff">💨</div><div class="chase-speech" id="chaseSpeech">Catch me, ' + escapeHtml(childName) + '!</div></div>' +
-        '<div class="chase-controls"><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-run="up" aria-label="Run up the path">↑</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-run="left" aria-label="Run left">←</button><button class="chase-roar" id="roarButton">📣 Roar!</button><button class="chase-arrow" data-run="right" aria-label="Run right">→</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button><button class="chase-arrow" data-run="down" aria-label="Run down the path">↓</button><button class="chase-spacer" tabindex="-1" aria-hidden="true"></button></div>' +
-        '<p class="gentle-hint" id="chaseHint">Use the arrows to run. Daddy is dashing around the garden!</p>';
-      context.stage.querySelectorAll("[data-run]").forEach(function (button) { button.addEventListener("click", function () { moveDino(button.dataset.run); }); });
-      context.stage.querySelector("#roarButton").addEventListener("click", function () {
-        context.sound("roar");
-        const speech = context.stage.querySelector("#chaseSpeech");
-        speech.textContent = "ROAR! Daddy stopped to laugh!";
-        speech.classList.add("speech-pop");
-        window.setTimeout(function () { if (speech.isConnected) { speech.textContent = "Catch me, " + childName + "!"; speech.classList.remove("speech-pop"); } }, 900);
-        if (turns > 3 && distance(dinoPos, daddyPos) <= 3) catchDaddy();
-      });
-      context.stage.onkeydown = function (event) {
-        const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
-        if (map[event.key]) { event.preventDefault(); moveDino(map[event.key]); }
-      };
-      paintPositions();
-      const chaseScene = context.stage.querySelector("#daddyChaseScene");
-      const dinoNode = context.stage.querySelector("#chaseDino");
-      let draggingDino = false;
-      dinoNode.addEventListener("pointerdown", function (event) { if (finished) return; draggingDino = true; dinoNode.setPointerCapture(event.pointerId); event.preventDefault(); });
-      dinoNode.addEventListener("pointermove", function (event) {
-        if (!draggingDino || finished) return;
-        const rect = chaseScene.getBoundingClientRect();
-        const px = (event.clientX - rect.left) / rect.width * 100;
-        const py = (event.clientY - rect.top) / rect.height * 100;
-        const nextX = columns.reduce(function (best, value, i) { return Math.abs(value - px) < Math.abs(columns[best] - px) ? i : best; }, 0);
-        const nextY = lanes.reduce(function (best, value, i) { return Math.abs(value - py) < Math.abs(lanes[best] - py) ? i : best; }, 0);
-        if (nextX === dinoPos.x && nextY === dinoPos.y) return;
-        dinoPos.x = nextX; dinoPos.y = nextY; turns += 1;
-        context.sound("tap");
-        if (turns % 2 === 0) moveDaddy(); else paintPositions();
-      });
-      dinoNode.addEventListener("pointerup", function (event) { draggingDino = false; if (dinoNode.hasPointerCapture(event.pointerId)) dinoNode.releasePointerCapture(event.pointerId); });
-    }
-    function distance(a, b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
-    function paintPositions() {
-      const dinoNode = context.stage.querySelector("#chaseDino");
-      const daddyNode = context.stage.querySelector("#chaseDaddy");
-      if (!dinoNode || !daddyNode) return;
-      dinoNode.style.left = columns[dinoPos.x] + "%"; dinoNode.style.top = lanes[dinoPos.y] + "%";
-      daddyNode.style.left = columns[daddyPos.x] + "%"; daddyNode.style.top = lanes[daddyPos.y] + "%";
-      dinoNode.classList.toggle("run-left", daddyPos.x < dinoPos.x);
-      dinoNode.classList.remove("running"); void dinoNode.offsetWidth; dinoNode.classList.add("running");
-      daddyNode.classList.remove("running"); void daddyNode.offsetWidth; daddyNode.classList.add("running");
-      const puff = context.stage.querySelector("#chasePuff"); if (puff) { puff.style.left = columns[daddyPos.x] + "%"; puff.style.top = (lanes[daddyPos.y] + 12) + "%"; }
-      if (distance(dinoPos, daddyPos) <= 1) catchDaddy();
-    }
-    function moveDaddy() {
-      if (finished || currentActivity !== "daddy") { window.clearInterval(daddyTimer); return; }
-      const candidates = [[0,-1],[0,1],[-1,0],[1,0]].map(function (v) { return {x:daddyPos.x+v[0],y:daddyPos.y+v[1]}; }).filter(function (p) { return p.x>=0 && p.x<columns.length && p.y>=0 && p.y<lanes.length; });
-      if (!candidates.length) return;
-      const runAway = turns < 12;
-      candidates.sort(function (a,b) { return (runAway ? distance(b,dinoPos)-distance(a,dinoPos) : distance(a,dinoPos)-distance(b,dinoPos)); });
-      const best = candidates.slice(0, Math.min(2,candidates.length));
-      const next = best[Math.floor(Math.random()*best.length)];
-      daddyPos.x = next.x; daddyPos.y = next.y; paintPositions();
-      if (Math.random() > .55) { const speech=context.stage.querySelector("#chaseSpeech"); if(speech) speech.textContent = turns < 12 ? "You can’t catch me!" : "I’m slowing down!"; }
-    }
-    function moveDino(direction) {
-      if (finished) return;
-      const delta = {up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[direction];
-      const nx=dinoPos.x+delta[0], ny=dinoPos.y+delta[1];
-      if(nx<0||nx>=columns.length||ny<0||ny>=lanes.length) { context.sound("tap"); return; }
-      dinoPos.x=nx; dinoPos.y=ny; turns+=1; context.sound("tap");
-      const hint=context.stage.querySelector("#chaseHint"); if(hint) hint.textContent="Run, " + dino.name + "! Daddy is dashing to another part of the garden.";
-      if(turns%2===0) moveDaddy(); else paintPositions();
-      if(!finished && distance(dinoPos,daddyPos)<=1) catchDaddy();
-    }
-    function catchDaddy() {
-      if (finished) return;
-      finished = true; window.clearInterval(daddyTimer);
-      context.stage.innerHTML = stageTitle(context, dino.icon, "The great dino gulp!", context.message("Watch the dinosaur catch and gobble Daddy in this silly pretend-play chase!")) +
-        '<div class="daddy-caught daddy-swallow-scene" aria-label="A friendly dinosaur swallows Daddy in a pretend-play chase">' +
-          '<span class="swallow-species">' + dino.icon + ' ' + escapeHtml(dino.name) + '</span>' +
-          '<svg class="swallow-dino" viewBox="0 0 260 180" role="img" aria-label="A friendly green dinosaur opens its mouth wide">' +
-            '<ellipse cx="111" cy="162" rx="96" ry="9" fill="#244e43" opacity=".15"/>' +
-            '<path d="M63 113Q38 100 20 82q-2 29 35 47Z" fill="#63ad79" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
-            '<path d="M48 128Q49 94 86 87l49 6q26 10 28 36l-20 18H80q-29 0-32-19Z" fill="#83c889" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
-            '<path d="M86 136v21m39-23 1 23" stroke="#438e67" stroke-width="13" stroke-linecap="round"/><path d="M76 157h22m18 0h22" stroke="#286552" stroke-width="4" stroke-linecap="round"/>' +
-            '<path d="M122 103q4-35 22-53 17-22 48-19 31 2 47 21l14 20q2 10-13 13l-34 4-20 19Z" fill="#94d294" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
-            '<path d="M177 84q34 8 75-9l-7 27q-32 16-67 0Z" fill="#93475c" stroke="#623a47" stroke-width="3" stroke-linejoin="round"/>' +
-            '<path d="m193 86 8 11 7-9 8 10 7-11 8 8 8-11" fill="#fff8e5" stroke="#dfd3b5" stroke-width="2" stroke-linejoin="round"/>' +
-            '<path class="swallow-jaw" d="M179 94q32 14 68-4-1 24-22 31-27 6-46-11Z" fill="#76be83" stroke="#286552" stroke-width="4" stroke-linejoin="round"/>' +
-            '<path d="m193 105 8-1 5 9 7-2 4 9" fill="none" stroke="#fff8e5" stroke-width="4" stroke-linecap="round"/>' +
-            '<circle cx="208" cy="56" r="9" fill="#fff"/><circle cx="211" cy="57" r="4.5" fill="#173f3d"/><circle cx="212" cy="55" r="1.7" fill="#fff"/>' +
-            '<path d="M229 73q7-4 12 1" fill="none" stroke="#286552" stroke-width="3" stroke-linecap="round"/>' +
-            '<path class="swallow-belly" d="M91 129q28 16 57 1" fill="none" stroke="#d4edb8" stroke-width="5" stroke-linecap="round"/>' +
-          '</svg>' +
-          '<span class="daddy-swallow-face"><img src="./assets/daddy-ellis.png" alt="Daddy Ellis" class="daddy-pop-face"></span>' +
-          '<span class="swallow-gulp" aria-hidden="true">GULP!</span>' +
-          '<p class="swallow-caption" id="daddySwallowCaption" aria-live="polite">The dinosaur opens its great big mouth…</p>' +
-        '</div>' +
-        '<p class="gentle-hint swallow-safety" id="swallowSafety" hidden>It is only pretend-play magic — Daddy pops back safe and ready for another chase.</p>' +
-        '<button class="primary-button center-button" id="daddyContinue" hidden>Daddy bounced back! Play again →</button>';
-      context.sound("roar");
-      const scene = context.stage.querySelector(".daddy-swallow-scene");
-      const caption = context.stage.querySelector("#daddySwallowCaption");
-      const gulp = context.stage.querySelector(".swallow-gulp");
-      const safety = context.stage.querySelector("#swallowSafety");
-      const continueButton = context.stage.querySelector("#daddyContinue");
-      window.setTimeout(function () {
-        if (!scene.isConnected || currentActivity !== "daddy") return;
-        caption.textContent = "The dinosaur opens wide and Daddy scoots closer…";
-      }, 1100);
-      window.setTimeout(function () {
-        if (!scene.isConnected || currentActivity !== "daddy") return;
-        caption.textContent = "Daddy is sliding right into the dinosaur’s mouth…";
-      }, 2450);
-      window.setTimeout(function () {
-        if (!scene.isConnected || currentActivity !== "daddy") return;
-        scene.classList.add("swallowed");
-        gulp.setAttribute("aria-hidden", "false");
-        caption.textContent = "GULP! The dinosaur has eaten Daddy!";
-        safety.hidden = false;
-        continueButton.hidden = false;
-        context.sound("good");
-        context.speak(context.message("Gulp! The dinosaur swallowed Daddy in a silly pretend-play chase. Daddy is safe and ready to play again."));
-      }, 3800);
-      continueButton.addEventListener("click", function () {
-        context.advance("Daddy was gobbled up in a puff of dino magic, then popped back safe for another chase!");
-      });
-    }
-    drawScene();
-    daddyTimer = window.setInterval(moveDaddy, Math.max(780, 1250 - context.level * 55));
-  }
-}
-
 registerModule("builder", mountBuilder);
 registerModule("jigsaw", mountJigsaw);
 registerModule("fossil", mountFossil);
@@ -1118,13 +1019,15 @@ registerModule("storybook", mountStorybook);
 registerModule("discoveries", mountDinoDiscoveries);
 registerModule("care", mountDinoCare);
 registerModule("mummy", mountMummyCozyCorner);
+registerModule("quest", mountDinoQuest);
+registerModule("rescue", mountDinoRescue);
 registerModule("moonbeam", mountMoonbeamRescue);
 registerModule("parade", mountDinoParade);
 registerModule("constellations", mountDinoConstellations);
 registerModule("skymail", mountSkyMail);
 registerModule("weather", mountWeatherWorkshop);
 registerModule("coloring", mountColoring);
-registerModule("daddy", mountDaddy);
+registerModule("daddy", mountDaddyChase);
 
 document.getElementById("homeButton").addEventListener("click", exitActivity);
 document.getElementById("parentButton").addEventListener("click", openParentGate);

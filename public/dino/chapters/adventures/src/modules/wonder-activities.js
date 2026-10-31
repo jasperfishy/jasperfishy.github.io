@@ -20,7 +20,7 @@ const WEATHER_MISSIONS = [
 
 export function mountSkyMail(context) {
   let delivered = 0;
-  const count = Math.min(SKY_ROUTES.length, 2 + Math.ceil(Math.max(1, context.challenge) / 2));
+  const count = Math.min(SKY_ROUTES.length, 5 + Math.floor(Math.max(0, context.challenge) / 2));
   const routes = SKY_ROUTES.slice((context.level - 1) % SKY_ROUTES.length).concat(SKY_ROUTES).slice(0, count);
 
   function draw() {
@@ -53,7 +53,7 @@ export function mountSkyMail(context) {
 }
 
 export function mountWeatherWorkshop(context) {
-  const count = Math.min(WEATHER_MISSIONS.length, 2 + Math.ceil(Math.max(1, context.challenge) / 2));
+  const count = Math.min(WEATHER_MISSIONS.length, 5 + Math.floor(Math.max(0, context.challenge) / 2));
   const missions = WEATHER_MISSIONS.slice((context.level - 1) % WEATHER_MISSIONS.length).concat(WEATHER_MISSIONS).slice(0, count);
   let solved = 0;
   const tools = [

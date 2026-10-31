@@ -1,0 +1,72 @@
+/* ============================== Mummy's Cozy Corner ============================== */
+.mc-pick { display: flex; align-items: center; gap: 18px; background: linear-gradient(135deg, #fde7dd, #f9d6e4); border-radius: 24px; padding: 10px 22px; box-shadow: 0 5px 0 rgba(0,0,0,.08); margin-bottom: 14px; }
+.mc-pick h2 { margin: 0 0 4px; font-size: clamp(1.4rem, 4vw, 2rem); } .mc-pick p { margin: 0; line-height: 1.45; }
+.mc-pick-mum { flex: none; width: 112px; height: 182px; }
+.mc-helpers { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.mc-helper { border: 0; border-radius: 22px; background: #fff; padding: 10px; display: grid; gap: 4px; justify-items: center; cursor: pointer; font: inherit; box-shadow: 0 5px 0 rgba(0,0,0,.1); transition: transform .18s cubic-bezier(.3,.9,.4,1.3); }
+.mc-helper:hover { transform: translateY(-5px) rotate(1deg); } .mc-helper-art { width: 120px; display: block; }
+.mc-wrap { display: grid; gap: 10px; justify-items: center; }
+.mc-area { position: relative; width: min(100%, 920px, calc((100dvh - 440px) * 1.6)); aspect-ratio: 8 / 5; border-radius: 26px; overflow: hidden; box-shadow: 0 8px 0 rgba(0,0,0,.12), inset 0 0 0 4px #fff; background: #ffd9b3; }
+.mc-layer { position: absolute; left: 0; top: 0; width: 800px; height: 500px; transform: scale(var(--fit, 1)); transform-origin: 0 0; }
+.mc-bgbox { position: absolute; inset: 0; transition: filter 2s; } .mc-bg { width: 800px; height: 500px; display: block; }
+.mc-layer.lights-off .mc-bgbox { filter: brightness(.38) saturate(.8); }
+.mc-items, .mc-mum, .mc-dino, .mc-dark { position: absolute; left: 0; top: 0; }
+.mc-items { z-index: 2; width: 800px; height: 500px; pointer-events: none; }
+.mc-item { position: absolute; left: 0; top: 0; line-height: 1; transform-origin: 0 0; pointer-events: auto; }
+.mc-item svg { display: block; }
+.mc-item.held { left: 50px; top: -46px; transform: none !important; }
+.mc-mum { z-index: 3; width: 200px; height: 330px; transform-origin: 0 0; will-change: transform; }
+.mc-dino { z-index: 5; width: 150px; transform-origin: 0 0; will-change: transform; pointer-events: none; }
+.mc-dino .du-dino { transition: transform .2s; }
+.mc-dino.tap-me { animation: du-wobble 1s ease-in-out infinite; cursor: pointer; filter: drop-shadow(0 0 14px #ffe066); }
+.mc-dark { z-index: 8; width: 800px; height: 500px; background: rgba(8,12,40,0); transition: background 2s; pointer-events: none; }
+.mc-layer.lights-off .mc-dark { background: rgba(8,12,40,.55); }
+.gs { position: absolute; font-size: 26px; animation: du-twinkle 2.6s ease-in-out infinite; }
+.g1 { left: 14%; top: 8%; } .g2 { left: 36%; top: 14%; animation-delay: -.8s; } .g3 { left: 58%; top: 7%; animation-delay: -1.3s; } .g4 { left: 78%; top: 16%; animation-delay: -.3s; } .g5 { left: 90%; top: 6%; animation-delay: -1.9s; }
+.mc-hearts { position: absolute; left: 12px; top: 10px; z-index: 9; background: rgba(255,255,255,.85); border-radius: 16px; padding: 3px 12px; display: flex; gap: 4px; font-size: 22px; }
+.mc-hearts i { font-style: normal; } .mc-hearts i.on { animation: du-bob2 1.6s ease-in-out infinite; }
+.mc-bubble { position: absolute; z-index: 10; transform: translate(-50%, -100%) scale(.7); background: #fff; color: #3a2c4a; border-radius: 20px; padding: 8px 16px; font: 800 clamp(.9rem, 2.4vw, 1.3rem)/1.25 system-ui; max-width: 62%; text-align: center; box-shadow: 0 5px 0 rgba(0,0,0,.16); opacity: 0; transition: all .25s cubic-bezier(.2,.9,.3,1.4); pointer-events: none; }
+.mc-bubble.show { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+.mc-bubble::after { content: ""; position: absolute; left: 50%; bottom: -12px; border: 10px solid transparent; border-top-color: #fff; border-bottom: 0; transform: translateX(-50%); }
+.mc-panel { width: min(100%, 920px); min-height: 150px; background: #fff; border-radius: 24px; padding: 12px 16px; box-shadow: 0 5px 0 rgba(0,0,0,.1); display: grid; gap: 10px; align-content: start; transition: opacity .3s; }
+.mc-panel.busy { opacity: .5; pointer-events: none; }
+.mc-ask { display: flex; align-items: center; gap: 12px; } .mc-ask b { font-size: clamp(1rem, 2.6vw, 1.3rem); }
+.mc-thought { flex: none; min-width: 56px; height: 56px; border-radius: 28px; background: #fff3cf; display: grid; place-items: center; font-size: 30px; box-shadow: inset 0 0 0 3px #ffd45e; animation: du-bob2 2.4s ease-in-out infinite; padding: 0 8px; }
+.mc-opts { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.mc-opt { border: 0; border-radius: 20px; background: #f6f3ff; padding: 8px 10px 10px; width: 130px; display: grid; justify-items: center; gap: 4px; cursor: pointer; font: inherit; box-shadow: 0 4px 0 rgba(0,0,0,.12); transition: transform .15s cubic-bezier(.3,.9,.4,1.3); }
+.mc-opt:hover { transform: translateY(-4px) rotate(-1deg); } .mc-opt:active { transform: scale(.95); }
+.mc-opt-art { font-size: 54px; line-height: 1.1; height: 72px; display: grid; place-items: center; } .mc-opt-art svg { height: 66px; width: auto; }
+.mc-opt small { font-weight: 800; font-size: .82rem; text-align: center; }
+.mc-meter { height: 18px; border-radius: 10px; background: #efe7ff; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,.12); }
+.mc-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #8ad7ff, #6a8bff); transition: width .2s; border-radius: 10px; }
+.mc-steam { position: absolute; left: 50%; top: -6px; width: 10px; height: 26px; border-radius: 10px; background: linear-gradient(rgba(255,255,255,.9), transparent); animation: mc-steam 1.8s ease-out infinite; filter: blur(2px); } .mc-steam.s2 { left: 38%; animation-delay: -.8s; }
+@keyframes mc-steam { from { transform: translateY(0) scaleX(1); opacity: .9; } to { transform: translateY(-34px) scaleX(2.2); opacity: 0; } }
+.mc-item.tap-me { animation: du-wobble .9s ease-in-out infinite; cursor: pointer; filter: drop-shadow(0 0 12px #ffe066); }
+.mc-hotspot { position: absolute; z-index: 7; border: 3px dashed rgba(255,230,120,.95); border-radius: 18px; background: rgba(255,255,255,.14); cursor: pointer; animation: du-glow 1.6s ease-in-out infinite; padding: 0; }
+.mc-switch { border-radius: 12px; }
+.mc-bedblanket { position: absolute; z-index: 4; left: 452px; top: 306px; width: 190px; height: 118px; border-radius: 22px 12px 14px 22px; background: repeating-linear-gradient(90deg, #7fb8ff 0 26px, #a7d0ff 26px 52px); box-shadow: inset 0 -8px 0 rgba(0,0,0,.14), 0 4px 6px rgba(0,0,0,.22); animation: mc-breathe 4s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes mc-breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.01, 1.05); } }
+.du-person.breeze .p-head { animation: pp-shake .3s linear 1; }
+.mc-curtainwipe { position: absolute; inset: 0; z-index: 20; background: #2b2d5e; transform: translateX(-100%); animation: mc-wipe .45s ease-in forwards; } .mc-curtainwipe.out { animation: mc-wipe-out .5s ease-out forwards; }
+@keyframes mc-wipe { to { transform: translateX(0); } } @keyframes mc-wipe-out { from { transform: translateX(0); } to { transform: translateX(100%); } }
+.mc-cloud { animation: mc-cloud 24s linear infinite; } .mc-cloud2 { animation-duration: 36s; animation-delay: -10s; }
+@keyframes mc-cloud { from { transform: translateX(-60px); } to { transform: translateX(240px); } }
+.mc-curtain { transform-origin: 50% 0; animation: mc-sway 6s ease-in-out infinite; } .mc-curtain2 { animation-delay: -3s; }
+@keyframes mc-sway { 0%,100% { transform: skewX(0); } 50% { transform: skewX(2deg); } }
+.mc-glow { animation: du-twinkle 3s ease-in-out infinite; } .mc-bstars circle { animation: du-twinkle 2.2s ease-in-out infinite; } .mc-bstars circle:nth-child(odd) { animation-delay: -1s; }
+.mc-clock { transform-origin: 502px 118px; animation: du-spin 60s linear infinite; }
+.mc-book { position: absolute; inset: 0; z-index: 15; background: rgba(20,12,40,.62); display: grid; place-items: center; padding: 14px; }
+.bk-page { background: #fffaf0; border-radius: 22px; padding: 14px 18px; width: min(560px, 94%); text-align: center; box-shadow: 0 10px 0 rgba(0,0,0,.25), inset 0 0 0 5px #f1dfb8; }
+.bk-art { height: 190px; border-radius: 16px; overflow: hidden; margin-bottom: 8px; } .bk-page p { margin: 6px 0 10px; font: 800 clamp(1rem, 2.6vw, 1.35rem)/1.35 system-ui; color: #3a2c4a; }
+.bk-next { border: 0; border-radius: 16px; background: #ffcf33; font: 900 1.1rem system-ui; padding: 10px 24px; cursor: pointer; box-shadow: 0 4px 0 #c79a12; }
+.bk-sky { position: relative; height: 100%; background: linear-gradient(#22366d, #4a6fb0); font-size: 46px; display: grid; justify-items: end; padding: 8px 20px; } .bk-night { background: linear-gradient(#0e1a45, #2a3f7a); }
+.bk-dino { position: absolute; left: 50%; bottom: 8px; width: 160px; transform: translateX(-50%); }
+.bk-star { position: absolute; font-size: 30px; opacity: 0; animation: bk-pop 4.5s ease-out infinite; } .s1 { left: 18%; top: 18%; } .s2 { left: 70%; top: 14%; animation-delay: 1.2s; } .s3 { left: 44%; top: 30%; animation-delay: 2.4s; }
+@keyframes bk-pop { 0% { opacity: 0; transform: scale(0); } 20%,70% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; } }
+.bk-trio { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: center; gap: 10px; } .bk-trio span { width: 110px; }
+.bk-ff { position: absolute; left: 20%; top: 40%; width: 8px; height: 8px; border-radius: 50%; background: #fff7a8; box-shadow: 0 0 12px 5px #ffe66b; animation: mc-ff 5s ease-in-out infinite; } .bk-ff.f2 { left: 70%; top: 30%; animation-delay: -2s; } .bk-ff.f3 { left: 50%; top: 22%; animation-delay: -3.4s; }
+@keyframes mc-ff { 0%,100% { transform: translate(0,0); opacity: .3; } 30% { opacity: 1; } 50% { transform: translate(30px,-20px); } 80% { transform: translate(-20px,10px); opacity: .7; } }
+.mc-keys { display: flex; gap: 10px; justify-content: center; } .mc-key { width: 70px; height: 96px; border: 0; border-radius: 14px; background: var(--c); box-shadow: 0 6px 0 rgba(0,0,0,.2), inset 0 -10px 0 rgba(0,0,0,.12); cursor: pointer; }
+.mc-key.glow { animation: mc-keyglow .8s ease-in-out infinite; } @keyframes mc-keyglow { 0%,100% { filter: brightness(1); transform: translateY(0); } 50% { filter: brightness(1.45) drop-shadow(0 0 14px #fff); transform: translateY(-8px); } }
+.mc-dots { display: flex; gap: 8px; justify-content: center; } .mc-dots i { width: 14px; height: 14px; border-radius: 50%; background: #e4dcf2; } .mc-dots i.on { background: #ffcf33; }
+.mc-end b { font-size: 1.5rem; }

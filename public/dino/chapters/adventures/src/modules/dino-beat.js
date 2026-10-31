@@ -6,7 +6,7 @@ const DRUMS = [
 ];
 
 export function mountDinoBeat(context) {
-  const sequenceLength = Math.min(9, 3 + context.challenge);
+  const sequenceLength = Math.min(9, 6 + Math.floor(context.challenge / 2));
   const sequence = Array.from({ length: sequenceLength }, function () { return Math.floor(Math.random() * DRUMS.length); });
   let input = [];
   let playing = false;
@@ -27,7 +27,7 @@ export function mountDinoBeat(context) {
   function playSequence() {
     if (playing) return;
     playing = true; input = [];
-    context.stage.querySelector("#beatHint").textContent = context.message("Watch the lights and listen to the rhythm.");
+    (context.stage.querySelector("#beatHint") || {}).textContent = context.message("Watch the lights and listen to the rhythm.");
     buttons.querySelectorAll("button").forEach(function (button) { button.disabled = true; });
     let step = 0;
     function pulse() {
@@ -35,7 +35,7 @@ export function mountDinoBeat(context) {
       activeIndex = -1; activeStep = -1; drawLights();
         playing = false;
         buttons.querySelectorAll("button").forEach(function (button) { button.disabled = false; });
-        context.stage.querySelector("#beatHint").textContent = context.message("Your turn! Play the same dinosaurs in order.");
+        (context.stage.querySelector("#beatHint") || {}).textContent = context.message("Your turn! Play the same dinosaurs in order.");
         return;
       }
       activeIndex = sequence[step]; activeStep = step; drawLights(); context.sound("tap");
@@ -63,7 +63,7 @@ export function mountDinoBeat(context) {
       if (!correctSoFar) {
         input = [];
         context.stage.querySelector("#beatProgress").style.width = "0%";
-        context.stage.querySelector("#beatHint").textContent = context.message("Let’s listen again together. You can try as often as you like.");
+        (context.stage.querySelector("#beatHint") || {}).textContent = context.message("Let’s listen again together. You can try as often as you like.");
         window.setTimeout(playSequence, 500);
       } else if (input.length === sequence.length) {
         context.sound("good");

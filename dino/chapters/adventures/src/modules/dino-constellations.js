@@ -8,7 +8,7 @@ const SILHOUETTES = ["🦖", "🦕", "🪽", "🦏", "🐚", "🌙"];
 export function mountDinoConstellations(context) {
   const level = Math.max(1, Number(context.level) || 1);
   const choiceCount = Math.min(STARS.length, 6 + Math.floor((level - 1) / 2));
-  const pathLength = Math.min(8, 3 + Math.floor((level - 1) / 2));
+  const pathLength = Math.min(8, 5 + Math.floor((level - 1) / 2));
   const start = (level * 2) % choiceCount;
   const sequence = Array.from({ length: choiceCount }, function (_, index) { return (start + index) % choiceCount; }).slice(0, pathLength);
   const picture = SILHOUETTES[(level - 1) % SILHOUETTES.length];

@@ -19,8 +19,8 @@ const PATTERNS = {
 
 export function mountMoonbeamRescue(context) {
   const level = Math.max(1, Number(context.level) || 1);
-  const pathLength = Math.min(6, 2 + Math.floor((level - 1) / 2));
-  const choiceCount = Math.min(6, 3 + Math.floor((level - 1) / 2));
+  const pathLength = Math.min(6, 5 + Math.floor((level - 1) / 2));
+  const choiceCount = Math.min(6, Math.max(pathLength, 4 + Math.floor((level - 1) / 2)));
   const visibleDinos = Math.min(DINOSAURS.length, 5 + (level - 1) * 2);
   const dinosaur = DINOSAURS[(level * 3) % visibleDinos];
   const starOffset = (level - 1) % STARS.length;

@@ -1,0 +1,75 @@
+/* Dinosaur Universe — Adventures: animated games (Naughty Daddy, Mummy's Cozy Corner, Dino Quest) */
+
+/* ============================== Naughty Daddy ============================== */
+.dc-pick { display: grid; gap: 14px; }
+.dc-pick-head { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, #fff3d6, #ffe0b8); border-radius: 24px; padding: 8px 20px; box-shadow: 0 5px 0 rgba(0,0,0,.08); }
+.dc-pick-head h2 { margin: 0 0 4px; font-size: clamp(1.4rem, 4vw, 2rem); }
+.dc-pick-head p { margin: 0; line-height: 1.4; }
+.dc-pick-daddy { flex: none; width: 110px; height: 170px; }
+.dc-pick-daddy .du-person { margin-top: -6px; }
+.dc-dinos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.dc-dino { border: 0; border-radius: 22px; background: #fff; padding: 10px 10px 12px; display: grid; gap: 4px; justify-items: center; cursor: pointer; font: inherit; color: inherit; box-shadow: 0 5px 0 rgba(0,0,0,.1); transition: transform .18s cubic-bezier(.3,.9,.4,1.3); }
+.dc-dino:hover { transform: translateY(-5px) rotate(-1deg); }
+.dc-dino-art { width: 130px; display: block; }
+.dc-dino small { opacity: .7; font-size: .78rem; text-align: center; min-height: 2.2em; }
+.dc-stats { display: grid; gap: 4px; width: 100%; }
+.dc-stats i { display: block; height: 8px; border-radius: 6px; background: linear-gradient(90deg, #6bcb77 calc(var(--v) * 100%), #e8e1d0 0); }
+.dc-stats i.t { background: linear-gradient(90deg, #4d96ff calc(var(--v) * 100%), #e8e1d0 0); }
+.dc-wrap { display: grid; gap: 10px; justify-items: center; }
+.dc-area { position: relative; width: min(100%, 920px, calc((100dvh - 400px) * 1.6)); aspect-ratio: 8 / 5; border-radius: 26px; overflow: hidden; background: #8fd8f0; box-shadow: 0 8px 0 rgba(0,0,0,.12), inset 0 0 0 4px #fff; touch-action: manipulation; }
+.dc-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: transform 1.2s ease-out; }
+.dc-area.dc-zoom .dc-cv { transform: scale(1.1); }
+.dc-layer { position: absolute; left: 0; top: 0; width: 800px; height: 500px; transform: scale(var(--fit, 1)); transform-origin: 0 0; pointer-events: none; }
+.dc-daddy, .dc-dino-me, .dc-ride { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.dc-dino-me { width: 190px; }
+.dc-dino-me .du-dino { transition: transform .35s; transform-origin: 50% 100%; }
+.dc-dino-me .du-dino.dc-belly { transform: scale(1.22, 1.08); }
+.dc-bump { position: absolute; left: 62px; top: 66px; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 3px solid #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.4); animation: dc-wiggle .22s linear infinite; z-index: 5; }
+.dc-bump img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; }
+@keyframes dc-wiggle { 0%,100% { transform: translate(-3px, 2px) rotate(-12deg) scale(1.06); } 50% { transform: translate(3px, -2px) rotate(12deg) scale(.96); } }
+.dc-bubble { position: absolute; transform: translate(-50%, 0); background: #fff; border-radius: 20px; padding: 8px 16px; font: 800 26px/1.2 system-ui, sans-serif; color: #27414a; box-shadow: 0 6px 0 rgba(0,0,0,.18); max-width: 380px; text-align: center; animation: du-in .3s cubic-bezier(.2,.9,.3,1.4) both; z-index: 9; }
+.dc-bubble::after { content: ""; position: absolute; left: 50%; bottom: -14px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; transform: translateX(-50%); border-width: 14px 10px 0; }
+.dc-hud { position: absolute; left: 0; right: 0; top: 0; padding: 10px 14px; display: grid; gap: 8px; pointer-events: none; }
+.dc-gap { display: grid; grid-template-columns: 44px 1fr 56px; align-items: center; gap: 10px; background: rgba(255,255,255,.82); border-radius: 18px; padding: 4px 12px; }
+.dc-gap-d { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: url(../assets/daddy-head.webp) center 14% / cover; }
+.dc-gap-d .du-person { display: none; }
+.dc-gap-bar { height: 16px; border-radius: 10px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,.18); overflow: hidden; }
+.dc-gap-bar i { display: block; height: 100%; width: 38%; background: repeating-linear-gradient(45deg, #ffb347 0 10px, #ffcf6b 10px 20px); border-radius: 10px; transition: width .2s; }
+.dc-say { justify-self: center; background: #fff; border-radius: 18px; padding: 6px 18px; font-weight: 900; font-size: clamp(.95rem, 2.6vw, 1.3rem); opacity: 0; transform: scale(.8); box-shadow: 0 4px 0 rgba(0,0,0,.14); }
+.dc-say.pop { opacity: 1; transform: none; transition: all .25s cubic-bezier(.2,.9,.3,1.4); }
+.dc-ctrls { display: flex; gap: 12px; justify-content: center; }
+.dc-btn { border: 0; border-radius: 20px; background: #fff; font: 900 1.3rem system-ui; padding: 12px 26px; box-shadow: 0 5px 0 rgba(0,0,0,.14); cursor: pointer; touch-action: manipulation; }
+.dc-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.14); }
+.dc-jump { background: #ffcf33; min-width: 150px; }
+
+/* ============================== Adventures home ============================== */
+.adv-hero { position: relative; width: 100%; aspect-ratio: 1.35; border-radius: 30px; overflow: hidden; background: linear-gradient(#8fd8f0, #e6f7d8); box-shadow: 0 14px 30px rgba(6,38,35,.25), inset 0 0 0 4px rgba(255,255,255,.5); }
+.adv-hero > * { position: absolute; }
+.ah-sun { right: 9%; top: 8%; width: 17%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #fff6c4, #ffd45e 60%, #ffb92e); box-shadow: 0 0 0 10px rgba(255,214,102,.25), 0 0 40px 14px rgba(255,214,102,.5); animation: hs-sunpulse 4s ease-in-out infinite; }
+.ah-cloud { left: 0; height: 9%; background: rgba(255,255,255,.92); border-radius: 99px; animation: ah-drift 40s linear infinite; } .ah-cloud::before { content: ""; position: absolute; left: 20%; top: -70%; width: 46%; height: 150%; border-radius: 50%; background: inherit; }
+.ah-cloud.c1 { top: 12%; width: 24%; } .ah-cloud.c2 { top: 26%; width: 17%; animation-duration: 58s; animation-delay: -20s; }
+@keyframes ah-drift { from { transform: translateX(-30%); } to { transform: translateX(520%); } }
+.ah-ptero { top: 10%; left: 0; width: 22%; animation: ah-fly 22s linear infinite; }
+@keyframes ah-fly { from { transform: translateX(-30%); } to { transform: translateX(480%); } }
+.ah-hill { left: -10%; right: -10%; border-radius: 50% 50% 0 0 / 100% 100% 0 0; } .ah-hill.h1 { bottom: 0; height: 40%; background: #7cc28a; } .ah-hill.h2 { bottom: -6%; height: 30%; background: #41896d; }
+.ah-rex { left: 6%; bottom: 8%; width: 50%; filter: drop-shadow(0 10px 8px rgba(0,60,40,.25)); cursor: pointer; }
+.ah-tricera { left: 52%; bottom: 7%; width: 24%; animation: ah-walk 26s linear infinite alternate; } @keyframes ah-walk { from { transform: translateX(0); } to { transform: translateX(60%); } }
+.ah-mum { right: 12%; bottom: 5%; } .ah-dad { right: 1%; bottom: 4%; }
+.ah-fl { bottom: 2%; width: 4px; height: 16px; background: linear-gradient(#5fbf6c, #2f8f4e); border-radius: 3px 3px 0 0; transform-origin: 50% 100%; animation: hs-grass 2.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
+.activity-icon { display: inline-block; animation: du-bob2 3.4s ease-in-out infinite; }
+.activity-card:nth-child(3n+1) .activity-icon { animation-delay: -.8s; } .activity-card:nth-child(3n+2) .activity-icon { animation-delay: -1.7s; }
+.activity-card:hover .activity-icon { animation: du-wobble .6s ease-in-out; }
+.activity-card { transition: transform .18s cubic-bezier(.3,.9,.4,1.3), box-shadow .2s; }
+.filter-chip { transition: transform .15s; } .filter-chip:hover { transform: translateY(-2px) scale(1.04); }
+
+/* ============================== Multi-round journeys ============================== */
+.round-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; margin: 8px 0; background: rgba(255,255,255,.85); border-radius: 18px; box-shadow: 0 4px 12px rgba(0,60,40,.1); flex-wrap: wrap; }
+.rb-label { font-weight: 800; color: #17403a; margin-right: auto; }
+.rb-dot { font-style: normal; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #e6efe8; color: #5b7a6f; font-weight: 800; transition: transform .3s cubic-bezier(.3,1.6,.5,1), background .3s; }
+.rb-dot.now { background: #ffd45e; color: #17403a; transform: scale(1.18); animation: du-bob2 1.6s ease-in-out infinite; }
+.rb-dot.done { background: #d8f5df; }
+.round-bar.all-done .rb-dot { background: #ffe9a0; }
+.round-interlude { text-align: center; padding: 28px 12px; animation: du-pop-in .5s cubic-bezier(.3,1.5,.5,1); }
+.ri-dino { width: min(220px, 50%); margin: 0 auto; animation: hs-hop 1s ease-in-out infinite; }
+.round-interlude h2 { margin: 10px 0 4px; }
+@keyframes hs-hop { 50% { transform: translateY(-16px); } }

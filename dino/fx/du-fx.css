@@ -1,0 +1,125 @@
+/* Dinosaur Universe — shared motion styles.
+   Everything here respects "reduce motion" and the parents' calmer-celebrations choice. */
+
+/* ---------- animated dinosaurs ---------- */
+.du-dino { display: inline-block; width: 100%; max-width: 100%; line-height: 0; vertical-align: bottom; }
+.du-dino-svg { width: 100%; height: auto; overflow: visible; display: block; }
+.du-dino-svg * { transform-box: view-box; }
+.du-dino .d-eye-happy, .du-dino .d-eye-sleep, .du-dino .d-zzz { opacity: 0; }
+.du-dino .d-all { transform-origin: 120px 170px; animation: du-breathe 3.2s ease-in-out infinite; animation-delay: var(--d-delay, 0s); }
+.du-dino .d-tail { animation: du-tail 2.6s ease-in-out infinite; animation-delay: var(--d-delay, 0s); }
+.du-dino .d-head { animation: du-head 4.2s ease-in-out infinite; animation-delay: var(--d-delay, 0s); }
+.du-dino .d-eye { animation: du-blink var(--d-blink, 4s) infinite; animation-delay: var(--d-delay, 0s); }
+.du-dino .d-plate { animation: du-plate 3s ease-in-out infinite; }
+.du-dino .d-arm { animation: du-arm 2.4s ease-in-out infinite; }
+.du-dino .d-wing-f { animation: du-flap .9s ease-in-out infinite; }
+.du-dino .d-wing-b { animation: du-flap-b .9s ease-in-out infinite; }
+.du-dino .d-pupil { transition: transform .15s ease-out; }
+
+@keyframes du-breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.03); } }
+@keyframes du-tail { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(6deg); } }
+@keyframes du-head { 0%,100% { transform: rotate(0deg) translateY(0); } 40% { transform: rotate(-2.5deg) translateY(-1.5px); } 70% { transform: rotate(1.5deg) translateY(.5px); } }
+@keyframes du-blink { 0%,93%,100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+@keyframes du-plate { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes du-arm { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(10deg); } }
+@keyframes du-flap { 0%,100% { transform: rotate(14deg) scaleY(1); } 50% { transform: rotate(-26deg) scaleY(.82); } }
+@keyframes du-flap-b { 0%,100% { transform: rotate(10deg) scaleY(1); } 50% { transform: rotate(-20deg) scaleY(.82); } }
+
+/* walking */
+.du-dino[data-state="walk"] .d-leg-f, .du-dino[data-state="walk"] .d-leg-b2 { animation: du-step .8s ease-in-out infinite; }
+.du-dino[data-state="walk"] .d-leg-b, .du-dino[data-state="walk"] .d-leg-f2 { animation: du-step .8s ease-in-out infinite reverse; }
+.du-dino[data-state="walk"] .d-all { animation: du-bob .4s ease-in-out infinite; }
+.du-dino[data-state="walk"] .d-tail { animation-duration: .8s; }
+.du-dino[data-state="run"] .d-leg-f, .du-dino[data-state="run"] .d-leg-b2 { animation: du-step .38s ease-in-out infinite; }
+.du-dino[data-state="run"] .d-leg-b, .du-dino[data-state="run"] .d-leg-f2 { animation: du-step .38s ease-in-out infinite reverse; }
+.du-dino[data-state="run"] .d-all { animation: du-bob .19s ease-in-out infinite; }
+.du-dino[data-state="run"] .d-tail { animation-duration: .38s; }
+@keyframes du-step { 0%,100% { transform: rotate(-22deg); } 50% { transform: rotate(22deg); } }
+@keyframes du-bob { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+
+/* happy: hop, squinting smile */
+.du-dino[data-state="happy"] .d-all { animation: du-hop .55s cubic-bezier(.3,.7,.4,1) infinite; }
+.du-dino[data-state="happy"] .d-eye { opacity: 0; animation: none; }
+.du-dino[data-state="happy"] .d-eye-happy { opacity: 1; }
+.du-dino[data-state="happy"] .d-tail { animation-duration: .35s; }
+.du-dino[data-state="happy"] .d-arm { animation-duration: .3s; }
+.du-dino[data-state="happy"] .d-plate { animation-duration: .5s; }
+.du-dino[data-state="happy"] .d-smile { stroke-width: 5; }
+@keyframes du-hop { 0%,100% { transform: translateY(0) scale(1.03, .96); } 45% { transform: translateY(-16px) scale(.97, 1.04); } }
+
+/* sad: droop */
+.du-dino[data-state="sad"] .d-all { animation: du-droop 2.6s ease-in-out infinite; }
+.du-dino[data-state="sad"] .d-head { animation: none; transform: rotate(10deg) translateY(4px); transform-origin: 150px 90px; }
+.du-dino[data-state="sad"] .d-tail { animation: none; transform: rotate(14deg); }
+.du-dino[data-state="sad"] .d-smile { transform: scaleY(-1); transform-box: fill-box; transform-origin: center; }
+@keyframes du-droop { 0%,100% { transform: translateY(2px) scale(1, .98); } 50% { transform: translateY(3px) scale(1, .96); } }
+
+/* roar: lean back, jaw opens, body shakes */
+.du-dino[data-state="roar"] .d-all { animation: du-roar .22s linear infinite; }
+.du-dino[data-state="roar"] .d-head { animation: none; transform: rotate(-14deg) translateY(-3px); }
+.du-dino[data-state="roar"] .d-jaw { animation: none; transform: rotate(24deg); }
+.du-dino[data-state="roar"] .d-smile { opacity: 0; }
+.du-dino[data-state="roar"] .d-tail { animation-duration: .25s; }
+@keyframes du-roar { 0% { transform: translate(0, 0) scale(1.05); } 25% { transform: translate(-1.5px, 1px) scale(1.06); } 50% { transform: translate(1.5px, -1px) scale(1.05); } 75% { transform: translate(-1px, -1.5px) scale(1.06); } 100% { transform: translate(0, 0) scale(1.05); } }
+
+/* eat: head dips and chomps */
+.du-dino[data-state="eat"] .d-head { animation: du-chomp .5s ease-in-out infinite; }
+.du-dino[data-state="eat"] .d-jaw { animation: du-jaw .25s ease-in-out infinite; }
+@keyframes du-chomp { 0%,100% { transform: rotate(8deg) translateY(4px); } 50% { transform: rotate(14deg) translateY(8px); } }
+@keyframes du-jaw { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(16deg); } }
+
+/* sleep */
+.du-dino[data-state="sleep"] .d-all { animation: du-snooze 4s ease-in-out infinite; }
+.du-dino[data-state="sleep"] .d-head { animation: none; transform: rotate(10deg) translateY(6px); }
+.du-dino[data-state="sleep"] .d-tail { animation-duration: 6s; }
+.du-dino[data-state="sleep"] .d-eye, .du-dino[data-state="sleep"] .d-eye-happy { opacity: 0; animation: none; }
+.du-dino[data-state="sleep"] .d-eye-sleep { opacity: 1; }
+.du-dino[data-state="sleep"] .d-zzz { opacity: 1; }
+.du-dino[data-state="sleep"] .d-zzz text { animation: du-zzz 2.4s ease-in-out infinite; }
+.du-dino[data-state="sleep"] .d-zzz text:nth-child(2) { animation-delay: .6s; }
+.du-dino[data-state="sleep"] .d-zzz text:nth-child(3) { animation-delay: 1.2s; }
+@keyframes du-snooze { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.02, 1.05); } }
+@keyframes du-zzz { 0% { opacity: 0; transform: translate(-8px, 10px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -12px); } }
+
+/* flying (pterosaur) */
+.du-dino[data-species="ptero"] .d-all { animation: du-glide 3s ease-in-out infinite; }
+@keyframes du-glide { 0%,100% { transform: translateY(-4px) rotate(-2deg); } 50% { transform: translateY(6px) rotate(3deg); } }
+.du-dino[data-species="ptero"] .d-shadow { opacity: 0; }
+
+/* flip to face left */
+.du-dino.d-flip { transform: scaleX(-1); }
+
+/* ---------- reusable motion helpers ---------- */
+.du-float { animation: du-float 4s ease-in-out infinite; animation-delay: var(--du-delay, 0s); }
+@keyframes du-float { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-7px) rotate(1.5deg); } }
+.du-bob { animation: du-bob2 2.2s ease-in-out infinite; animation-delay: var(--du-delay, 0s); }
+@keyframes du-bob2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.du-spin-slow { animation: du-spin 24s linear infinite; }
+@keyframes du-spin { to { transform: rotate(360deg); } }
+.du-twinkle { animation: du-twinkle 2.4s ease-in-out infinite; animation-delay: var(--du-delay, 0s); }
+@keyframes du-twinkle { 0%,100% { opacity: .35; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.15); } }
+.du-shine { position: relative; overflow: hidden; }
+.du-shine::after { content: ""; position: absolute; inset: -20% auto -20% -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform: skewX(-18deg); animation: du-shine 4.6s ease-in-out infinite; animation-delay: var(--du-delay, 0s); pointer-events: none; }
+@keyframes du-shine { 0%,60% { left: -60%; } 100% { left: 140%; } }
+.du-glow { animation: du-glow 2.8s ease-in-out infinite; }
+@keyframes du-glow { 0%,100% { filter: drop-shadow(0 0 3px rgba(255,214,102,.4)); } 50% { filter: drop-shadow(0 0 14px rgba(255,214,102,.95)); } }
+.du-in { animation: du-in .5s cubic-bezier(.2,.9,.3,1.25) both; animation-delay: var(--du-delay, 0s); }
+@keyframes du-in { from { opacity: 0; transform: translateY(18px) scale(.82); } to { opacity: 1; transform: none; } }
+.du-wobble:hover, .du-wobble:focus-visible { animation: du-wobble .6s ease-in-out; }
+@keyframes du-wobble { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-6deg) scale(1.05); } 50% { transform: rotate(5deg) scale(1.05); } 80% { transform: rotate(-3deg); } }
+
+/* ---------- canvases ---------- */
+#du-fx-layer { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483000; }
+#du-ambient { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+.du-flyer { position: fixed; left: 0; top: 0; z-index: 2147482000; pointer-events: none; will-change: transform; }
+
+/* ---------- screen transition ---------- */
+.du-iris { position: fixed; inset: 0; z-index: 2147483100; pointer-events: none; background: #0b6e5f; clip-path: circle(0% at var(--x, 50%) var(--y, 50%)); }
+
+/* ---------- calmer / reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .du-dino .d-all, .du-dino .d-tail, .du-dino .d-head, .du-dino .d-plate, .du-dino .d-arm,
+  .du-dino .d-wing-f, .du-dino .d-wing-b, .du-float, .du-bob, .du-spin-slow, .du-glow, .du-in, .du-shine::after { animation: none !important; }
+  .du-dino .d-eye { animation: none !important; }
+  #du-ambient, #du-fx-layer { display: none; }
+}

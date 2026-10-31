@@ -8,12 +8,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="Dino Meadow — 100 gentle play activities and 120 colouring pages.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../fx/du-fx.css">
 <link rel="stylesheet" href="meadow.css">
 <title>Dino Meadow</title>
 </head>
 <body>
 <div id="app"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="../../fx/du-fx.js"></script>
+<script src="../../fx/du-ambient.js"></script>
+<script>window.addEventListener("load",function(){if(window.DUFX&&DUFX.ambient)DUFX.ambient("meadow");});</script>
 <script type="module" src="./app.js"></script>
 </body>
 </html>

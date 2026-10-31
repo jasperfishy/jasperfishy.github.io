@@ -19,7 +19,7 @@ const FEATURES = [
 
 export function mountHabitatBuilder(context) {
   const habitat = HABITATS[(context.level - 1) % HABITATS.length];
-  const extraCount = Math.min(habitat.extras.length, Math.max(0, Math.floor((context.level - 1) / 2)));
+  const extraCount = Math.min(habitat.extras.length, 2 + Math.floor((context.level - 1) / 2));
   const needed = habitat.base.concat(habitat.extras.slice(0, extraCount));
   const chosen = new Set();
   const distractors = FEATURES.filter(function (feature) { return !needed.includes(feature.id); }).slice(0, 3);

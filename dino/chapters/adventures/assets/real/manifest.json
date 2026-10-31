@@ -1,0 +1,5 @@
+{ "moments": [
+  { "id": "mountain", "type": "video", "src": "mountain-clouds.mp4", "poster": "footprints.jpg", "still": "footprints.jpg", "caption": "Mountains were here when the dinosaurs lived. Their footprints are still found in the rocks today!", "credit": "Video: free-licence stock clip. Photo: Jasperfish" },
+  { "id": "cave", "type": "video", "src": "cave.mp4", "poster": "fossil-eggs.jpg", "still": "fossil-eggs.jpg", "caption": "Caves can hide secrets! Real fossil dinosaur eggs have been found hiding in rock, just like a nest.", "credit": "Video: free-licence stock clip. Photo: Jasperfish" },
+  { "id": "hatch", "type": "video", "src": "chickhatch.mp4", "poster": "chick-hatching.jpg", "still": "chick-hatching.jpg", "caption": "A real baby chick hatching! Baby dinosaurs hatched from eggs in much the same way.", "credit": "Video: free-licence stock clip. Photo: Jasperfish" }
+] }
