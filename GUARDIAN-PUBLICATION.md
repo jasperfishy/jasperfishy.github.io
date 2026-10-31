@@ -2,9 +2,14 @@
 
 These pages are drafts, not approved privacy or contractual statements. Do not merge or enter their URLs in Google Cloud until the factual review is complete and the deployed pages have been checked.
 
+## Confirmed by Steve
+
+- Operating organisation and privacy contact: Southern Taxis Ltd, 98 Warren Road, Brighton BN2 6BA; enquiries@southerntaxis.co.uk.
+- These details have been added to all three pages. The responsible organisation is distinguished from the technical contact.
+
 ## Required facts
 
-- Responsible taxi organisation: legal name, address and privacy contact; distinguish this from the developer and hosting-domain owner.
+- Confirm the developer/service-provider role separately from Southern Taxis Ltd and the hosting-domain owner.
 - Lawful basis for each processing purpose and any legitimate interests.
 - Retention periods or criteria for operational records, audit logs, reports and backups. Do not claim 30-day deletion: this has not been verified.
 - Complete recipients/providers, including Google, availability monitoring and authorised maintenance/AI tools; international transfers and safeguards.
