@@ -1,23 +1,30 @@
-# Southern Taxis Ltd: proposed Guardian retention schedule
+# Southern Taxis Ltd: Guardian retention schedule and implementation review
 
-Status: proposal for management review, not an adopted policy or a description of current automatic deletion. Prepared 31 October 2026.
+Status: Steve confirmed authority/approval in response to the company-approval question on 31 October 2026 for the 12-month operational-history/audit period and 90-day routine-diagnostic/backup period. These are approved target periods; automatic enforcement is not implemented or certified. Other privacy and contractual details remain under review.
 
 Southern Taxis Ltd, 98 Warren Road, Brighton BN2 6BA. Contact: enquiries@southerntaxis.co.uk.
 
 Steve has confirmed that there is no existing privacy or retention policy available to use. Guardian currently has retained operational history, audit journals and backups, without a verified comprehensive deletion schedule. Creating this document does not change that behaviour.
 
-## Proposed starting points
+## Target periods and supporting criteria
 
-These periods are suggested design choices for discussion, not statutory periods or a finding that these durations are necessary. Management must check actual complaint timescales, operational needs, employment considerations, licensing conditions and other applicable obligations before adopting them. This schedule covers Guardian's queue and audit data, not the taxi booking system, tax records or other records with separate retention requirements.
+The approved numerical periods are business choices, not statutory periods or a legal finding of necessity. Management still needs to document the justification and check complaint timescales, employment considerations, licensing conditions and other applicable obligations. Supporting review procedures and criteria below remain implementation proposals. This schedule covers Guardian's queue and audit data, not the taxi booking system, tax records or other records with separate retention requirements.
 
 | Guardian record | Proposed period or criterion | Purpose and decision needed |
 | --- | --- | --- |
 | Current queue and operational driver/agent identifiers | While required for an active authorised role or an unresolved operational action; review on departure or role change | Keep live queues usable and permissions current. Removing access must be handled separately from removing historical evidence. |
-| Allocation, no-fare, cancellation and queue-action history; agent attribution; linked audit journals; identifiable management reports | Starting point: 12 months from the event or report date, unless a documented hold applies | Investigate disputed actions and reliability issues across an annual operational cycle. Confirm whether an annual cycle is actually needed; shorten if it is not. Keep linked evidence consistently so that attribution and journal integrity are preserved. |
-| Routine diagnostic logs that are not needed as action evidence | Starting point: 90 days from creation | Investigate recent faults. A relevant excerpt can be retained with an incident when justified. Classify logs before applying this rule; do not delete audit evidence as if it were routine telemetry. |
-| Workbook backups, manual exports and copies containing personal information | Starting point: rolling 90 days from creation, except explicitly justified incident/restore evidence | Restore service after corruption or accidental changes. First inventory all copies, including annual/manual copies, prove restoration and determine whether this window covers fault discovery needs. Existing indefinite backups are not automatically covered by a purge job. |
+| Allocation, no-fare, cancellation and queue-action history; agent attribution; linked audit journals; identifiable management reports | Approved target: 12 months from the event or report date, unless a documented hold applies | Investigate disputed actions and reliability issues across an annual operational cycle. Confirm whether an annual cycle is actually needed; shorten if it is not. Keep linked evidence consistently so that attribution and journal integrity are preserved. |
+| Routine diagnostic logs that are not needed as action evidence | Approved target: 90 days from creation | Investigate recent faults. A relevant excerpt can be retained with an incident when justified. Classify logs before applying this rule; do not delete audit evidence as if it were routine telemetry. |
+| Workbook backups, manual exports and copies containing personal information | Approved target: rolling 90 days from creation, except explicitly justified incident/restore evidence | Restore service after corruption or accidental changes. First inventory all copies, including annual/manual copies, prove restoration and determine whether this window covers fault discovery needs. Existing indefinite backups are not automatically covered by a purge job. |
 | Records needed for a specific complaint, investigation or legal/licensing requirement | Only the relevant records, for the documented need or applicable required period; review each hold at least every three months | Record the owner, reason, scope, review date and release decision. A hold is not blanket permission to keep everything indefinitely. |
 | Statistics intended for longer-term trends | Retain only genuinely anonymous aggregates after the identifiable retention period | Driver numbers, agent names, small groups or linkable event IDs may still identify people. Check re-identification risk; removing names alone is insufficient. |
+
+## Read-only implementation findings: 31 October 2026
+
+- Checked timestamp columns in all four live statistics tabs and all four local Guardian journals at 18:38 UK time. Found 570 statistics records and 1,292 journal entries; no parsed timestamp was older than the 12-month cutoff and none was unparseable. This does not certify other hidden logs, management reports, central journal copies, email, exports or provider copies.
+- A metadata search for files older than 90 days in the known Guardian backup folder returned no accessible matches. This is not a complete backup inventory or a certification of backup expiry.
+- Direct journal-row pruning is unsafe: the existing verifier starts from GENESIS, external checkpoints refer to row numbers and hashes, and central replication uses row cursors. Statistics shrinkage can also trip a safety stop. Retention implementation must coordinate linked evidence, checkpoints and cursors, with tests before deployment. Simply moving personal records into an indefinite archive would not satisfy deletion.
+- No records, files, permissions, triggers or production script code were changed by this check.
 
 ## Adoption and implementation
 
