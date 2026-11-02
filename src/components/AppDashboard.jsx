@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import apps from "../data/apps.json";
+import "../index.css";
 
 const APP_URL = "https://focusdrop.jasperfish.com";
 
