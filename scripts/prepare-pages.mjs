@@ -14,3 +14,6 @@ await copyFile(source('index.source.html'), target('index.html'));
 // Publish every discovered local app, not only the first one added.
 const apps = JSON.parse(await readFile(new URL('../src/data/apps.json', import.meta.url), 'utf8'));
 for (const app of apps) if (app.folder) await cp(source(app.folder), target(app.folder), { recursive: true });
+
+// Guardian information pages do not have an app-discovery manifest.
+await cp(source('guardian'), target('guardian'), { recursive: true });
