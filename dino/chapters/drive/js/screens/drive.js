@@ -43,6 +43,41 @@ export function initDrive(root, state, goHome, onComplete) {
       particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - (up || 0), life: 0.5 + Math.random() * 0.5, age: 0, color, size: (size || 5) * (0.6 + Math.random() * 0.8) });
     }
   }
+  const DUST_PALETTE = ["#9b8a72", "#b7a68c", "#8a7760", "#c7b89c", "#746253"];
+  function puffDust(x, y, n, speed, up, size) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, v = (0.4 + Math.random()) * speed;
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v - (up || 0),
+        life: 0.5 + Math.random() * 0.5,
+        age: 0,
+        color: DUST_PALETTE[Math.floor(Math.random() * DUST_PALETTE.length)],
+        size: (size || 5) * (0.6 + Math.random() * 0.8),
+        dust: true,
+        growth: 1.3 + Math.random() * 0.9
+      });
+    }
+  }
+  function drawCloudPuff(context, x, y, size, color) {
+    context.fillStyle = color;
+    context.beginPath();
+    context.ellipse(x, y, size, size * 0.55, 0, 0, Math.PI * 2);
+    context.ellipse(x - size * 0.55, y + size * 0.12, size * 0.6, size * 0.4, 0, 0, Math.PI * 2);
+    context.ellipse(x + size * 0.6, y + size * 0.1, size * 0.56, size * 0.38, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+  function drawClouds(context, t, w, h) {
+    for (let i = 0; i < 4; i++) {
+      const x = ((i * 260 - t * 0.05) % (w + 300)) - 150;
+      drawCloudPuff(context, x, h * 0.14 + (i % 2) * 18, 42, "rgba(255,255,255,0.5)");
+    }
+    for (let i = 0; i < 3; i++) {
+      const x = ((i * 340 - t * 0.1) % (w + 340)) - 170;
+      drawCloudPuff(context, x, h * 0.23 + (i % 2) * 14, 60, "rgba(255,255,255,0.72)");
+    }
+  }
 
   const player = { x: W / 2, targetX: W / 2, tilt: 0 };
   const ROAD_TOP = H * 0.5;
@@ -109,7 +144,11 @@ export function initDrive(root, state, goHome, onComplete) {
     }
     time += dt;
     dustClock += dt;
-    if (dustClock > (boostSeconds > 0 ? 0.03 : 0.07)) { dustClock = 0; puff(player.x + (Math.random() - 0.5) * 40, H - 62, boostSeconds > 0 ? '#ffb347' : scene.roadLine, 1, 40, 20, boostSeconds > 0 ? 7 : 4); }
+    if (dustClock > (boostSeconds > 0 ? 0.03 : 0.07)) {
+      dustClock = 0;
+      if (boostSeconds > 0) puff(player.x + (Math.random() - 0.5) * 40, H - 62, '#ffb347', 1, 40, 20, 7);
+      else puffDust(player.x + (Math.random() - 0.5) * 40, H - 62, 1, 40, 20, 4);
+    }
     player.x += (player.targetX - player.x) * Math.min(1, dt * 6);
     player.x = Math.max(roadLeft + 48, Math.min(roadLeft + roadWidth - 48, player.x));
     player.tilt = (player.targetX - player.x) * 0.0015;
@@ -175,6 +214,7 @@ export function initDrive(root, state, goHome, onComplete) {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, W, H);
 
+    if (scene.id !== "space") drawClouds(ctx, time * 100, W, H);
     scene.far(ctx, time * 100, W, H);
     ctx.fillStyle = scene.ground;
     ctx.fillRect(0, ROAD_TOP - 10, W, H - ROAD_TOP + 10);
@@ -215,8 +255,17 @@ export function initDrive(root, state, goHome, onComplete) {
     drawDino(ctx, player.x, H - 150 + bounce, time);
     if (boostSeconds > 0) { ctx.fillStyle = "rgba(255,150,40,.85)"; ctx.beginPath(); ctx.moveTo(player.x - 14, H - 62); ctx.lineTo(player.x, H - 62 + 26 + Math.random() * 14); ctx.lineTo(player.x + 14, H - 62); ctx.fill(); }
     for (const p of particles) {
-      const a = 1 - p.age / p.life; ctx.globalAlpha = Math.max(0, a); ctx.fillStyle = p.color;
-      if (p.star) { ctx.font = Math.round(p.size * 3) + "px sans-serif"; ctx.fillText("⭐", p.x, p.y); } else { ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (0.5 + a * 0.6), 0, Math.PI * 2); ctx.fill(); }
+      const ageFrac = Math.min(1, p.age / p.life);
+      const a = 1 - ageFrac;
+      ctx.globalAlpha = Math.max(0, a); ctx.fillStyle = p.color;
+      if (p.star) {
+        ctx.font = Math.round(p.size * 3) + "px sans-serif"; ctx.fillText("⭐", p.x, p.y);
+      } else if (p.dust) {
+        const grown = p.size * (0.6 + ageFrac * (p.growth || 1.3));
+        ctx.beginPath(); ctx.arc(p.x, p.y, grown, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (0.5 + a * 0.6), 0, Math.PI * 2); ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
     if (flash > 0) { ctx.fillStyle = "rgba(255,246,170," + (flash * 0.35) + ")"; ctx.fillRect(0, 0, W, H); }
