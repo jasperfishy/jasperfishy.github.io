@@ -127,7 +127,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then((cached) =>
+    caches.match(request, { ignoreSearch: true }).then((cached) =>
       cached || fetch(request).then((response) => {
         if (response.ok) caches.open(VERSION).then((cache) => cache.put(request, response.clone()));
         return response;
