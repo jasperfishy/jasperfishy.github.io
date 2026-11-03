@@ -67,6 +67,7 @@
     { id: "size", title: "Size Parade", emoji: "📏", color: 0x3d9bd6, desc: "Line up the dinosaurs smallest to biggest, then parade!" },
     { id: "counting", title: "Snack Time", emoji: "🍓", color: 0xe0762e, desc: "Feed the dino the right number of berries!" },
     { id: "dot", title: "Dot-to-Dot", emoji: "🔢", color: 0x4d96ff, desc: "Join the dots in order and reveal a dinosaur!" },
+    { id: "color",  emoji: "🎨", title: "Colouring", desc: "Paint the dino, part by part", color: 0xe0508f },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -1297,6 +1298,104 @@
     }
   }
 
+
+  /* ------------------------------------------------------ colouring */
+  class ColourScene extends Phaser.Scene {
+    constructor() { super("color"); }
+
+    create() {
+      DUKit.textures(this);
+      this.state = "title";
+      const sp = "stego";
+      this.color = pick(COLORS);
+      this.parts = 6;
+
+      sky(this, 0xfdf3ff, 0xffe9f3);
+      this.add.text(40, 22, "🎨 Colouring", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#7a2c57" }).setOrigin(0, 0);
+      this.hud = this.add.text(920, 22, "0 / " + this.parts, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#9a4a72" }).setOrigin(1, 0);
+
+      this.dinoKey = "color_" + sp + "_" + this.color.replace("#", "");
+      dinoTexture(this, this.dinoKey, sp, this.color, () => {});
+      this.dinoImg = this.add.image(W / 2 - 120, H / 2 - 10, this.dinoKey).setScale(1.5).setDepth(1);
+
+      // Palette
+      const PAINTS = [0xff6b6b, 0xff9f43, 0xffd93d, 0x6bcb77, 0x2ec4b6, 0x4d96ff, 0x9b6fe0, 0xff8fc7, 0xa0522d, 0xffffff];
+      this.selected = PAINTS[0];
+      const palX0 = W / 2 + 40;
+      this.swatches = [];
+      PAINTS.forEach((c, i) => {
+        const col = i % 5, row = Math.floor(i / 5);
+        const x = palX0 + col * 54, y = 130 + row * 54;
+        const sw = this.add.rectangle(x, y, 40, 40, c).setStrokeStyle(3, 0xffffff, 1).setDepth(3);
+        sw.setInteractive({ useHandCursor: true });
+        sw.on("pointerdown", () => { this.selected = c; DUKit.sfx("tap"); this.swatches.forEach((o) => o.setAlpha(0.5)); sw.setAlpha(1); sw.setStrokeStyle(4, 0x22334a, 1); });
+        if (i === 0) { sw.setAlpha(1); sw.setStrokeStyle(4, 0x22334a, 1); } else sw.setAlpha(0.7);
+        this.swatches.push(sw);
+      });
+      this.add.text(palX0 + 108, 90, "Pick a colour, then tap the parts!", { fontSize: "14px", fontFamily: DUKit.FONT, color: "#7a2c57" }).setOrigin(0.5);
+
+      // Numbered parts overlaid on the dino
+      this.partN = 0;
+      const spots = [[-150, -70], [-150, -10], [-150, 60], [-110, 90], [-190, 90], [-200, 20]];
+      this.partsArr = [];
+      spots.forEach((p, i) => {
+        const x = W / 2 - 120 + p[0], y = H / 2 - 10 + p[1];
+        const c = this.add.circle(x, y, 14, 0xffffff).setStrokeStyle(3, 0xe0508f, 1).setDepth(3);
+        const t = this.add.text(x, y, String(i + 1), { fontSize: "14px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#e0508f" }).setOrigin(0.5).setDepth(4);
+        c.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(0, 0, 18) });
+        c.on("pointerdown", () => this.paint(i, c, t));
+        this.partsArr.push({ c, t, done: false });
+      });
+
+      this.startTitle();
+    }
+
+    paint(i, c, t) {
+      if (this.state !== "play") return;
+      const d = this.partsArr[i];
+      if (d.done) return;
+      d.done = true;
+      d.c.setFillStyle(this.selected, 1);
+      d.t.setText("");
+      this.partN++;
+      this.hud.setText(this.partN + " / " + this.parts);
+      DUKit.sfx("pop");
+      DUKit.burst(this, c.x, c.y, { tint: this.selected, n: 8, gravity: 60 });
+      if (this.partN >= this.parts) this.win();
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      DUKit.sfx("roar");
+      this.tweens.add({ targets: this.dinoImg, scale: 1.7, duration: 500, yoyo: true });
+      DUKit.burst(this, W / 2 - 120, H / 2 - 10, { tint: 0xffd93d, n: 40, gravity: 150 });
+      DUKit.burst(this, W / 2, H / 2, { tint: 0xff8fc7, n: 20, gravity: 200 });
+      const stars = 3;
+      progress.stars["color"] = Math.max(progress.stars["color"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        emoji: "🎨",
+        title: "BECAME ALIVE!",
+        line: "Your dinosaur is fully coloured!",
+        best: "Best: " + (progress.stars["color"] || 0) + " ⭐",
+        stars: stars,
+        again: "TAP TO PAINT AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+
+    startTitle() {
+      this.state = "title";
+      DUKit.title(this, {
+        emoji: "🎨",
+        title: "Dino Colouring",
+        hint: "Pick a colour from the palette, then tap each numbered part of the dinosaur. When every part is painted, the dino comes alive!",
+        color: 0xe0508f,
+        cssColor: "#e0508f",
+      }, () => { this.state = "play"; });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
@@ -1306,6 +1405,7 @@
     size: "size",
     counting: "counting",
     dot: "dot",
+    color: "color",
   };
 
   window.game = new Phaser.Game({
@@ -1315,6 +1415,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene],
   });
 })();
