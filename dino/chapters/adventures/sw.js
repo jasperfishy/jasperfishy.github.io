@@ -1,26 +1,26 @@
-const CACHE_NAME = "dinosaur-universe-shell-du-1d7a3c7d7a268f5a";
+const CACHE_NAME = "dinosaur-universe-shell-du-5adb151ef2760ab3";
 const CORE_FILES = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon.svg",
-  "./assets/daddy-ellis.png",
-  "./assets/courtney-avatar.png",
-  "./src/style.css",
-  "./src/main.js",
-  "./src/module-registry.js",
-  "./src/modules/hatchling.js",
-  "./src/modules/shape-safari.js",
-  "./src/modules/dino-beat.js",
-  "./src/modules/habitat-builder.js",
-  "./src/modules/storybook.js",
-  "./src/modules/dino-discoveries.js",
-  "./src/modules/dino-care.js",
-  "./src/modules/mummy-cozy-corner.js",
-  "./src/modules/moonbeam-rescue.js",
-  "./src/modules/dino-parade.js",
-  "./src/modules/dino-constellations.js",
-  "./src/modules/wonder-activities.js",
+  "./?v=du-5adb151ef2760ab3",
+  "./index.html?v=du-5adb151ef2760ab3",
+  "./manifest.webmanifest?v=du-5adb151ef2760ab3",
+  "./icon.svg?v=du-5adb151ef2760ab3",
+  "./assets/daddy-ellis.png?v=du-5adb151ef2760ab3",
+  "./assets/courtney-avatar.png?v=du-5adb151ef2760ab3",
+  "./src/style.css?v=du-5adb151ef2760ab3",
+  "./src/main.js?v=du-5adb151ef2760ab3",
+  "./src/module-registry.js?v=du-5adb151ef2760ab3",
+  "./src/modules/hatchling.js?v=du-5adb151ef2760ab3",
+  "./src/modules/shape-safari.js?v=du-5adb151ef2760ab3",
+  "./src/modules/dino-beat.js?v=du-5adb151ef2760ab3",
+  "./src/modules/habitat-builder.js?v=du-5adb151ef2760ab3",
+  "./src/modules/storybook.js?v=du-5adb151ef2760ab3",
+  "./src/modules/dino-discoveries.js?v=du-5adb151ef2760ab3",
+  "./src/modules/dino-care.js?v=du-5adb151ef2760ab3",
+  "./src/modules/mummy-cozy-corner.js?v=du-5adb151ef2760ab3",
+  "./src/modules/moonbeam-rescue.js?v=du-5adb151ef2760ab3",
+  "./src/modules/dino-parade.js?v=du-5adb151ef2760ab3",
+  "./src/modules/dino-constellations.js?v=du-5adb151ef2760ab3",
+  "./src/modules/wonder-activities.js?v=du-5adb151ef2760ab3",
   "../../update-manager.js"
 ];
 
@@ -59,7 +59,7 @@ self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
   const requestUrl = new URL(event.request.url);
   if (requestUrl.origin !== self.location.origin) return;
-  event.respondWith(caches.match(event.request).then(function (cached) {
+  event.respondWith(caches.match(event.request, { ignoreSearch: true }).then(function (cached) {
     if (cached) return cached;
     return fetch(event.request).then(function (response) {
       if (response.ok && event.request.destination !== "document") {
@@ -70,7 +70,7 @@ self.addEventListener("fetch", function (event) {
       }
       return response;
     }).catch(function () {
-      if (event.request.mode === "navigate") return caches.match("./index.html");
+      if (event.request.mode === "navigate") return caches.match("./index.html", { ignoreSearch: true });
       throw new Error("This item is not available offline yet.");
     });
   }));

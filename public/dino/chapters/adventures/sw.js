@@ -59,7 +59,7 @@ self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
   const requestUrl = new URL(event.request.url);
   if (requestUrl.origin !== self.location.origin) return;
-  event.respondWith(caches.match(event.request).then(function (cached) {
+  event.respondWith(caches.match(event.request, { ignoreSearch: true }).then(function (cached) {
     if (cached) return cached;
     return fetch(event.request).then(function (response) {
       if (response.ok && event.request.destination !== "document") {
@@ -70,7 +70,7 @@ self.addEventListener("fetch", function (event) {
       }
       return response;
     }).catch(function () {
-      if (event.request.mode === "navigate") return caches.match("./index.html");
+      if (event.request.mode === "navigate") return caches.match("./index.html", { ignoreSearch: true });
       throw new Error("This item is not available offline yet.");
     });
   }));
