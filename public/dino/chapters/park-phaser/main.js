@@ -68,6 +68,7 @@
     { id: "counting", title: "Snack Time", emoji: "🍓", color: 0xe0762e, desc: "Feed the dino the right number of berries!" },
     { id: "dot", title: "Dot-to-Dot", emoji: "🔢", color: 0x4d96ff, desc: "Join the dots in order and reveal a dinosaur!" },
     { id: "color",  emoji: "🎨", title: "Colouring", desc: "Paint the dino, part by part", color: 0xe0508f },
+    { id: "feed",  emoji: "🍽", title: "Dino Cafe", desc: "Catch the food your dino wants", color: 0xe0762e },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -1396,6 +1397,145 @@
     }
   }
 
+
+  /* ------------------------------------------------------ cafe (catch food) */
+  class CafeScene extends Phaser.Scene {
+    constructor() { super("feed"); }
+
+    create() {
+      DUKit.textures(this);
+      this.PLANTS = ["🍎", "🥕", "🍓", "🍌", "🥬", "🍇"];
+      this.MEATS = ["🍖", "🐟", "🍗", "🥩"];
+      this.need = 4;
+      this.fed = 0;
+      this.misses = 0;
+      this.state = "title";
+
+      this.sp = pick(SPECIES.filter((x) => x !== "ptero"));
+      this.meat = this.sp === "trex" || this.sp === "raptor";
+      this.mine = this.meat ? this.MEATS : this.PLANTS;
+      this.other = this.meat ? this.PLANTS : this.MEATS;
+      this.want = pick(this.mine);
+      this.color = pick(COLORS);
+      this.dur = 6;
+      this.BY = 412;
+      this.bw = W - 140;
+      this.bx0 = 70;
+
+      sky(this, 0xfff2d6, 0xffe4a8);
+      this.add.text(40, 22, "🍽 Dino Cafe", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#5a3a12" }).setOrigin(0, 0);
+      this.hud = this.add.text(W / 2, 44, "", { fontSize: "20px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
+      this.hearts = this.add.text(920, 22, "", { fontSize: "16px", fontFamily: DUKit.FONT }).setOrigin(1, 0);
+
+      const bg = this.add.graphics();
+      bg.fillStyle(0x6b4a2a, 1).fillRoundedRect(this.bx0, this.BY, this.bw, 70, 18);
+      this.add.text(this.bx0 + this.bw / 2, this.BY + 78, "🎡   🎡   🎡   🎡   🎡   🎡   🎡   🎡", { fontSize: "20px" }).setOrigin(0.5);
+
+      this.dinoKey = "cafe_" + this.sp + "_" + this.color.replace("#", "");
+      dinoTexture(this, this.dinoKey, this.sp, this.color, () => {});
+      this.dino = this.add.image(190, 300, this.dinoKey).setScale(1.5).setDepth(1);
+
+      this.items = [];
+      this.slot = 0;
+      this.updateHearts();
+      this.updateOrder();
+
+      DUKit.title(this, {
+        emoji: "🍽",
+        title: "Dino Cafe",
+        hint: "The dino is hungry! Tap the food it WANTS on the belt. Wrong food makes it sad.",
+        color: 0xe0762e,
+        cssColor: "#e0762e",
+      }, () => { this.state = "play"; this.spawnTimer(); });
+    }
+
+    slotX(i) { return 160 + ((i * (this.bw - 60)) / 7); }
+
+    updateOrder() {
+      const label = this.meat ? "meat" : "plant";
+      this.hud.setText("Catch the " + this.want + "  (" + label + ")");
+    }
+
+    updateHearts() {
+      let t = "";
+      for (let i = 0; i < this.need; i++) t += i < this.fed ? "💖" : "🤍";
+      this.hearts.setText(t);
+    }
+
+    spawnTimer() {
+      this.time.addEvent({
+        delay: this.dur * 1000 / 3.6,
+        loop: true,
+        callback: () => { if (this.state === "play") this.spawn(); },
+      });
+      this.spawn();
+    }
+
+    spawn() {
+      if (this.items.length >= 8) return;
+      const useWant = this.slot === 0 || this.slot % 2 === 1;
+      let f;
+      if (useWant) f = this.want;
+      else {
+        const r = Math.random();
+        if (r < 0.5) f = pick(this.other);
+        else if (r < 0.8) f = pick(this.mine);
+        else f = "🧦";
+      }
+      this.slot++;
+      const idx = this.items.length;
+      const it = this.add.text(this.slotX(idx), this.BY + 34, f, { fontSize: "40px" }).setOrigin(0.5).setDepth(2);
+      const rec = { t: it, f, gone: false };
+      it.setInteractive({ useHandCursor: true });
+      it.on("pointerdown", () => this.tap(rec));
+      this.items.push(rec);
+      this.tweens.add({ targets: it, x: this.slotX(idx) - 760, duration: this.dur * 1000, ease: "Linear", onComplete: () => { it.destroy(); this.items = this.items.filter((r2) => r2 !== rec); } });
+    }
+
+    tap(rec) {
+      if (this.state !== "play" || rec.gone) return;
+      rec.gone = true;
+      rec.t.setInteractive(false);
+      if (rec.f !== this.want) {
+        this.misses++;
+        this.bubble("Yuck! I wanted the " + this.want + "!");
+        DUKit.sfx("bad");
+        DUKit.shake(this, 220, 0.008);
+        this.tweens.add({ targets: rec.t, y: rec.t.y - 40, alpha: 0, duration: 400, onComplete: () => rec.t.destroy() });
+        return;
+      }
+      DUKit.sfx("chomp");
+      DUKit.burst(this, this.dino.x, this.dino.y, { tint: 0xff8fb3, n: 12, gravity: 300 });
+      this.tweens.add({ targets: rec.t, x: this.dino.x, y: this.dino.y - 20, scale: 0.4, duration: 400, onComplete: () => rec.t.destroy() });
+      this.fed++;
+      this.updateHearts();
+      if (this.fed >= this.need) { this.win(); return; }
+      this.want = pick(this.mine.filter((x) => x !== this.want));
+      this.updateOrder();
+      this.bubble("Yum! Now I want a " + this.want + "!");
+    }
+
+    bubble(t) {
+      const b = this.add.text(this.dino.x, this.dino.y - 120, t, { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold", backgroundColor: "rgba(255,255,255,.85)", padding: { x: 10, y: 4 } }).setOrigin(0.5).setDepth(3);
+      this.tweens.add({ targets: b, y: this.dino.y - 150, alpha: 0, delay: 1200, duration: 400, onComplete: () => b.destroy() });
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      for (let i = 0; i < 3; i++) DUKit.burst(this, Phaser.Math.Between(W * 0.25, W * 0.75), H * 0.3, { tint: [0xff6b6b, 0xffd93d, 0x6bcb77][i], n: 24, gravity: 400, life: 1100, depth: 120 });
+      const stars = this.misses === 0 ? 3 : this.misses <= 2 ? 2 : 1;
+      progress.stars["feed"] = Math.max(progress.stars["feed"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        title: "TUMMY FULL!",
+        line: this.fed + " treats caught",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
@@ -1406,6 +1546,7 @@
     counting: "counting",
     dot: "dot",
     color: "color",
+    feed: "feed",
   };
 
   window.game = new Phaser.Game({
@@ -1415,6 +1556,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene, CafeScene],
   });
 })();
