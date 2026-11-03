@@ -66,6 +66,7 @@
     { id: "memory", title: "Dino Memory", emoji: "🃏", color: 0xe05a7a, desc: "Remember where each dinosaur hides - find the pairs!" },
     { id: "size", title: "Size Parade", emoji: "📏", color: 0x3d9bd6, desc: "Line up the dinosaurs smallest to biggest, then parade!" },
     { id: "counting", title: "Snack Time", emoji: "🍓", color: 0xe0762e, desc: "Feed the dino the right number of berries!" },
+    { id: "dot", title: "Dot-to-Dot", emoji: "🔢", color: 0x4d96ff, desc: "Join the dots in order and reveal a dinosaur!" },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -1186,6 +1187,116 @@
     }
   }
 
+
+  /* ------------------------------------------------------ dot-to-dot */
+  class DotScene extends Phaser.Scene {
+    constructor() { super("dot"); }
+
+    create(data) {
+      DUKit.textures(this);
+      this.state = "title";
+      // Pterosaur-ish outline, points in order.
+      this.P = [
+        [120, 150], [160, 120], [210, 105], [260, 95], [310, 100], [350, 120],
+        [360, 150], [345, 185], [300, 210], [250, 225], [200, 230], [155, 220],
+        [120, 200], [105, 175],
+      ];
+      // Add small jitter like the classic.
+      this.P = this.P.map((pt) => [pt[0] + Phaser.Math.Between(-5, 5), pt[1] + Phaser.Math.Between(-5, 5)]);
+      this.next = 0;
+      this.hits = 0;
+
+      sky(this, 0xbfe8ff, 0xfff3d9);
+      this.add.text(40, 22, "🔢 Dot-to-Dot", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.hud = this.add.text(920, 22, "0 / " + this.P.length, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
+      this.status = this.add.text(W / 2, H - 22, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
+
+      this.g = this.add.graphics();
+      this.g.setDepth(2);
+
+      // Hidden dino to reveal.
+      this.dinoKey = "dot_ptero_blue";
+      dinoTexture(this, this.dinoKey, "ptero", "blue", () => {});
+      this.dinoImg = this.add.image(W / 2, H / 2 - 20, this.dinoKey).setScale(240 / 240).setVisible(false).setDepth(1);
+
+      this.dots = [];
+      this.P.forEach((pt, i) => {
+        const x = pt[0] + 180, y = pt[1] + 20; // offset into the 960-wide canvas
+        const c = this.add.circle(x, y, 11, 0xffffff).setStrokeStyle(2, 0x4d96ff, 1).setDepth(3);
+        const t = this.add.text(x, y, String(i + 1), { fontSize: "11px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#4d96ff" }).setOrigin(0.5).setDepth(4);
+        c.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(0, 0, 15) });
+        c.on("pointerdown", () => this.tap(i, c, t));
+        this.dots.push({ c, t, done: false, x, y });
+      });
+
+      this.startTitle();
+    }
+
+    tap(i, c, t) {
+      if (this.state !== "play") return;
+      if (i !== this.next) return;
+      const d = this.dots[i];
+      d.done = true;
+      d.c.setFillStyle(0x4d96ff, 1);
+      d.t.setColor("#ffffff");
+      this.hits++;
+      this.hud.setText(this.hits + " / " + this.P.length);
+      DUKit.sfx("tap");
+      // Draw line from previous completed dot to this one.
+      if (i > 0) {
+        const a = this.dots[i - 1];
+        this.g.lineStyle(4, 0x4d96ff, 1);
+        this.g.beginPath();
+        this.g.moveTo(a.x, a.y);
+        this.g.lineTo(d.x, d.y);
+        this.g.strokePath();
+      }
+      if (this.hits % 3 === 0) this.say(["Nice line!", "Keep going!", "So close!"][this.hits % 3]);
+      if (this.hits >= this.P.length) this.win();
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      this.dinoImg.setVisible(true);
+      DUKit.burst(this, W / 2, H / 2, { tint: 0xffd93d, n: 30, gravity: 200 });
+      DUKit.burst(this, W * 0.35, H * 0.4, { tint: 0xff6b6b, n: 16, gravity: 300 });
+      DUKit.burst(this, W * 0.65, H * 0.4, { tint: 0x6bcb77, n: 16, gravity: 300 });
+      DUKit.sfx("roar");
+      const stars = 3;
+      progress.stars["dot"] = Math.max(progress.stars["dot"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        emoji: "🔢",
+        title: "EVERY DOT JOINED!",
+        line: "A dinosaur appears!",
+        best: "Best: " + (progress.stars["dot"] || 0) + " ⭐",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+
+    say(msg) {
+      this.status.setText(msg);
+      this.status.setAlpha(1);
+      this.tweens.add({ targets: this.status, alpha: 0.15, delay: 1400, duration: 400 });
+    }
+
+    startTitle() {
+      this.state = "title";
+      DUKit.title(this, {
+        emoji: "🔢",
+        title: "Dot-to-Dot",
+        hint: "Tap the dots in number order. Follow the lines and reveal the hidden dinosaur!",
+        color: 0x4d96ff,
+        cssColor: "#4d96ff",
+      }, () => {
+        this.state = "play";
+        this.say("Start at dot 1, then 2, then 3...");
+      });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
@@ -1194,6 +1305,7 @@
     memory: "memory",
     size: "size",
     counting: "counting",
+    dot: "dot",
   };
 
   window.game = new Phaser.Game({
@@ -1203,6 +1315,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene],
   });
 })();
