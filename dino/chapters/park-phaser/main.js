@@ -61,6 +61,7 @@
   const GAME_LIST = [
     { id: "puzzle", title: "Dino Puzzle", emoji: "🧩", color: 0xe08a2e, desc: "Tap two tiles to swap. Rebuild the dinosaur!" },
     { id: "dig", title: "Dig a Dino", emoji: "⛏", color: 0xc98b4f, desc: "Dig the mounds and find every bone!" },
+    { id: "footprint", title: "Footprint Match", emoji: "🐾", color: 0xd9694f, desc: "Whose prints? Drag each dino to its footprints!" },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -395,9 +396,202 @@
     }
   }
 
+
+  /* ------------------------------------------------------ footprint match */
+  class FootScene extends Phaser.Scene {
+    constructor() { super("footprint"); }
+
+    create(data) {
+      DUKit.textures(this);
+      this.species = ["trex", "tricera", "stego", "bronto", "raptor", "ptero"];
+      this.colors = ["green", "teal", "purple", "orange", "pink", "blue"];
+      this.count = Phaser.Math.Between(3, 5);
+      this.done = 0;
+      this.state = "title";
+
+      sky(this, 0xbfe8ff, 0xfff3d9);
+      this.add.text(40, 22, "🐾 Footprint Match", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.hud = this.add.text(920, 22, "Matched: 0/" + this.count, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
+      this.status = this.add.text(W / 2, H - 26, "", { fontSize: "18px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
+
+      // Pick species + colours for this round.
+      this.set = [];
+      const used = new Set();
+      for (let i = 0; i < this.count; i++) {
+        let sp;
+        do { sp = this.species[rnd(this.species.length)]; } while (used.has(sp));
+        used.add(sp);
+        this.set.push({ s: sp, c: this.colors[rnd(this.colors.length)] });
+      }
+
+      // Build footprint slot textures (from classic FOOT svg paths).
+      const FOOT = {
+        trex: '<ellipse cx="40" cy="60" rx="15" ry="13"/><path d="M40 8 q9 14 6 34 h-12 q-3 -20 6 -34z"/><path d="M14 22 q14 6 20 26 l-11 4 q-13 -12 -9 -30z"/><path d="M66 22 q-14 6 -20 26 l11 4 q13 -12 9 -30z"/>',
+        tricera: '<ellipse cx="40" cy="58" rx="22" ry="16"/><circle cx="18" cy="30" r="10"/><circle cx="40" cy="22" r="10"/><circle cx="62" cy="30" r="10"/>',
+        stego: '<ellipse cx="40" cy="54" rx="21" ry="19"/><circle cx="14" cy="30" r="6"/><circle cx="27" cy="19" r="6"/><circle cx="40" cy="15" r="6"/><circle cx="53" cy="19" r="6"/><circle cx="66" cy="30" r="6"/>',
+        bronto: '<circle cx="40" cy="50" r="27"/><circle cx="14" cy="22" r="8"/><circle cx="31" cy="12" r="8"/><circle cx="49" cy="12" r="8"/><circle cx="66" cy="22" r="8"/>',
+        raptor: '<ellipse cx="40" cy="62" rx="11" ry="10"/><ellipse cx="27" cy="34" rx="8" ry="20" transform="rotate(-10 27 34)"/><ellipse cx="53" cy="34" rx="8" ry="20" transform="rotate(10 53 34)"/><path d="M8 40 q-4 -16 10 -24 q-6 12 -2 26z"/>',
+        ptero: '<ellipse cx="40" cy="62" rx="8" ry="9"/><ellipse cx="40" cy="30" rx="4" ry="26"/><ellipse cx="20" cy="38" rx="4" ry="22" transform="rotate(25 20 38)"/><ellipse cx="60" cy="38" rx="4" ry="22" transform="rotate(-25 60 38)"/>',
+      };
+      for (const d of this.set) {
+        if (this.textures.exists("foot_" + d.s)) continue;
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><g fill="#7a6048" stroke="#5a3a1a" stroke-width="2">' + FOOT[d.s] + "</g></svg>";
+        const img = new Image();
+        img.onload = () => { this.textures.addImage("foot_" + d.s, img); };
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      }
+
+      // Build dino card textures.
+      for (const d of this.set) {
+        const key = "footcard_" + d.s + "_" + d.c;
+        dinoTexture(this, key, d.s, d.c, () => {});
+      }
+
+      // Layout: footprints in a grid on the left, dino cards in a row at the bottom.
+      this.slots = [];
+      this.cards = [];
+      const cols = Math.ceil(this.count / 2);
+      const fw = 130, fh = 130, fgx = 30, fgy = 24;
+      const gridW = cols * fw + (cols - 1) * fgx;
+      const fx0 = (W - gridW) / 2;
+      const fy0 = 110;
+      const shuffled = this.shuffleArr(this.set.map((_, i) => i));
+      for (let i = 0; i < this.count; i++) {
+        const d = this.set[shuffled[i]];
+        const x = fx0 + (i % cols) * (fw + fgx) + fw / 2;
+        const y = fy0 + Math.floor(i / cols) * (fh + fgy) + fh / 2;
+        const slot = this.add.container(x, y);
+        const mud = this.add.ellipse(0, 0, fw, fh, 0xc9a96a, 0.5).setStrokeStyle(4, 0x8a6030, 0.6);
+        const foot = this.add.image(0, 0, "foot_" + d.s).setScale(100 / 80).setAlpha(0.35);
+        slot.add([mud, foot]);
+        slot.setDepth(1);
+        this.slots.push({ slot, species: d.s, solved: false });
+      }
+
+      // Dino cards at the bottom.
+      const cardW = 120, cardH = 100, cgap = 20;
+      const totalCW = this.count * cardW + (this.count - 1) * cgap;
+      const cx0 = (W - totalCW) / 2;
+      const cy = H - 70;
+      const cardOrder = this.shuffleArr(this.set.map((_, i) => i));
+      for (let i = 0; i < this.count; i++) {
+        const d = this.set[cardOrder[i]];
+        const key = "footcard_" + d.s + "_" + d.c;
+        const card = this.add.container(cx0 + i * (cardW + cgap) + cardW / 2, cy);
+        const bg = this.add.rectangle(0, 0, cardW, cardH, 0xffffff, 0.9).setStrokeStyle(4, 0xd9694f, 1);
+        const img = this.add.image(0, 4, key).setScale((cardH - 20) / 180);
+        card.add([bg, img]);
+        card.setDepth(10);
+        card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-cardW / 2, -cardH / 2, cardW, cardH) });
+        card.setData({ species: d.s, home: { x: cx0 + i * (cardW + cgap) + cardW / 2, y: cy }, dragging: false });
+        card.on("pointerdown", (p) => this.dragStart(card, p));
+        card.on("pointermove", (p) => this.dragMove(card, p));
+        card.on("pointerup", (p) => this.dragEnd(card, p));
+        card.on("pointerout", (p) => { if (card.getData("dragging")) this.dragEnd(card, p); });
+        this.cards.push(card);
+      }
+
+      this.startTitle();
+    }
+
+    shuffleArr(a) {
+      for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = a[i]; a[i] = a[j]; a[j] = t; }
+      return a;
+    }
+
+    dragStart(card, p) {
+      if (this.state !== "play" || card.getData("locked")) return;
+      card.setData("dragging", true);
+      card.setDepth(50);
+      card.setScale(1.1);
+      DUKit.sfx("tap");
+    }
+
+    dragMove(card, p) {
+      if (!card.getData("dragging")) return;
+      card.setPosition(p.x, p.y);
+    }
+
+    dragEnd(card, p) {
+      if (!card.getData("dragging")) return;
+      card.setData("dragging", false);
+      card.setScale(1);
+      card.setDepth(10);
+      const cs = card.getData("species");
+      // Find the slot under the pointer.
+      let hitSlot = null;
+      for (const s of this.slots) {
+        if (s.solved) continue;
+        const dx = p.x - s.slot.x, dy = p.y - s.slot.y;
+        if (Math.abs(dx) < 70 && Math.abs(dy) < 70) { hitSlot = s; break; }
+      }
+      if (hitSlot && hitSlot.species === cs) {
+        // Match!
+        hitSlot.solved = true;
+        hitSlot.slot.alpha = 0;
+        card.setPosition(hitSlot.slot.x, hitSlot.slot.y - 10);
+        card.setData("locked", true);
+        card.setScale(1.05);
+        DUKit.sfx("chirp");
+        DUKit.burst(this, hitSlot.slot.x, hitSlot.slot.y, { tint: 0xffe14d, n: 14 });
+        this.done++;
+        this.hud.setText("Matched: " + this.done + "/" + this.count);
+        this.say("A " + cs + " print! " + (this.count - this.done) + " to go!");
+        if (this.done === this.count) this.win();
+      } else {
+        // Return to home.
+        const home = card.getData("home");
+        this.tweens.add({ targets: card, x: home.x, y: home.y, duration: 300, ease: "Quad.easeOut" });
+        if (hitSlot) { DUKit.sfx("bad"); this.say("Not those prints. Look at the toes!"); }
+      }
+    }
+
+    say(msg) {
+      this.status.setText(msg);
+      this.status.setAlpha(1);
+      this.tweens.add({ targets: this.status, alpha: 0.15, delay: 1400, duration: 400 });
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      for (let i = 0; i < 3; i++) DUKit.burst(this, Phaser.Math.Between(W * 0.25, W * 0.75), H * 0.3, { tint: [0xff6b6b, 0xffd93d, 0x6bcb77][i], n: 24, gravity: 400, life: 1100, depth: 120 });
+      const stars = 3; // all matched = 3 stars
+      progress.stars["footprint"] = Math.max(progress.stars["footprint"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        emoji: "🐾",
+        title: "ALL PRINTS MATCHED!",
+        line: this.count + " dinosaurs found",
+        best: "Best: " + (progress.stars["footprint"] || 0) + " ⭐",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+
+    startTitle() {
+      this.state = "title";
+      this.cards.forEach((c) => c.setAlpha(0));
+      this.slots.forEach((s) => s.slot.setAlpha(0));
+      DUKit.title(this, {
+        emoji: "🐾",
+        title: "Footprint Match",
+        hint: "Whose footprints are these? Drag each dino to the prints that match its toes!",
+        color: 0xd9694f,
+        cssColor: "#d9694f",
+      }, () => {
+        this.state = "play";
+        this.tweens.add({ targets: this.cards, alpha: 1, duration: 300 });
+        this.tweens.add({ targets: this.slots.map((s) => s.slot), alpha: 1, duration: 300 });
+        DUKit.banner(this, "Drag a dino to its prints!");
+      });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
+    footprint: "footprint",
   };
 
   window.game = new Phaser.Game({
@@ -407,6 +601,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene],
   });
 })();
