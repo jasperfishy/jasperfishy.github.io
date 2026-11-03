@@ -12,40 +12,38 @@ correct relative path from a page in `dino/chapters/<world>/` is `../../lib/phas
 Result: `Phaser is not defined` and **none of the four worlds actually booted** (Stage 1 was verified by
 fetching the engine URL directly, not the in-page reference, so this slipped through). Fixed all 8 pages
 (root `dino` + source `public/dino`): commit `66f4c30` (Meadow/Car/Adventures) and `3ef95af` (Park).
-After the fix, a headless `--headless=new --dump-dom --enable-logging` boot check shows: Phaser v3.80.1
-(WebGL | Web Audio), canvas present, no uncaught errors, no setInteractive warning.
+After the fix, a headless `--dump-dom` boot check shows: Phaser v3.80.1 (WebGL | Web Audio), canvas present,
+no uncaught errors, no setInteractive warning.
 
 ## Stage status
 - **Stage 1** (committed `f18db0e`, pushed, live): vendored Phaser 3.80.1; installed 4 polished single-game
   *-phaser worlds; hub cards open the Phaser editions with "Classic world" buttons; service worker du-v15.
   - NOTE: the engine-path bug above meant the four single-game worlds did not actually boot until `66f4c30`.
-- **Stage 2** (Park multi-game app, committed `3ef95af`, synced to `public/dino` source tree):
-  Multi-scene Phaser shell = **MenuScene + PuzzleScene + DigScene**.
-  - Games implemented: **Dino Puzzle** (swap-tile rebuild) and **Dig a Dino** (tap-twice dig, find all bones,
-    fossil fills in). Animated menu with star ratings; title cards, end panels, sparkles, sound via DUKit.
-  - `node --check` passes on root + public copies (byte-identical).
-  - Headless console/DOM boot check: **clean boot** (Phaser v3.80.1 WebGL+Web Audio, canvas present, no errors).
-  - **VISUAL play-through (menu -> game -> win -> restart) = STILL UNVERIFIED.** The local screenshot route
-    returns the live-site image instead of the local headless-Chrome canvas, so the rendered menu/board/win
-    could not be seen. A clean boot is a **partial** check only; it does NOT prove the gameplay flow renders.
-  - **Egg Catch** (the former Stage 1 single "catch the eggs" Phaser game) was **superseded** by this
-    multi-game shell and is currently NOT in the Park menu; it should be re-added as menu game 12/12 later.
+- **Stage 2** (Park multi-game app, `3ef95af` + one commit per game): 12-game Phaser shell
+  = **MenuScene + 11 game scenes**. Root `dino/chapters/park-phaser/main.js` (~1879 lines) kept
+  byte-identical to its `public/dino/...` copy at every commit (SHA-256 verified).
 
-## Coverage ledger — Park (12 classic games)
-| Game | Classic location | Phaser state | Visual check | Commit | Issue |
-|---|---|---|---|---|---|
-| Puzzle | park/js/games1.js | implemented (menu + game) | UNVERIFIED (boot only) | 3ef95af | local canvas capture not readable |
-| Dig | park/js/games1.js | implemented (menu + game) | UNVERIFIED (boot only) | 3ef95af | local canvas capture not readable |
-| Footprint Match | park/js/games1.js | not started | - | - | - |
-| Dino Mixer | park/js/games1.js | not started | - | - | - |
-| Memory | park/js/games2.js | not started | - | - | - |
-| Size Parade | park/js/games2.js | not started | - | - | - |
-| Counting | park/js/games2.js | not started | - | - | - |
-| Dot-to-Dot | park/js/games2.js | not started | - | - | - |
-| Colouring | park/js/games3.js | not started | - | - | - |
-| Dino Cafe | park/js/games3.js | not started | - | - | - |
-| Dino Dash | park/js/games3.js | not started | - | - | - |
-| Egg Catch | park/js/games3.js | superseded by shell; re-add to menu | UNVERIFIED | - | re-add as menu game 12/12 |
+## Coverage ledger — Park (12 classic games) — ALL IMPLEMENTED
+| Game | Classic source | Phaser scene | Visual check | Commit |
+|---|---|---|---|---|
+| 1. Dino Puzzle | park/js/games1.js | PuzzleScene | UNVERIFIED (boot only) | 3ef95af |
+| 2. Dig a Dino | park/js/games1.js | DigScene | UNVERIFIED (boot only) | 3ef95af |
+| 3. Footprint Match | park/js/games1.js | FootScene | UNVERIFIED (boot only) | 08ad8cf |
+| 4. Dino Mixer | park/js/games1.js | MixerScene | UNVERIFIED (boot only) | 581ed94 |
+| 5. Dino Memory | park/js/games2.js | MemoryScene | UNVERIFIED (boot only) | cc05d28 |
+| 6. Size Parade | park/js/games2.js | SizeScene | UNVERIFIED (boot only) | f694a52 |
+| 7. Snack Time / Counting | park/js/games2.js | CountingScene | UNVERIFIED (boot only) | a3a35c5 |
+| 8. Dot-to-Dot | park/js/games2.js | DotScene | UNVERIFIED (boot only) | 403269e |
+| 9. Dino Colouring | park/js/games3.js | ColourScene | UNVERIFIED (boot only) | 7970bad |
+| 10. Dino Cafe | park/js/games3.js | CafeScene | UNVERIFIED (boot only) | a8a2974 |
+| 11. Dino Dash | park/js/games3.js | DashScene | UNVERIFIED (boot only) | 87687b2 |
+| 12. Egg Catch | park/js/games3.js | CatchScene | UNVERIFIED (boot only) | cf8eac4 |
+
+All 12 scenes registered in `GAME_LIST`, `GAME_MAP` and the `scene:` array; `node --check` exit=0;
+root+public hash-identical; headless `--dump-dom` boot check clean (canvas present, Phaser banner, exit 0,
+no JS console errors). Per-scene polish via shared DUKit (sparkleField, sunRays, burst, sfx, shake,
+title card, end panel + star rating). Continuous-motion games (11 Dash, 12 Egg Catch) use Phaser's
+`update(time, delta)` loop; the rest are tap/click-driven with tweens + `time.delayedCall`.
 
 ## Coverage ledger — other worlds
 | World | Classic location | Phaser state | Notes |
@@ -54,10 +52,11 @@ After the fix, a headless `--headless=new --dump-dom --enable-logging` boot chec
 | Car Studio | chapters/drive | single endless-runner (engine-path fixed) | boots clean now; build + 6 worlds + race remain |
 | Adventures | chapters/adventures | single balloon-flight (engine-path fixed) | boots clean now; 21 activities remain |
 
-## Open / next (independent, no browser needed)
-1. Resume Park multi-game: add the remaining 10 games (Footprint Match, Dino Mixer, Memory, Size Parade,
-   Counting, Dot-to-Dot, Colouring, Dino Cafe, Dino Dash, Egg Catch) as scenes, one bounded commit each,
-   synced to `public/dino`. `node --check` + headless boot check per stage; keep visual play-through marked
-   UNVERIFIED until a working local screenshot route exists.
-2. Then repeat the same pattern for Meadow, Car Studio, Adventures (their remaining games).
-Commit per stage; **no push/deploy unless explicitly asked.**
+## Open / next
+1. **Visual play-through (menu -> game -> win -> restart) = UNVERIFIED for ALL 12 games.** The local
+   headless screenshot route returns the live-site image, not the local canvas. A working local
+   screenshot/vision route (or the Chief Playwright browser) is needed to confirm rendered gameplay flow.
+   Until then every game is verified only to: `node --check` + clean headless boot + DUKit API consistency.
+2. Repeat the same multi-game pattern for Meadow, Car Studio, Adventures (their remaining games).
+Commit per stage; **no push/deploy unless explicitly asked.** (Stage 1 `f18db0e` is pushed + live;
+games 3-12 are local-only.)
