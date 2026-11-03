@@ -62,6 +62,7 @@
     { id: "puzzle", title: "Dino Puzzle", emoji: "🧩", color: 0xe08a2e, desc: "Tap two tiles to swap. Rebuild the dinosaur!" },
     { id: "dig", title: "Dig a Dino", emoji: "⛏", color: 0xc98b4f, desc: "Dig the mounds and find every bone!" },
     { id: "footprint", title: "Footprint Match", emoji: "🐾", color: 0xd9694f, desc: "Whose prints? Drag each dino to its footprints!" },
+    { id: "mixer", title: "Dino Mixer", emoji: "🧬", color: 0x2fa58a, desc: "Mix heads and bodies to invent a brand-new dinosaur!" },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -588,10 +589,166 @@
     }
   }
 
+
+  /* ---------------------------------------------------------------- dino mixer */
+  class MixerScene extends Phaser.Scene {
+    constructor() { super("mixer"); }
+
+    create(data) {
+      DUKit.textures(this);
+      this.species = ["trex", "tricera", "stego", "bronto", "raptor", "ptero"];
+      this.names = { trex: "T-rex", tricera: "Triceratops", stego: "Stegosaurus", bronto: "Brontosaurus", raptor: "Raptor", ptero: "Pterosaur" };
+      this.colors = ["green", "teal", "purple", "orange", "pink", "blue", "yellow", "red"];
+      this.state = "title";
+
+      this.cur = { h: this.species[rnd(6)], b: this.species[(rnd(6) + 3) % 6], c: this.colors[rnd(8)] };
+      if (this.cur.h === this.cur.b) this.cur.h = this.species[(this.species.indexOf(this.cur.b) + 1) % 6];
+      this.target = { b: this.species[rnd(6)], h: this.species[rnd(6)], c: this.colors[rnd(8)] };
+      if (this.target.h === this.target.b) this.target.h = this.species[(this.species.indexOf(this.target.b) + 1) % 6];
+
+      sky(this, 0xbfe8ff, 0xfff3d9);
+      this.add.text(40, 22, "🧬 Dino Mixer", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.status = this.add.text(W / 2, H - 24, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
+
+      this.add.text(770, 110, "Build this one!", { fontSize: "16px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0.5);
+      this.targetKey = "mix_target_" + this.target.b + "_" + this.target.h + "_" + this.target.c;
+      this.dinoTex(this, this.targetKey, this.target.b, this.target.h, this.target.c, () => {
+        this.targetImg = this.add.image(770, 185, this.targetKey).setScale(140 / 240);
+      });
+
+      this.add.rectangle(300, 270, 420, 300, 0xffffff, 0.5).setStrokeStyle(4, 0x2fa58a, 0.6);
+      this.add.text(300, 108, "Your dinosaur", { fontSize: "18px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0.5);
+
+      const bx = 610, bw = 300, bh = 54, gap = 16;
+      this.buttons = [];
+      this.buttons[0] = this.mkBtn(bx, 150, "Head", () => this.cycle("h"));
+      this.buttons[1] = this.mkBtn(bx, 150 + (bh + gap), "Body", () => this.cycle("b"));
+      this.buttons[2] = this.mkBtn(bx, 150 + 2 * (bh + gap), "Colour", () => this.cycle("c"));
+      this.buttons[3] = this.mkBtn(bx, 150 + 3 * (bh + gap), "🎲 Surprise!", () => this.surprise());
+      this.finishBtn = this.mkBtn(bx, 150 + 4 * (bh + gap), "✨ Wake it up!", () => this.finish(), 0x2fa58a);
+      this.updateLabels();
+      this.draw();
+      this.startTitle();
+    }
+
+    dinoTex(scene, key, body, head, color, cb) {
+      if (scene.textures.exists(key)) { cb(); return; }
+      const img = new Image();
+      img.onload = () => { scene.textures.addImage(key, img); cb(); };
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(FX().dinoSVG(body, { color, head }));
+    }
+
+    mkBtn(x, y, label, fn, fill) {
+      const w = 300, h = 54;
+      const c = this.add.container(x + w / 2, y + h / 2);
+      const bg = this.add.rectangle(0, 0, w, h, fill || 0xffffff, 0.96).setStrokeStyle(4, 0x2fa58a, 1);
+      const t = this.add.text(0, 0, label, { fontSize: "17px", fontFamily: DUKit.FONT, fontStyle: "bold", color: fill ? "#ffffff" : "#24407a" }).setOrigin(0.5);
+      c.add([bg, t]);
+      c.setDepth(5);
+      c.setInteractive(new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h), false, false, { useHandCursor: true });
+      c.on("pointerover", () => bg.setAlpha(1));
+      c.on("pointerout", () => bg.setAlpha(0.96));
+      c.on("pointerdown", fn);
+      c.setData({ t });
+      return c;
+    }
+
+    setLabel(c, txt) { c.getData().t.setText(txt); }
+
+    cycle(k) {
+      if (this.state !== "play") return;
+      const list = k === "c" ? this.colors : this.species;
+      let i = list.indexOf(this.cur[k]);
+      i = (i + 1) % list.length;
+      this.cur[k] = list[i];
+      DUKit.sfx("pop");
+      this.updateLabels();
+      this.draw();
+      this.say(k === "c" ? "A " + this.cur.c + " dinosaur!" : this.names[this.cur.h] + " head on a " + this.names[this.cur.b] + " body!");
+    }
+
+    surprise() {
+      if (this.state !== "play") return;
+      this.cur.h = this.species[rnd(6)];
+      this.cur.b = this.species[rnd(6)];
+      this.cur.c = this.colors[rnd(8)];
+      DUKit.sfx("sparkle");
+      DUKit.burst(this, 300, 270, { tint: 0xffe14d, n: 16 });
+      this.updateLabels();
+      this.draw();
+      this.say("Ooh! A " + this.names[this.cur.h] + " head on a " + this.names[this.cur.b] + " body!");
+    }
+
+    finish() {
+      if (this.state !== "play") return;
+      const ok = this.cur.b === this.target.b && this.cur.h === this.target.h;
+      if (!ok) {
+        DUKit.sfx("bad");
+        DUKit.shake(this, 180, 2);
+        this.say("Not quite! You need a " + this.names[this.target.h] + " head and a " + this.names[this.target.b] + " body.", true);
+        return;
+      }
+      this.state = "won";
+      DUKit.sfx("roar");
+      DUKit.shake(this, 300, 3);
+      DUKit.burst(this, 300, 270, { tint: 0xffd93d, n: 24 });
+      DUKit.burst(this, 300, 220, { tint: 0xff6b6b, n: 16, gravity: 300 });
+      DUKit.sfx("win");
+      const stars = 3;
+      progress.stars["mixer"] = Math.max(progress.stars["mixer"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        emoji: "🧬",
+        title: "YOU BUILT IT!",
+        line: this.names[this.cur.h] + " head + " + this.names[this.cur.b] + " body",
+        best: "Best: " + (progress.stars["mixer"] || 0) + " ⭐",
+        stars: stars,
+        again: "TAP TO MIX AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+
+    updateLabels() {
+      this.setLabel(this.buttons[0], "🎭  " + this.names[this.cur.h]);
+      this.setLabel(this.buttons[1], "🦴  " + this.names[this.cur.b]);
+      this.setLabel(this.buttons[2], "🎨  " + this.cur.c);
+    }
+
+    draw() {
+      if (this.preview) this.preview.destroy();
+      const key = "mix_cur_" + this.cur.b + "_" + this.cur.h + "_" + this.cur.c;
+      this.dinoTex(this, key, this.cur.b, this.cur.h, this.cur.c, () => {
+        this.preview = this.add.image(300, 270, key).setScale(220 / 240).setDepth(3);
+        this.tweens.add({ targets: this.preview, scale: this.preview.scale * 1.06, duration: 140, yoyo: true });
+      });
+    }
+
+    say(msg, sad) {
+      this.status.setText(msg);
+      this.status.setColor(sad ? "#b04040" : "#5a3a12");
+      this.status.setAlpha(1);
+      this.tweens.add({ targets: this.status, alpha: 0.15, delay: 1600, duration: 400 });
+    }
+
+    startTitle() {
+      this.state = "title";
+      DUKit.title(this, {
+        emoji: "🧬",
+        title: "Dino Mixer",
+        hint: "Mix heads, bodies and colours to build the dinosaur in the picture, then press the Wake-it-up button!",
+        color: 0x2fa58a,
+        cssColor: "#2fa58a",
+      }, () => {
+        this.state = "play";
+        this.say("Build the dino in the picture, then wake it up!");
+      });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
     footprint: "footprint",
+    mixer: "mixer",
   };
 
   window.game = new Phaser.Game({
@@ -601,6 +758,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene],
   });
 })();
