@@ -64,6 +64,7 @@
     { id: "footprint", title: "Footprint Match", emoji: "🐾", color: 0xd9694f, desc: "Whose prints? Drag each dino to its footprints!" },
     { id: "mixer", title: "Dino Mixer", emoji: "🧬", color: 0x2fa58a, desc: "Mix heads and bodies to invent a brand-new dinosaur!" },
     { id: "memory", title: "Dino Memory", emoji: "🃏", color: 0xe05a7a, desc: "Remember where each dinosaur hides - find the pairs!" },
+    { id: "size", title: "Size Parade", emoji: "📏", color: 0x3d9bd6, desc: "Line up the dinosaurs smallest to biggest, then parade!" },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -905,12 +906,176 @@
     }
   }
 
+
+  /* ------------------------------------------------------ size parade */
+  class SizeScene extends Phaser.Scene {
+    constructor() { super("size"); }
+
+    create(data) {
+      DUKit.textures(this);
+      this.species = "bronto";
+      this.color = "blue";
+      this.k = 4; // 4 sizes
+      this.sizes = [70, 95, 120, 145];
+      this.state = "title";
+      this.done = 0;
+
+      sky(this, 0xbfe8ff, 0xfff3d9);
+      this.add.text(40, 22, "📏 Size Parade", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.hud = this.add.text(920, 22, "Placed: 0/" + this.k, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
+      this.status = this.add.text(W / 2, H - 24, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
+
+      // Build dino textures for each size (same species, scaled).
+      this.dinoTex = "size_" + this.species + "_" + this.color;
+      dinoTexture(this, this.dinoTex, this.species, this.color, () => {
+        // Slots: numbered, left to right, smallest to biggest.
+        this.slots = [];
+        const slotW = 170, slotGap = 14;
+        const gridW = this.k * slotW + (this.k - 1) * slotGap;
+        const x0 = (W - gridW) / 2, y0 = 150;
+        for (let i = 0; i < this.k; i++) {
+          const x = x0 + i * (slotW + slotGap) + slotW / 2;
+          const y = y0 + 80;
+          const slot = this.add.container(x, y);
+          const size = this.sizes[i];
+          const h = Math.round(size * 0.78) + 20;
+          const bg = this.add.rectangle(0, 0, slotW, h, 0xffffff, 0.5).setStrokeStyle(4, 0x3d9bd6, 0.7);
+          const num = this.add.text(0, -h / 2 + 14, String(i + 1), { fontSize: "22px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0.5);
+          slot.add([bg, num]);
+          slot.setDepth(1);
+          this.slots.push({ slot, x, y, size, filled: false });
+        }
+
+        // Tray: shuffled dino cards at the bottom.
+        const tray = this.add.container(0, 0);
+        this.dinos = [];
+        const order = [0, 1, 2, 3];
+        for (let i = order.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = order[i]; order[i] = order[j]; order[j] = t; }
+        const tw = 130, tg = 30;
+        const totalW = this.k * tw + (this.k - 1) * tg;
+        const tx0 = (W - totalW) / 2;
+        const ty = H - 80;
+        order.forEach((si, i) => {
+          const size = this.sizes[si];
+          const x = tx0 + i * (tw + tg) + tw / 2;
+          const card = this.add.container(x, ty);
+          const img = this.add.image(0, 0, this.dinoTex).setScale((size * 0.78) / 180);
+          card.add([img]);
+          card.setDepth(10);
+          card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-tw / 2, -60, tw, 120) });
+          card.setData({ size, home: { x, y: ty }, dragging: false });
+          card.on("pointerdown", (pt) => this.dragStart(card, pt));
+          card.on("pointermove", (pt) => this.dragMove(card, pt));
+          card.on("pointerup", (pt) => this.dragEnd(card, pt));
+          card.on("pointerout", (pt) => { if (card.getData("dragging")) this.dragEnd(card, pt); });
+          this.dinos.push(card);
+        });
+        this.startTitle();
+      });
+    }
+
+    dragStart(card, pt) {
+      if (this.state !== "play") return;
+      if (card.getData("placed")) return;
+      card.setData("dragging", true);
+      card.setDepth(50);
+      card.setScale(1.1);
+      DUKit.sfx("tap");
+    }
+
+    dragMove(card, pt) {
+      if (!card.getData("dragging")) return;
+      card.setPosition(pt.x, pt.y);
+    }
+
+    dragEnd(card, pt) {
+      if (!card.getData("dragging")) return;
+      card.setData("dragging", false);
+      const cs = card.getData("size");
+      // Find the slot under the pointer.
+      let hitSlot = null;
+      for (const sl of this.slots) {
+        if (sl.filled) continue;
+        const dx = pt.x - sl.x, dy = pt.y - sl.y;
+        if (Math.abs(dx) < 90 && Math.abs(dy) < 90) { hitSlot = sl; break; }
+      }
+      if (hitSlot && hitSlot.size === cs) {
+        // Correct placement.
+        hitSlot.filled = true;
+        card.setPosition(hitSlot.x, hitSlot.y);
+        card.setScale((cs * 0.78) / 180);
+        card.setData("placed", true);
+        DUKit.sfx("boing");
+        DUKit.burst(this, hitSlot.x, hitSlot.y, { tint: 0xffe14d, n: 10 });
+        this.done++;
+        this.hud.setText("Placed: " + this.done + "/" + this.k);
+        if (this.done === this.k) this.parade();
+        else this.say("Good! " + (this.k - this.done) + " to go!");
+      } else {
+        // Wrong or no slot: return home.
+        const home = card.getData("home");
+        this.tweens.add({ targets: card, x: home.x, y: home.y, duration: 300, ease: "Quad.easeOut" });
+        card.setScale(1);
+        if (hitSlot) {
+          DUKit.sfx("bad");
+          this.say(cs > hitSlot.size ? "That one is too big for this spot!" : "That one is too small for this spot!");
+        }
+      }
+    }
+
+    parade() {
+      this.state = "parade";
+      this.say("Parade time! Roar roar roar!");
+      DUKit.sfx("drum");
+      DUKit.burst(this, W / 2, H / 2, { tint: 0xffd93d, n: 30, gravity: 200 });
+      DUKit.burst(this, W * 0.3, H * 0.4, { tint: 0xff6b6b, n: 16, gravity: 300 });
+      DUKit.burst(this, W * 0.7, H * 0.4, { tint: 0x6bcb77, n: 16, gravity: 300 });
+      DUKit.sfx("win");
+      const stars = 3;
+      progress.stars["size"] = Math.max(progress.stars["size"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        emoji: "📏",
+        title: "WHAT A PARADE!",
+        line: this.k + " dinosaurs in line",
+        best: "Best: " + (progress.stars["size"] || 0) + " ⭐",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+
+    say(msg) {
+      this.status.setText(msg);
+      this.status.setAlpha(1);
+      this.tweens.add({ targets: this.status, alpha: 0.15, delay: 1500, duration: 400 });
+    }
+
+    startTitle() {
+      this.state = "title";
+      this.dinos.forEach((d) => d.setAlpha(0));
+      this.slots.forEach((sl) => sl.slot.setAlpha(0));
+      DUKit.title(this, {
+        emoji: "📏",
+        title: "Size Parade",
+        hint: "Drag each dinosaur into its numbered slot - smallest to biggest - then the parade begins!",
+        color: 0x3d9bd6,
+        cssColor: "#3d9bd6",
+      }, () => {
+        this.state = "play";
+        this.tweens.add({ targets: this.dinos, alpha: 1, duration: 300 });
+        this.tweens.add({ targets: this.slots.map((sl) => sl.slot), alpha: 1, duration: 300 });
+        this.say("Smallest first! Drag them into the line.");
+      });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
     footprint: "footprint",
     mixer: "mixer",
     memory: "memory",
+    size: "size",
   };
 
   window.game = new Phaser.Game({
@@ -920,6 +1085,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene],
   });
 })();
