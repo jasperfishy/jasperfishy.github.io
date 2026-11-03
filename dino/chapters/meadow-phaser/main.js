@@ -1,4 +1,4 @@
-import { types, themes, tokens, colours, shuffle, mazeFor } from "../meadow/catalog.js";
+import { types, themes, tokens, colours, shuffle, mazeFor } from "../meadow/catalog.js?v=du-58eb19b6b425f48c";
 
 const W = 960, H = 540, STORE_KEY = "dino-meadow-phaser-v1", ROUNDS = 5;
 const motionOK = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
