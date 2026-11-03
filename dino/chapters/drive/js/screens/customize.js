@@ -1,8 +1,8 @@
 // screens/customize.js — Car customization screen logic.
 
-import { PAINTS, STICKERS, CARS } from "../data-cars.js";
-import { renderCarSVG } from "../render-car.js";
-import { isCarUnlocked } from "./garage.js";
+import { PAINTS, STICKERS, CARS } from "../data-cars.js?v=du-58eb19b6b425f48c";
+import { renderCarSVG } from "../render-car.js?v=du-58eb19b6b425f48c";
+import { isCarUnlocked } from "./garage.js?v=du-58eb19b6b425f48c";
 
 export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
   const preview = root.querySelector("#carPreview");

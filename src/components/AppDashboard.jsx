@@ -315,8 +315,7 @@ export default function AppDashboard() {
             <div className="directory-intro">
               <p>Small apps, made with care.</p>
               <h1 id="apps-title">A little focus.<br />A little play.</h1>
-              <p>A home for all my apps. Find something useful, something playful,
-                or a new little world to explore.</p>
+              <p>Small tools for everyday life, and a dinosaur universe to explore.</p>
             </div>
             <div className="directory-heading"><h2>Explore the apps</h2><span>{apps.length} apps to discover</span></div>
             <div className="app-catalogue">
@@ -333,6 +332,8 @@ export default function AppDashboard() {
             </div>
             <p className="directory-note">Choose an app to open it. Each has its own place to play or work.</p>
           </section>
+          <details className="focusdrop-details">
+            <summary>More about FocusDrop, including a quick demo</summary>
           <section
             id="focusdrop"
             className="project-section"
@@ -418,71 +419,27 @@ export default function AppDashboard() {
               </article>
             </div>
           </section>
+          </details>
           <section
             id="about"
             className="about-section"
             aria-labelledby="about-title"
           >
+            <span className="about-symbol" aria-hidden="true">
+              <FishMark />
+            </span>
             <div>
-              <span className="about-symbol" aria-hidden="true">
-                <FishMark />
-              </span>
               <h2 id="about-title">Small on purpose.</h2>
-              <p>
-                Jasperfish is my home for useful little apps. I build things
-                that solve an everyday problem, feel good to use, and know when
-                to get out of the way.
-              </p>
-              <p>
-                From a quiet place to collect your thoughts to a colourful world
-                for little dinosaur explorers, every app starts with someone
-                who could use it.
-              </p>
-              <a
-                className="inline-link"
-                href="https://github.com/jasperfishy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                See what I’m building <Icon name="external" />
-              </a>
+              <p>Useful little apps for a little more headspace and play.</p>
             </div>
-            <div className="questions">
-              <h3>A few things to know</h3>
-              <details>
-                <summary>
-                  Can I use FocusDrop on my phone?
-                  <Icon name="down" />
-                </summary>
-                <p>
-                  Yes. Open it in your browser, or use “Install the app” for
-                  guidance on adding it to your phone or desktop. Once installed
-                  and loaded, it works offline too.
-                </p>
-              </details>
-              <details>
-                <summary>
-                  Where do my thoughts go?
-                  <Icon name="down" />
-                </summary>
-                <p>
-                  FocusDrop stores your thoughts in the browser on the device
-                  you’re using. There’s no account to create. Browser data can
-                  be cleared, so use the app’s export option for a backup.
-                </p>
-              </details>
-              <details>
-                <summary>
-                  Is this a task manager?
-                  <Icon name="down" />
-                </summary>
-                <p>
-                  Think of it as a place to capture and revisit things. You can
-                  take a small first step, snooze something, or let it go. You
-                  don’t have to organise your whole life first.
-                </p>
-              </details>
-            </div>
+            <a
+              className="inline-link"
+              href="https://github.com/jasperfishy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              See what I’m building <Icon name="external" />
+            </a>
           </section>
         </main>
         <footer className="site-footer">
