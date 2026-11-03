@@ -87,8 +87,50 @@
   Kit.sparkleField = (scene, count, x0, y0, x1, y1, tint) => {
     for (let i = 0; i < count; i++) {
       const s = scene.add.image(Phaser.Math.Between(x0, x1), Phaser.Math.Between(y0, y1), "kit-spark").setTint(tint || 0xffffff).setAlpha(0).setScale(Phaser.Math.FloatBetween(0.3, 0.7)).setDepth(1);
-      scene.tweens.add({ targets: s, alpha: { from: 0, to: 0.9 }, scale: s.scale * 1.5, angle: 45, duration: Phaser.Math.Between(700, 1400), yoyo: true, repeat: -1, delay: Phaser.Math.Between(0, 2000) });
+      if (motionOK()) {
+        scene.tweens.add({ targets: s, alpha: { from: 0, to: 0.9 }, scale: s.scale * 1.5, angle: 45, duration: Phaser.Math.Between(700, 1400), yoyo: true, repeat: -1, delay: Phaser.Math.Between(0, 2000) });
+      } else s.setAlpha(0.45);
     }
+  };
+
+  // A transparent, focus-visible HTML control mirrors canvas actions for keyboard and screen-reader users.
+  Kit.canvasButton = (scene, id, label, top, width, height, activate) => {
+    const host = scene.game && scene.game.canvas && scene.game.canvas.parentElement;
+    if (!host) return null;
+    host.style.position = "relative";
+    let button = host.querySelector("#" + id);
+    if (button) button.remove();
+    button = document.createElement("button");
+    button.id = id;
+    button.type = "button";
+    button.className = "dukit-accessible-action";
+    button.setAttribute("aria-label", label);
+    button.textContent = label;
+    Object.assign(button.style, {
+      position: "absolute", left: "50%", top: top + "%", width: width + "%", height: height + "%",
+      transform: "translate(-50%, -50%)", zIndex: "100", border: "2px solid transparent", borderRadius: "12px",
+      padding: "4px", background: "transparent", color: "transparent", opacity: "0", cursor: "pointer",
+      font: "700 16px system-ui, sans-serif", pointerEvents: "auto"
+    });
+    button.addEventListener("focus", () => {
+      button.style.opacity = "1"; button.style.color = "#17403a";
+      button.style.background = "rgba(255,255,255,.96)"; button.style.borderColor = "#17403a";
+      button.style.outline = "3px solid #ffd23f";
+    });
+    button.addEventListener("blur", () => {
+      button.style.opacity = "0"; button.style.color = "transparent";
+      button.style.background = "transparent"; button.style.borderColor = "transparent";
+      button.style.outline = "none";
+    });
+    button.addEventListener("click", (event) => { event.preventDefault(); activate(); });
+    host.appendChild(button);
+    return button;
+  };
+
+  Kit.removeCanvasButton = (scene, id) => {
+    const host = scene.game && scene.game.canvas && scene.game.canvas.parentElement;
+    const button = host && host.querySelector("#" + id);
+    if (button) button.remove();
   };
 
   // Slowly turning sun rays behind a sun.
@@ -121,9 +163,11 @@
     let started = false;
     const start = () => {
       if (started) return; started = true;
+      Kit.removeCanvasButton(scene, "dukit-title-start");
       Kit.sfx("good");
       scene.tweens.add({ targets: c, alpha: 0, scale: 1.15, duration: 220, onComplete: () => { c.destroy(); onStart(); } });
     };
+    Kit.canvasButton(scene, "dukit-title-start", "Start " + o.title, 68.15, 24, 9, start);
     scene.time.delayedCall(250, () => {
       scene.input.once("pointerdown", start);
       scene.input.keyboard.once("keydown-SPACE", start);
@@ -164,7 +208,8 @@
     scene.time.delayedCall(450 + stars * 380 + 250, () => {
       scene.tweens.add({ targets: again, alpha: 1, duration: 250 });
       if (motionOK()) scene.tweens.add({ targets: again, scale: 1.07, duration: 520, yoyo: true, repeat: -1 });
-      const go = () => { Kit.sfx("tap"); onAgain(); };
+      const go = () => { Kit.removeCanvasButton(scene, "dukit-end-again"); Kit.sfx("tap"); onAgain(); };
+      Kit.canvasButton(scene, "dukit-end-again", o.again || "Play again", 73, 34, 9, go);
       scene.input.once("pointerdown", go);
       scene.input.keyboard.once("keydown-SPACE", go);
     });

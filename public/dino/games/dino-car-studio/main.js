@@ -20,15 +20,15 @@ class CarStudioScene extends Phaser.Scene {
 
     // 1. Generate Textures with Code
     const g = this.make.graphics({ x: 0, y: 0, add: false });
-    
+
     // Wheels
     g.fillStyle(0x222222, 1); g.fillCircle(30, 30, 30);
     g.fillStyle(0x888888, 1); g.fillCircle(30, 30, 15);
     g.generateTexture('wheel', 60, 60);
-    
+
     // Car Bodies (White so we can tint them any color)
     g.clear(); g.fillStyle(0xffffff, 1); g.fillRoundedRect(0, 0, 240, 100, 20); g.generateTexture('body', 240, 100);
-    
+
     // Buttons
     g.clear(); g.fillStyle(0xffffff, 1); g.fillRoundedRect(0, 0, 120, 60, 15); g.generateTexture('btn', 120, 60);
     g.destroy();
@@ -124,7 +124,7 @@ class CarStudioScene extends Phaser.Scene {
       onComplete: () => {
         this.isDriving = false;
         this.driveBtn.setVisible(true);
-        
+
         // Save Progress!
         if (window.DinoProgress) {
           window.DinoProgress.record('dino-car-studio', 5); // Give 5 stars
