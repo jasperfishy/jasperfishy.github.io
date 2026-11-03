@@ -12,6 +12,7 @@ const stageTitle = document.querySelector('#stageTitle');
 const toastEl = document.querySelector('#toast');
 const params = new URLSearchParams(location.search);
 let toastTimer;
+let currentClassic = "";
 
 function normalizeName(value) {
   const candidate = String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24);
@@ -231,6 +232,7 @@ function renderMenu() {
             <span class="chapter-title">${c.title}</span>
             <span class="chapter-sub">${c.subtitle}</span>
             ${chips[c.id] ? `<span class="cc-chip">${chips[c.id]}</span>` : ''}
+            ${c.classicUrl ? `<span class="cc-classic" data-classic="${c.id}" role="button">🎮 Classic world</span>` : ''}
           </span>
       </button>`).join('')}
     </div></section>
@@ -239,6 +241,8 @@ function renderMenu() {
   for (const c of chapters) {
     const el = document.querySelector(`[data-chapter="${c.id}"]`);
     el.onclick = (e) => openChapter(c, e);
+    const cl = el.querySelector('[data-classic]');
+    if (cl) cl.onclick = (ev) => { ev.stopPropagation(); openChapter({ ...c, url: c.classicUrl, classicUrl: '' }, ev); };
     tilt(el);
   }
   document.querySelector('#renameBtn').onclick = () => nameDialog(false);
@@ -311,6 +315,7 @@ function wireHero() {
 
 const CHAPTER_COLOUR = { park: '#ff8a4d', meadow: '#7fd16e', drive: '#4aa8ff' };
 function openChapter(c, e) {
+  currentClassic = c && c.classicUrl ? c.classicUrl : "";
   const x = e && e.clientX ? e.clientX : innerWidth / 2, y = e && e.clientY ? e.clientY : innerHeight / 2;
   const go = () => {
     hub.hidden = true;
@@ -323,6 +328,7 @@ function openChapter(c, e) {
     stageTitle.textContent = c.title;
     frame.title = c.title;
     frame.src = c.url;
+    const cb = document.querySelector('#classicBtn'); if (cb) cb.hidden = !currentClassic;
     clearTimeout(frame._guard);
     frame._guard = setTimeout(frameReady, 3500);   // never leave a child staring at a blank frame
     broadcast();
@@ -345,6 +351,7 @@ function closeChapter() {
 document.querySelector('#soundBtn').onclick = () => { settings.sound = !settings.sound; saveSettings(); if (settings.sound) FX.sfx.good(); };
 document.querySelector('#parentsBtn').onclick = parentsDialog;
 document.querySelector('#backBtn').onclick = closeChapter;
+document.querySelector('#classicBtn').onclick = () => { if (currentClassic) frame.src = currentClassic; };
 document.querySelector('#soundBtn').textContent = settings.sound ? '🔊' : '🔇';
 document.querySelector('#soundBtn').setAttribute('aria-label', settings.sound ? 'Turn sound off' : 'Turn sound on');
 
@@ -360,6 +367,7 @@ if (askForName && !params.get('open')) nameDialog(true);
 const wanted = params.get('open');
 if (wanted) {
   const c = chapters.find((x) => x.id === wanted), a = activities.find((x) => x.id === wanted);
-  if (c) openChapter(c);
+  if (wanted.indexOf('classic-') === 0) { const cc = chapters.find((x) => x.id === wanted.slice(8)); if (cc && cc.classicUrl) openChapter({ ...cc, url: cc.classicUrl, classicUrl: '' }); }
+  else if (c) openChapter(c);
   else if (a) openChapter({ title: a.title, url: 'chapters/adventures/index.html?activity=' + encodeURIComponent(a.id) });
 }
