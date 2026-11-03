@@ -1,34 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#0b6e5f" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6e5f">
+<link rel="icon" href="data:,">
 <title>Dino Car Studio · Dinosaur Universe</title>
 <style>
-  :root { --shadow: 0 10px 30px rgba(20,40,80,.25); }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: linear-gradient(160deg,#8fd3ff,#5eb0ff); -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
-  #stage { position: fixed; inset: 0; display: grid; place-items: center; }
-  #game-root { width: 100%; height: 100%; max-width: 960px; max-height: 540px; margin: auto; }
-  #game-root canvas { display: block; width: 100% !important; height: 100% !important; border-radius: 16px; box-shadow: var(--shadow); touch-action: none; }
-  #hubBack {
-    position: fixed; top: 14px; left: 14px; z-index: 20;
-    height: 46px; padding: 0 16px; border: none; border-radius: 23px; text-decoration: none; color: #24407a; font: 700 16px system-ui,sans-serif;
-    background: rgba(255,255,255,.75); display: grid; place-items: center;
-    cursor: pointer; box-shadow: var(--shadow); font-size: 20px;
+  :root { color-scheme: light; --ink:#24407a; --green:#0b6e5f; --gold:#ffd35e; --shadow:0 14px 38px rgba(18,34,65,.28); }
+  * { box-sizing:border-box; }
+  html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#172c45; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; -webkit-tap-highlight-color:transparent; }
+  #stage { position:fixed; inset:0; display:grid; place-items:center; }
+  #game-root { position:relative; width:min(100vw, calc(100vh * 16 / 9)); height:min(100vh, calc(100vw * 9 / 16)); max-width:960px; max-height:540px; overflow:hidden; background:#69c8ff; box-shadow:var(--shadow); }
+  #game-root canvas { position:absolute; inset:0; display:block; width:100%!important; height:100%!important; touch-action:none; }
+  #game-ui { position:absolute; inset:0; z-index:10; pointer-events:none; color:var(--ink); }
+  #game-ui button,#game-ui input { font:inherit; }
+  .panel { position:absolute; pointer-events:auto; left:18px; top:18px; width:min(480px,calc(100% - 36px)); max-height:calc(100% - 36px); overflow:auto; padding:17px; border:1px solid rgba(255,255,255,.85); border-radius:20px; background:rgba(255,255,255,.92); box-shadow:0 14px 38px rgba(18,34,65,.27); backdrop-filter:blur(12px); }
+  .panel-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  h1,h2,p { margin:0; }
+  h1 { font-size:28px; line-height:1.12; color:#173f53; }
+  .eyebrow { margin:0 0 4px; color:#4b8c74; font-size:10px; font-weight:900; letter-spacing:.14em; }
+  .subline { margin-top:5px; color:#526a7b; font-size:13px; }
+  .section-title { margin:11px 0 7px; color:#345866; font-size:14px; font-weight:850; }
+  .section-title small { color:#688; font-size:11px; font-weight:600; }
+  .sound-button,.small-button,.action-button,.world-choice,.paint-chip,.sticker-choice,.garage-car,.steer-button { border:0; cursor:pointer; transition:transform .16s ease,filter .16s ease,box-shadow .16s ease; }
+  button:hover { filter:brightness(1.04); }
+  button:active { transform:scale(.97); }
+  button:focus-visible,input:focus-visible { outline:3px solid #e2a800; outline-offset:2px; }
+  .sound-button { min-width:40px; height:40px; border-radius:14px; background:#eaf4ff; font-size:20px; }
+  .world-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+  .world-choice { min-width:0; display:flex; align-items:center; gap:9px; padding:7px 9px; border:2px solid transparent; border-radius:13px; background:#f1f7fb; color:#24407a; text-align:left; }
+  .world-choice.selected { border-color:#44a779; background:#e7f8ed; }
+  .world-choice.locked { opacity:.68; }
+  .world-icon { width:30px; text-align:center; font-size:22px; }
+  .world-choice strong,.world-choice small { display:block; }
+  .world-choice strong { font-size:12px; line-height:1.1; }
+  .world-choice small { margin-top:3px; color:#60758a; font-size:10px; }
+  .action-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:12px; }
+  .action-button { min-height:42px; padding:8px 10px; border-radius:13px; color:#fff; font-weight:850; font-size:13px; box-shadow:0 4px 12px rgba(20,44,66,.13); }
+  .paint-action { background:#d95b83; }
+  .garage-action { background:#5075c8; }
+  .drive-action { background:#18956b; }
+  .race-action { background:#e08b2f; }
+  .progress-line { display:flex; flex-wrap:wrap; justify-content:space-between; gap:5px 10px; margin-top:12px; padding-top:9px; border-top:1px solid #d9e7ec; color:#4e6577; font-size:11px; font-weight:750; }
+  .hint { min-height:17px; margin-top:8px; color:#508276; font-size:11px; }
+  .customize-panel { width:min(420px,calc(100% - 36px)); }
+  .small-button { padding:8px 11px; border-radius:11px; background:#e9f1fb; color:#345374; font-size:12px; font-weight:800; white-space:nowrap; }
+  .paint-grid { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; }
+  .paint-chip { height:25px; border:3px solid #fff; border-radius:8px; background:var(--paint); box-shadow:0 0 0 1px #b9cbd3; }
+  .paint-chip.selected { box-shadow:0 0 0 3px #e0a800; }
+  .sticker-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
+  .sticker-choice { min-height:34px; border:2px solid transparent; border-radius:10px; background:#f3f7f9; font-size:19px; }
+  .sticker-choice.selected { border-color:#e0a800; background:#fff5d6; }
+  .name-label { display:block; margin:10px 0 5px; color:#345866; font-size:12px; font-weight:800; }
+  .name-input { width:100%; height:38px; padding:7px 10px; border:1px solid #bdced7; border-radius:11px; background:#fff; color:#173f53; }
+  .action-row { display:flex; justify-content:space-between; gap:8px; margin-top:10px; }
+  .action-row .action-button { flex:1; }
+  .garage-panel { left:12px; top:12px; width:calc(100% - 24px); max-height:calc(100% - 24px); }
+  .garage-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; }
+  .garage-car { min-width:0; min-height:72px; padding:5px; border:2px solid transparent; border-radius:12px; background:#f2f7fa; color:#24407a; }
+  .garage-car.selected { border-color:#44a779; background:#e7f8ed; }
+  .garage-car.locked { filter:grayscale(.65); opacity:.68; }
+  .garage-car-art { display:block; color:var(--car-colour); font-size:24px; line-height:27px; filter:drop-shadow(0 2px 1px rgba(20,30,50,.2)); }
+  .garage-car strong,.garage-car small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .garage-car strong { margin-top:2px; font-size:10px; }
+  .garage-car small { margin-top:2px; color:#60758a; font-size:8px; }
+  .drive-hud { position:absolute; top:9px; left:10px; right:10px; display:flex; align-items:center; justify-content:space-between; gap:7px; pointer-events:auto; }
+  .hud-pill { max-width:34%; overflow:hidden; padding:8px 11px; border:1px solid rgba(255,255,255,.8); border-radius:13px; background:rgba(255,255,255,.9); color:#294b62; font-size:12px; font-weight:850; text-overflow:ellipsis; white-space:nowrap; box-shadow:0 4px 12px rgba(20,40,55,.12); }
+  .drive-controls { position:absolute; right:14px; bottom:14px; left:14px; display:flex; justify-content:space-between; pointer-events:none; }
+  .steer-button { width:66px; height:56px; border:2px solid rgba(255,255,255,.9); border-radius:18px; background:rgba(255,255,255,.88); color:#23485b; font-size:26px; font-weight:900; box-shadow:0 5px 18px rgba(20,40,55,.18); pointer-events:auto; touch-action:none; }
+  .countdown { position:absolute; top:42%; left:50%; min-width:120px; transform:translate(-50%,-50%); color:#fff; font-size:86px; font-weight:950; line-height:1; text-align:center; text-shadow:0 4px 0 #17403a,0 7px 20px rgba(0,0,0,.3); pointer-events:none; }
+  .countdown.hidden { display:none; }
+  .finish-panel { top:50%; left:50%; width:min(460px,calc(100% - 32px)); transform:translate(-50%,-50%); text-align:center; }
+  .finish-panel h1 { margin:8px 0; }
+  .finish-panel p:not(.eyebrow) { margin:10px 0; color:#526a7b; font-size:15px; }
+  #hubBack { position:fixed; z-index:20; top:14px; left:14px; display:grid; width:44px; height:44px; place-items:center; border:0; border-radius:50%; background:rgba(255,255,255,.86); color:#274664; font-size:22px; text-decoration:none; box-shadow:var(--shadow); }
+  @media(max-width:700px) {
+    #game-root { width:100vw; height:100vh; max-width:none; max-height:none; }
+    .panel { top:10px; left:10px; width:min(420px,calc(100% - 20px)); max-height:calc(100% - 20px); padding:13px; }
+    .garage-panel { width:calc(100% - 20px); }
+    .garage-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .drive-hud { flex-wrap:wrap; justify-content:center; }
+    .hud-pill { max-width:42%; font-size:10px; }
+    .steer-button { width:58px; height:52px; }
   }
-  #hubBack:active { transform: scale(.92); }
+  @media(prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; scroll-behavior:auto!important; transition-duration:.01ms!important; }
+  }
 </style>
 </head>
 <body>
 <div id="stage">
-  <div id="game-root"></div>
+  <main id="game-root" aria-label="Dino Car Studio game">
+    <div id="game-ui" aria-live="polite"></div>
+  </main>
 </div>
-<a id="hubBack" href="../../index.html" aria-label="Back to the hub menu" title="Back to the hub menu">◀</a>
+<a id="hubBack" href="../../index.html" aria-label="Back to the Dinosaur Universe menu" title="Back to the hub menu">◀</a>
 <script src="../../lib/phaser.min.js"></script>
 <script src="../../fx/du-fx.js"></script>
 <script src="../phaser-kit.js"></script>
-<script src="main.js"></script>
+<script>
+  if (window.self !== window.top) document.getElementById("hubBack").style.display = "none";
+</script>
+<script type="module" src="main.js"></script>
+<script src="../../update-manager.js"></script>
 </body>
 </html>

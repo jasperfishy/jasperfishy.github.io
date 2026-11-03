@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0b6e5f" />
@@ -29,11 +30,13 @@
 <script src="../../lib/phaser.min.js"></script>
 <script src="../../fx/du-fx.js"></script>
 <script src="../phaser-kit.js"></script>
+<script src="adventures-pack.js"></script>
 <script src="main.js"></script>
 <script>
   // When this chapter is opened inside the hub's own iframe, the hub already
   // shows a persistent "◀ Menu" bar above it — hide the standalone fallback.
   if (window.self !== window.top) document.getElementById("hubBack").style.display = "none";
 </script>
+<script src="../../update-manager.js"></script>
 </body>
 </html>

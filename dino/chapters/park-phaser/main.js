@@ -49,12 +49,46 @@
 
   // A friendly sky backdrop shared by every scene.
   function sky(scene, top, bottom) {
+    const makeTexture = (key, draw, width, height) => {
+      if (scene.textures.exists(key)) return;
+      const g = scene.make.graphics({ add: false });
+      draw(g);
+      g.generateTexture(key, width, height);
+      g.destroy();
+    };
+    makeTexture("park-clouds", (g) => {
+      g.fillStyle(0xffffff, 0.9);
+      g.fillEllipse(55, 46, 94, 42); g.fillEllipse(108, 34, 88, 52); g.fillEllipse(166, 48, 74, 38);
+    }, 220, 80);
+    makeTexture("park-mountains", (g) => {
+      g.fillStyle(0x77aec2, 1);
+      g.fillTriangle(0, 160, 112, 22, 232, 160); g.fillTriangle(140, 160, 284, 8, 430, 160); g.fillTriangle(350, 160, 448, 44, 540, 160);
+      g.fillStyle(0xf5fbff, 0.92);
+      g.fillTriangle(88, 52, 112, 22, 137, 54); g.fillTriangle(253, 42, 284, 8, 316, 43); g.fillTriangle(430, 66, 448, 44, 468, 68);
+    }, 540, 170);
+    makeTexture("park-hills", (g) => {
+      g.fillStyle(0x77bd78, 1);
+      g.fillEllipse(72, 105, 150, 90); g.fillEllipse(196, 94, 190, 112); g.fillEllipse(334, 108, 172, 86);
+      g.fillStyle(0x9bd48a, 0.8); g.fillEllipse(172, 83, 120, 60); g.fillEllipse(310, 98, 110, 54);
+    }, 420, 120);
+
     const g = scene.add.graphics();
     g.fillGradientStyle(top, top, bottom, bottom, 1);
     g.fillRect(0, 0, W, H);
+    g.setDepth(-100);
+    const mountains = scene.add.tileSprite(W / 2, H * 0.53, W, 170, "park-mountains").setAlpha(0.32).setDepth(-70);
+    const clouds = scene.add.tileSprite(W / 2, H * 0.22, W, 80, "park-clouds").setAlpha(0.38).setDepth(-60);
+    const hills = scene.add.tileSprite(W / 2, H - 34, W, 120, "park-hills").setAlpha(0.48).setDepth(-50);
+    if (DUKit.motionOK()) {
+      scene.events.on("update", (_time, delta) => {
+        clouds.tilePositionX += delta * 0.003;
+        mountains.tilePositionX += delta * 0.0013;
+        hills.tilePositionX += delta * 0.00065;
+      });
+    }
     DUKit.sunRays(scene, 838, 84, 200);
     scene.add.circle(838, 84, 40, 0xffe27a, 1);
-    DUKit.sparkleField(scene, 8, 30, 30, 930, 200, 0xffffff);
+    DUKit.sparkleField(scene, 14, 30, 30, 930, 205, 0xffffff);
   }
 
   /* ---------------------------------------------------------------- menu */
@@ -78,31 +112,54 @@
     create() {
       DUKit.textures(this);
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(W / 2, 36, "🦖 Dino Park", { fontSize: "46px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a", stroke: "#ffffff", strokeThickness: 8 }).setOrigin(0.5);
-      this.add.text(W / 2, 78, "Pick a game to play", { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(0.5);
+      this.add.text(W / 2, 24, "🦖 Dino Park", { fontSize: "38px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a", stroke: "#ffffff", strokeThickness: 7 }).setOrigin(0.5);
+      this.add.text(W / 2, 61, "Pick a game to play", { fontSize: "16px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(0.5);
 
-      const cols = 2, rows = Math.ceil(GAME_LIST.length / cols);
-      const tw = 400, th = 128, gx = 26, gy = 22;
+      const cols = 3, rows = Math.ceil(GAME_LIST.length / cols);
+      const tw = 290, th = 104, gx = 10, gy = 8;
       const gridW = cols * tw + (cols - 1) * gx;
-      const x0 = (W - gridW) / 2, y0 = 116;
-      this.add.rectangle(W / 2, (y0 + rows * (th + gy)) / 2 - 6, gridW + 40, rows * (th + gy) + 30, 0xffffff, 0.45).setStrokeStyle(3, 0x9ec7a0, 0.7).setDepth(2);
+      const totalH = rows * th + (rows - 1) * gy;
+      const x0 = (W - gridW) / 2, y0 = 92;
+      this.add.rectangle(W / 2, y0 + totalH / 2, gridW + 12, totalH + 10, 0xffffff, 0.28).setStrokeStyle(2, 0x9ec7a0, 0.58).setDepth(2);
+
+      const accessLayer = document.getElementById("menu-access-layer");
+      accessLayer.replaceChildren();
+      accessLayer.hidden = false;
+      const startGame = (g) => {
+        accessLayer.hidden = true;
+        accessLayer.replaceChildren();
+        this.scene.manager.getScenes(true).forEach((activeScene) => {
+          const key = activeScene.sys.settings.key;
+          if (key !== "menu") this.scene.manager.stop(key);
+        });
+        DUKit.sfx("tap");
+        this.scene.start(GAME_MAP[g.id], { game: g.id });
+      };
 
       GAME_LIST.forEach((g, i) => {
         const cx = x0 + (i % cols) * (tw + gx) + tw / 2;
         const cy = y0 + Math.floor(i / cols) * (th + gy) + th / 2;
         const card = this.add.container(cx, cy);
-        const bg = this.add.rectangle(0, 0, tw, th, 0xffffff, 0.96).setStrokeStyle(5, g.color, 1);
-        const icon = this.add.text(-tw / 2 + 54, 0, g.emoji, { fontSize: "64px" }).setOrigin(0.5);
-        const title = this.add.text(-tw / 2 + 104, -26, g.title, { fontSize: "26px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0, 0.5);
-        const desc = this.add.text(-tw / 2 + 104, 12, g.desc, { fontSize: "13px", fontFamily: DUKit.FONT, color: "#5b6b80", wordWrap: { width: 220 } }).setOrigin(0, 0);
+        const bg = this.add.rectangle(0, 0, tw, th, 0xffffff, 0.96).setStrokeStyle(4, g.color, 1);
+        const icon = this.add.text(-tw / 2 + 40, -2, g.emoji, { fontSize: "42px" }).setOrigin(0.5);
+        const title = this.add.text(-tw / 2 + 76, -20, g.title, { fontSize: "19px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#24407a", wordWrap: { width: 196 } }).setOrigin(0, 0.5);
+        const desc = this.add.text(-tw / 2 + 76, 7, g.desc, { fontSize: "11px", fontFamily: DUKit.FONT, color: "#5b6b80", wordWrap: { width: 196 } }).setOrigin(0, 0);
         const st = progress.stars[g.id];
-        const starTxt = this.add.text(tw / 2 - 16, -40, st ? "🌟".repeat(st) : "", { fontSize: "20px" }).setOrigin(1, 0);
+        const starTxt = this.add.text(tw / 2 - 10, -43, st ? "🌟".repeat(st) : "", { fontSize: "15px" }).setOrigin(1, 0);
         card.add([bg, icon, title, desc, starTxt]);
         card.setDepth(5);
-        card.setInteractive(new Phaser.Geom.Rectangle(-tw / 2, -th / 2, tw, th), false, false, { useHandCursor: true });
+        card.setInteractive({ hitArea: new Phaser.Geom.Rectangle(-tw / 2, -th / 2, tw, th), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
         card.on("pointerover", () => { card.setScale(1.04); bg.setAlpha(1); });
         card.on("pointerout", () => card.setScale(1));
-        card.on("pointerdown", () => { DUKit.sfx("tap"); this.scene.start(GAME_MAP[g.id], { game: g.id }); });
+        card.on("pointerdown", () => startGame(g));
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.game = g.id;
+        button.setAttribute("aria-label", g.title + ". " + g.desc);
+        button.title = g.desc;
+        button.addEventListener("pointerdown", (event) => event.stopPropagation());
+        button.addEventListener("click", (event) => { event.preventDefault(); event.stopPropagation(); startGame(g); });
+        accessLayer.appendChild(button);
       });
 
       if (EMBEDDED) DUKit.ready();
@@ -124,7 +181,7 @@
       this.tiles = {};
 
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(40, 22, "🧩 Dino Puzzle", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🧩 Dino Puzzle", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "Moves: 0", { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
 
       this.dinoKey = "puzzle_" + this.species + "_" + this.color.replace("#", "");
@@ -164,7 +221,8 @@
           const frame = this.add.rectangle(0, 0, this.tile, this.tile, 0xffffff, 0.97).setStrokeStyle(4, 0xc8a06a, 1);
           const img = this.add.image(0, 0, this.prefix + "_" + Math.floor(src / n) + "_" + (src % n)).setScale(this.tile / (360 / n));
           const card = this.add.container(x, y, [frame, img]);
-          card.setInteractive(new Phaser.Geom.Rectangle(-tw / 2, -th / 2, tw, th), false, false, { useHandCursor: true });
+          card.setInteractive({ hitArea: new Phaser.Geom.Rectangle(-this.tile / 2, -this.tile / 2, this.tile, this.tile), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
+          card.setData("piece", src);
           card.on("pointerdown", () => this.select(card, pos));
           card.on("pointerover", () => frame.setStrokeStyle(6, 0xe08a2e, 1));
           card.on("pointerout", () => frame.setStrokeStyle(4, 0xc8a06a, 1));
@@ -215,11 +273,10 @@
 
     checkWin() {
       const n = this.n;
-      for (let pos in this.tiles) {
-        const r = Math.floor(pos / n), c = pos % n;
-        const ex = this.x0 + c * (this.tile + this.gap) + this.tile / 2;
-        const ey = this.y0 + r * (this.tile + this.gap) + this.tile / 2;
-        if (Math.abs(this.tiles[pos].x - ex) > 1 || Math.abs(this.tiles[pos].y - ey) > 1) return;
+      for (const card of Object.values(this.tiles)) {
+        const col = Math.round((card.x - this.x0 - this.tile / 2) / (this.tile + this.gap));
+        const row = Math.round((card.y - this.y0 - this.tile / 2) / (this.tile + this.gap));
+        if (card.getData("piece") !== row * n + col) return;
       }
       this.win();
     }
@@ -253,7 +310,7 @@
       this.state = "title"; // title | play | won
 
       sky(this, 0xf7d9a0, 0xf2c793); // desert dig site
-      this.add.text(40, 22, "⛏ Dig a Dino", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#5a3a12" }).setOrigin(0, 0);
+      this.add.text(78, 22, "⛏ Dig a Dino", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#5a3a12" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "Bones: 0/" + this.BONES, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#6b4a1a" }).setOrigin(1, 0);
       this.status = this.add.text(W / 2, H - 26, "", { fontSize: "18px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
 
@@ -312,9 +369,9 @@
         const prize = this.add.text(0, 2, "", { fontSize: "38px" }).setOrigin(0.5).setVisible(false);
         mound.add([body, top, crack, prize]);
         mound.setDepth(2);
-        mound.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-mw / 2, -mh / 2, mw, mh) });
+        mound.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-mw / 2, -mh / 2, mw, mh), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
         mound.on("pointerover", () => { if (mound.getData("open") === true) return; body.setStrokeStyle(5, 0x8a5d2e, 1); });
-        mound.on("pointerout", () => body.clearStrokeStyle());
+        mound.on("pointerout", () => body.setStrokeStyle(0, 0x8a5d2e, 0));
         mound.on("pointerdown", () => this.dig(mound, i));
         this.mounds.push({ mound, body, crack, prize, hits: 0, open: false, kind: this.items[i] });
       }
@@ -419,7 +476,7 @@
       this.state = "title";
 
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(40, 22, "🐾 Footprint Match", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🐾 Footprint Match", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "Matched: 0/" + this.count, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
       this.status = this.add.text(W / 2, H - 26, "", { fontSize: "18px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
 
@@ -491,14 +548,24 @@
         const img = this.add.image(0, 4, key).setScale((cardH - 20) / 180);
         card.add([bg, img]);
         card.setDepth(10);
-        card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-cardW / 2, -cardH / 2, cardW, cardH) });
-        card.setData({ species: d.s, home: { x: cx0 + i * (cardW + cgap) + cardW / 2, y: cy }, dragging: false });
+        card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-cardW / 2, -cardH / 2, cardW, cardH), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+        card.setData("species", d.s);
+        card.setData("home", { x: cx0 + i * (cardW + cgap) + cardW / 2, y: cy });
+        card.setData("dragging", false);
         card.on("pointerdown", (p) => this.dragStart(card, p));
-        card.on("pointermove", (p) => this.dragMove(card, p));
-        card.on("pointerup", (p) => this.dragEnd(card, p));
-        card.on("pointerout", (p) => { if (card.getData("dragging")) this.dragEnd(card, p); });
         this.cards.push(card);
       }
+
+      this.input.on("pointermove", (p) => {
+        const card = this.cards.find((item) => item.getData("dragging"));
+        if (card) this.dragMove(card, p);
+      });
+      const finishDrag = (p) => {
+        const card = this.cards.find((item) => item.getData("dragging"));
+        if (card) this.dragEnd(card, p);
+      };
+      this.input.on("pointerup", finishDrag);
+      this.input.on("pointerupoutside", finishDrag);
 
       this.startTitle();
     }
@@ -615,7 +682,7 @@
       if (this.target.h === this.target.b) this.target.h = this.species[(this.species.indexOf(this.target.b) + 1) % 6];
 
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(40, 22, "🧬 Dino Mixer", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🧬 Dino Mixer", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.status = this.add.text(W / 2, H - 24, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
 
       this.add.text(770, 110, "Build this one!", { fontSize: "16px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0.5);
@@ -653,15 +720,15 @@
       const t = this.add.text(0, 0, label, { fontSize: "17px", fontFamily: DUKit.FONT, fontStyle: "bold", color: fill ? "#ffffff" : "#24407a" }).setOrigin(0.5);
       c.add([bg, t]);
       c.setDepth(5);
-      c.setInteractive(new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h), false, false, { useHandCursor: true });
+      c.setInteractive({ hitArea: new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
       c.on("pointerover", () => bg.setAlpha(1));
       c.on("pointerout", () => bg.setAlpha(0.96));
       c.on("pointerdown", fn);
-      c.setData({ t });
+      c.setData("t", t);
       return c;
     }
 
-    setLabel(c, txt) { c.getData().t.setText(txt); }
+    setLabel(c, txt) { c.getData("t").setText(txt); }
 
     cycle(k) {
       if (this.state !== "play") return;
@@ -770,7 +837,7 @@
       this.combo = 0;
 
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(40, 22, "🃏 Dino Memory", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🃏 Dino Memory", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "Pairs: 0/" + this.pairs, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
       this.status = this.add.text(W / 2, H - 24, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
 
@@ -815,8 +882,12 @@
         const front = this.add.image(0, 0, d.texKey).setScale((ch - 30) / 180).setVisible(false);
         card.add([back, front]);
         card.setDepth(5);
-        card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-cw / 2, -ch / 2, cw, ch) });
-        card.setData({ d, back, front, up: false, matched: false });
+        card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-cw / 2, -ch / 2, cw, ch), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+        card.setData("d", d);
+        card.setData("back", back);
+        card.setData("front", front);
+        card.setData("up", false);
+        card.setData("matched", false);
         card.on("pointerdown", () => this.tap(card));
         this.cards.push(card);
       });
@@ -826,7 +897,7 @@
 
     startTitle() {
       this.state = "title";
-      this.cards.forEach((c) => { c.getData().back.setVisible(true); c.getData().front.setVisible(false); c.setVisible(true); });
+      this.cards.forEach((c) => { c.getData("back").setVisible(true); c.getData("front").setVisible(false); c.setVisible(true); });
       DUKit.title(this, {
         emoji: "🃏",
         title: "Dino Memory",
@@ -841,10 +912,10 @@
     peek() {
       this.state = "peek";
       this.say("Look carefully! Remember where each dino hides...");
-      this.cards.forEach((c) => { c.getData().back.setVisible(false); c.getData().front.setVisible(true); });
+      this.cards.forEach((c) => { c.getData("back").setVisible(false); c.getData("front").setVisible(true); });
       DUKit.sfx("pop");
       this.time.delayedCall(2400, () => {
-        this.cards.forEach((c) => { c.getData().back.setVisible(true); c.getData().front.setVisible(false); });
+        this.cards.forEach((c) => { c.getData("back").setVisible(true); c.getData("front").setVisible(false); });
         DUKit.sfx("whoosh");
         this.state = "play";
         this.locked = false;
@@ -854,11 +925,10 @@
 
     tap(card) {
       if (this.state !== "play" || this.locked) return;
-      const d = card.getData();
-      if (d.up || d.matched) return;
-      d.back.setVisible(false);
-      d.front.setVisible(true);
-      d.up = true;
+      if (card.getData("up") || card.getData("matched")) return;
+      card.getData("back").setVisible(false);
+      card.getData("front").setVisible(true);
+      card.setData("up", true);
       DUKit.sfx("pop");
       if (!this.first) { this.first = card; return; }
 
@@ -866,11 +936,11 @@
       this.first = null;
       this.locked = true;
       this.moves++;
-      const da = a.getData();
-      if (da.d.k === d.d.k) {
+      const da = a.getData("d");
+      if (da.k === card.getData("d").k) {
         this.combo++;
         this.matched++;
-        [a, card].forEach((x) => { x.getData().matched = true; x.setScale(1.05); });
+        [a, card].forEach((x) => { x.setData("matched", true); x.setScale(1.05); });
         DUKit.sfx("star");
         DUKit.burst(this, card.x, card.y, { tint: 0xff6b6b, n: 12 });
         this.hud.setText("Pairs: " + this.matched + "/" + this.pairs);
@@ -882,7 +952,7 @@
         DUKit.sfx("bad");
         this.say("Not a match. Remember where they are!");
         this.time.delayedCall(750, () => {
-          [a, card].forEach((x) => { const dd = x.getData(); dd.back.setVisible(true); dd.front.setVisible(false); dd.up = false; });
+          [a, card].forEach((x) => { x.getData("back").setVisible(true); x.getData("front").setVisible(false); x.setData("up", false); });
           this.locked = false;
         });
       }
@@ -927,7 +997,7 @@
       this.done = 0;
 
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(40, 22, "📏 Size Parade", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "📏 Size Parade", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "Placed: 0/" + this.k, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
       this.status = this.add.text(W / 2, H - 24, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
 
@@ -968,14 +1038,23 @@
           const img = this.add.image(0, 0, this.dinoTex).setScale((size * 0.78) / 180);
           card.add([img]);
           card.setDepth(10);
-          card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-tw / 2, -60, tw, 120) });
-          card.setData({ size, home: { x, y: ty }, dragging: false });
+          card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-tw / 2, -60, tw, 120), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+          card.setData("size", size);
+          card.setData("home", { x, y: ty });
+          card.setData("dragging", false);
           card.on("pointerdown", (pt) => this.dragStart(card, pt));
-          card.on("pointermove", (pt) => this.dragMove(card, pt));
-          card.on("pointerup", (pt) => this.dragEnd(card, pt));
-          card.on("pointerout", (pt) => { if (card.getData("dragging")) this.dragEnd(card, pt); });
           this.dinos.push(card);
         });
+        this.input.on("pointermove", (pt) => {
+          const card = this.dinos.find((item) => item.getData("dragging"));
+          if (card) this.dragMove(card, pt);
+        });
+        const finishDrag = (pt) => {
+          const card = this.dinos.find((item) => item.getData("dragging"));
+          if (card) this.dragEnd(card, pt);
+        };
+        this.input.on("pointerup", finishDrag);
+        this.input.on("pointerupoutside", finishDrag);
         this.startTitle();
       });
     }
@@ -1094,7 +1173,7 @@
       dinoTexture(this, this.texKey, this.sp, this.col, () => {});
 
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(40, 22, "🍓 Snack Time", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🍓 Snack Time", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "0 / " + this.n, { fontSize: "20px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#3d6b5a" }).setOrigin(1, 0);
       this.status = this.add.text(W / 2, H - 22, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
 
@@ -1122,8 +1201,9 @@
         const t = this.add.text(0, 0, f, { fontSize: "34px" }).setOrigin(0.5);
         b.add([bg, t]);
         b.setDepth(5);
-        b.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(0, 0, 32) });
-        b.setData({ f, used: false });
+        b.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(0, 0, 32), hitAreaCallback: Phaser.Geom.Circle.Contains });
+        b.setData("f", f);
+        b.setData("used", false);
         b.on("pointerdown", () => this.tap(b));
       });
 
@@ -1132,11 +1212,11 @@
 
     tap(b) {
       if (this.state !== "play" || this.busy) return;
-      const d = b.getData();
-      if (d.used) return;
-      d.used = true;
+      if (b.getData("used")) return;
+      b.setData("used", true);
       b.setAlpha(0.3);
-      if (d.f === "🍓") {
+      const food = b.getData("f");
+      if (food === "🍓") {
         this.busy = true;
         DUKit.sfx("chomp");
         this.tweens.add({ targets: b, x: 250, y: 250, scale: 0.4, duration: 400, ease: "Quad.easeIn", onComplete: () => b.destroy() });
@@ -1148,7 +1228,7 @@
       } else {
         DUKit.sfx("bad");
         DUKit.shake(this, 160, 2);
-        this.say(d.f === "🧦" ? "Yuck, a sock!" : "That is a rock, not a berry!");
+        this.say(food === "🧦" ? "Yuck, a sock!" : "That is a rock, not a berry!");
       }
     }
 
@@ -1211,7 +1291,7 @@
       this.hits = 0;
 
       sky(this, 0xbfe8ff, 0xfff3d9);
-      this.add.text(40, 22, "🔢 Dot-to-Dot", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🔢 Dot-to-Dot", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "0 / " + this.P.length, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
       this.status = this.add.text(W / 2, H - 22, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
 
@@ -1228,7 +1308,9 @@
         const x = pt[0] + 180, y = pt[1] + 20; // offset into the 960-wide canvas
         const c = this.add.circle(x, y, 11, 0xffffff).setStrokeStyle(2, 0x4d96ff, 1).setDepth(3);
         const t = this.add.text(x, y, String(i + 1), { fontSize: "11px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#4d96ff" }).setOrigin(0.5).setDepth(4);
-        c.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(0, 0, 15) });
+        // Circle GameObjects offset the local pointer by their display origin;
+        // center the hit area there so taps line up with the visible dot.
+        c.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(c.displayOriginX, c.displayOriginY, 15), hitAreaCallback: Phaser.Geom.Circle.Contains });
         c.on("pointerdown", () => this.tap(i, c, t));
         this.dots.push({ c, t, done: false, x, y });
       });
@@ -1244,6 +1326,7 @@
       d.c.setFillStyle(0x4d96ff, 1);
       d.t.setColor("#ffffff");
       this.hits++;
+      this.next++;
       this.hud.setText(this.hits + " / " + this.P.length);
       DUKit.sfx("tap");
       // Draw line from previous completed dot to this one.
@@ -1314,7 +1397,7 @@
       this.parts = 6;
 
       sky(this, 0xfdf3ff, 0xffe9f3);
-      this.add.text(40, 22, "🎨 Colouring", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#7a2c57" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🎨 Colouring", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#7a2c57" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "0 / " + this.parts, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#9a4a72" }).setOrigin(1, 0);
 
       this.dinoKey = "color_" + sp + "_" + this.color.replace("#", "");
@@ -1345,7 +1428,7 @@
         const x = W / 2 - 120 + p[0], y = H / 2 - 10 + p[1];
         const c = this.add.circle(x, y, 14, 0xffffff).setStrokeStyle(3, 0xe0508f, 1).setDepth(3);
         const t = this.add.text(x, y, String(i + 1), { fontSize: "14px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#e0508f" }).setOrigin(0.5).setDepth(4);
-        c.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(0, 0, 18) });
+        c.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(c.displayOriginX, c.displayOriginY, 18), hitAreaCallback: Phaser.Geom.Circle.Contains });
         c.on("pointerdown", () => this.paint(i, c, t));
         this.partsArr.push({ c, t, done: false });
       });
@@ -1425,7 +1508,7 @@
       this.bx0 = 70;
 
       sky(this, 0xfff2d6, 0xffe4a8);
-      this.add.text(40, 22, "🍽 Dino Cafe", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#5a3a12" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🍽 Dino Cafe", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#5a3a12" }).setOrigin(0, 0);
       this.hud = this.add.text(W / 2, 44, "", { fontSize: "20px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
       this.hearts = this.add.text(920, 22, "", { fontSize: "16px", fontFamily: DUKit.FONT }).setOrigin(1, 0);
 
@@ -1572,7 +1655,7 @@
       this.ground = this.add.graphics();
       this.gfxGround();
 
-      this.add.text(40, 22, "🏃 Dino Dash", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🏃 Dino Dash", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(920, 22, "🌟 0", { fontSize: "20px", fontFamily: DUKit.FONT, color: "#3d6b5a", fontStyle: "bold" }).setOrigin(1, 0);
 
       this.dinoKey = "dash_trex_green";
@@ -1746,7 +1829,7 @@
       this.dinoKey = "catch_" + this.heroSp + "_" + this.color.replace("#", "");
 
       sky(this, 0xbfe8ff, 0xeafaf0);
-      this.add.text(40, 22, "🧺 Egg Catch", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.add.text(78, 22, "🧺 Egg Catch", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
       this.hud = this.add.text(W / 2, 44, "🥚 0 / " + this.goal, { fontSize: "20px", fontFamily: DUKit.FONT, color: "#3d6b5a", fontStyle: "bold" }).setOrigin(0.5);
 
       // flying ptero releasing eggs
@@ -1875,5 +1958,17 @@
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene, CafeScene, DashScene, CatchScene],
+  });
+  window.parkReturnToMenu = () => {
+    const manager = window.game && window.game.scene;
+    if (!manager) return;
+    manager.getScenes(true).forEach((activeScene) => {
+      const key = activeScene.sys.settings.key;
+      if (key !== "menu") manager.stop(key);
+    });
+    if (!manager.isActive("menu")) manager.start("menu");
+  };
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && window.game && !window.game.scene.isActive("menu")) window.parkReturnToMenu();
   });
 })();

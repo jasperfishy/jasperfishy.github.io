@@ -30,7 +30,7 @@ class DinoParkScene extends Phaser.Scene {
     g.destroy();
 
     this.player = this.physics.add.sprite(400, 500, 'dino').setCollideWorldBounds(true);
-    
+
     this.eggs = this.physics.add.group();
     this.rocks = this.physics.add.group();
 
@@ -45,7 +45,7 @@ class DinoParkScene extends Phaser.Scene {
       egg.destroy(); this.score += 1; this.updateHUD();
       this.cameras.main.flash(120, 46, 204, 113);
     });
-    
+
     this.physics.add.overlap(this.player, this.rocks, (_, rock) => {
       rock.destroy(); this.lives -= 1; this.updateHUD();
       this.cameras.main.shake(160, 0.01);
@@ -56,7 +56,7 @@ class DinoParkScene extends Phaser.Scene {
     this.updateHUD();
 
     this.add.text(760, 20, '🏠', { fontSize: '32px' }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).on('pointerdown', () => { window.location.href = '/dino/'; });
-    
+
     this.playStart = Date.now();
   }
 
