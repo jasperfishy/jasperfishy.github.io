@@ -70,6 +70,7 @@
     { id: "color",  emoji: "🎨", title: "Colouring", desc: "Paint the dino, part by part", color: 0xe0508f },
     { id: "feed",  emoji: "🍽", title: "Dino Cafe", desc: "Catch the food your dino wants", color: 0xe0762e },
     { id: "dash",  emoji: "🏃", title: "Dino Dash", desc: "Jump the obstacles, grab stars", color: 0x2f9e5e },
+    { id: "catch", emoji: "🧺", title: "Egg Catch", desc: "Catch the eggs, dodge the rocks", color: 0xd19a14 },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -1723,6 +1724,134 @@
     }
   }
 
+
+  /* ------------------------------------------------------ egg catch */
+  class CatchScene extends Phaser.Scene {
+    constructor() { super("catch"); }
+
+    create() {
+      DUKit.textures(this);
+      this.state = "title";
+      this.goal = 12;
+      this.fall = 190;
+      this.got = 0;
+      this.misses = 0;
+      this.catchY = H - 120;
+      this.x = W / 2;
+      this.target = W / 2;
+      this.spawnT = 0.5;
+
+      this.heroSp = pick(["stego", "tricera", "bronto"]);
+      this.color = pick(COLORS);
+      this.dinoKey = "catch_" + this.heroSp + "_" + this.color.replace("#", "");
+
+      sky(this, 0xbfe8ff, 0xeafaf0);
+      this.add.text(40, 22, "🧺 Egg Catch", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.hud = this.add.text(W / 2, 44, "🥚 0 / " + this.goal, { fontSize: "20px", fontFamily: DUKit.FONT, color: "#3d6b5a", fontStyle: "bold" }).setOrigin(0.5);
+
+      // flying ptero releasing eggs
+      this.flyKey = "catch_ptero_pink";
+      dinoTexture(this, this.flyKey, "ptero", "pink", () => {});
+      this.fly = this.add.image(120, 90, this.flyKey).setScale(0.55).setDepth(3);
+      this.pxFly = 120;
+      this.dir = 1;
+
+      dinoTexture(this, this.dinoKey, this.heroSp, this.color, () => {});
+      this.hero = this.add.image(this.x, this.catchY, this.dinoKey).setScale(0.7).setDepth(6);
+      this.basket = this.add.text(this.x, this.catchY + 18, "🧺", { fontSize: "34px" }).setOrigin(0.5).setDepth(7);
+
+      this.items = [];
+
+      this.input.on("pointermove", (p) => { this.target = Phaser.Math.Clamp(p.x, 50, W - 50); });
+      this.input.on("pointerdown", (p) => { this.target = Phaser.Math.Clamp(p.x, 50, W - 50); });
+      this.input.keyboard.on("keydown-LEFT", () => { this.target = Phaser.Math.Clamp(this.target - 70, 50, W - 50); });
+      this.input.keyboard.on("keydown-RIGHT", () => { this.target = Phaser.Math.Clamp(this.target + 70, 50, W - 50); });
+
+      DUKit.title(this, {
+        emoji: "🧺",
+        title: "Egg Catch",
+        hint: "Move to catch the falling eggs in your basket. Watch out for rocks!",
+        color: 0xd19a14,
+        cssColor: "#d19a14",
+      }, () => { this.state = "play"; });
+    }
+
+    spawn() {
+      const rock = Math.random() < 0.18;
+      const e = rock ? "🪨" : pick(["🥚", "🥚", "🥚", "🌟"]);
+      const sx = this.pxFly + 40;
+      const t = this.add.text(sx, 40, e, { fontSize: "34px" }).setOrigin(0.5).setDepth(4);
+      this.items.push({ x: sx, y: 40, rock: rock, e: e, vy: this.fall * (0.85 + Math.random() * 0.3), t: t });
+      this.spawnT = 0.62 + Math.random() * 0.4;
+    }
+
+    update(time, delta) {
+      if (this.state !== "play") return;
+      const dt = Math.min(0.04, delta / 1000);
+
+      // hero follows pointer / keys
+      this.x += (this.target - this.x) * Math.min(1, dt * 8);
+      this.hero.setX(this.x);
+      this.basket.setX(this.x);
+
+      // ptero flies left-right
+      this.pxFly += this.dir * dt * 120;
+      if (this.pxFly > W - 80) this.dir = -1;
+      if (this.pxFly < 20) this.dir = 1;
+      this.fly.setX(this.pxFly);
+      this.fly.setScale(this.dir === 1 ? 0.55 : -0.55);
+
+      this.spawnT -= dt;
+      if (this.spawnT <= 0) this.spawn();
+
+      this.items = this.items.filter((it) => {
+        it.y += it.vy * dt;
+        it.t.setPosition(it.x, it.y);
+        it.t.setRotation(it.y * 0.006);
+        if (it.y > this.catchY - 24 && it.y < this.catchY + 26 && Math.abs(it.x - this.x) < 55) {
+          it.t.destroy();
+          if (it.rock) {
+            this.misses++;
+            DUKit.sfx("bad");
+            DUKit.shake(this, 200, 0.01);
+            DUKit.burst(this, this.x, this.catchY - 30, { tint: 0xd8d8d8, n: 8, gravity: 400 });
+            this.bubble("Ouch! A rock!");
+          } else {
+            const val = it.e === "🌟" ? 2 : 1;
+            this.got += val;
+            this.hud.setText("🥚 " + Math.min(this.got, this.goal) + " / " + this.goal);
+            DUKit.sfx("star");
+            DUKit.burst(this, this.x, this.catchY - 30, { tint: it.e === "🌟" ? 0xffd23f : 0xffffff, n: it.e === "🌟" ? 10 : 5 });
+            if (this.got >= this.goal) { this.win(); return false; }
+          }
+          return false;
+        }
+        if (it.y > H - 24) { it.t.destroy(); if (!it.rock) DUKit.burst(this, it.x, H - 24, { tint: 0xd8d8d8, n: 3, scale: 0.5 }); return false; }
+        return true;
+      });
+    }
+
+    bubble(t) {
+      const b = this.add.text(this.x, this.catchY - 90, t, { fontSize: "16px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold", backgroundColor: "rgba(255,255,255,.85)", padding: { x: 8, y: 3 } }).setOrigin(0.5).setDepth(3);
+      this.tweens.add({ targets: b, y: this.catchY - 110, alpha: 0, delay: 1100, duration: 400, onComplete: () => b.destroy() });
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      for (let i = 0; i < 3; i++) DUKit.burst(this, Phaser.Math.Between(W * 0.25, W * 0.75), H * 0.3, { tint: [0xff6b6b, 0xffd93d, 0x6bcb77][i], n: 24, gravity: 400, life: 1100, depth: 120 });
+      const stars = this.misses === 0 ? 3 : this.misses <= 2 ? 2 : 1;
+      progress.stars["catch"] = Math.max(progress.stars["catch"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        title: "BASKET FULL!",
+        line: this.misses + " rocks caught",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
@@ -1735,6 +1864,7 @@
     color: "color",
     feed: "feed",
     dash: "dash",
+    catch: "catch",
   };
 
   window.game = new Phaser.Game({
@@ -1744,6 +1874,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene, CafeScene, DashScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene, CafeScene, DashScene, CatchScene],
   });
 })();
