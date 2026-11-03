@@ -63,6 +63,7 @@
     { id: "dig", title: "Dig a Dino", emoji: "⛏", color: 0xc98b4f, desc: "Dig the mounds and find every bone!" },
     { id: "footprint", title: "Footprint Match", emoji: "🐾", color: 0xd9694f, desc: "Whose prints? Drag each dino to its footprints!" },
     { id: "mixer", title: "Dino Mixer", emoji: "🧬", color: 0x2fa58a, desc: "Mix heads and bodies to invent a brand-new dinosaur!" },
+    { id: "memory", title: "Dino Memory", emoji: "🃏", color: 0xe05a7a, desc: "Remember where each dinosaur hides - find the pairs!" },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -744,11 +745,172 @@
     }
   }
 
+
+  /* ------------------------------------------------------ dino memory */
+  class MemoryScene extends Phaser.Scene {
+    constructor() { super("memory"); }
+
+    create(data) {
+      DUKit.textures(this);
+      this.species = ["trex", "tricera", "stego", "bronto", "raptor", "ptero"];
+      this.colors = ["green", "teal", "purple", "orange", "pink", "blue"];
+      this.pairs = 3; // 6 cards, 3x2 grid
+      this.state = "title"; // title | peek | play | won
+      this.first = null;
+      this.locked = true;
+      this.matched = 0;
+      this.moves = 0;
+      this.combo = 0;
+
+      sky(this, 0xbfe8ff, 0xfff3d9);
+      this.add.text(40, 22, "🃏 Dino Memory", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.hud = this.add.text(920, 22, "Pairs: 0/" + this.pairs, { fontSize: "18px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(1, 0);
+      this.status = this.add.text(W / 2, H - 24, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
+
+      // Build the deck: 3 species+colour combos, each twice.
+      const combos = [];
+      const used = new Set();
+      while (combos.length < this.pairs) {
+        const sp = this.species[rnd(6)], c = this.colors[rnd(6)];
+        const k = sp + "_" + c;
+        if (used.has(k)) continue;
+        used.add(k);
+        combos.push({ s: sp, c: c, k: k });
+      }
+      const deck = [];
+      combos.forEach((d) => { deck.push({ ...d }); deck.push({ ...d }); });
+      for (let i = deck.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = deck[i]; deck[i] = deck[j]; deck[j] = t; }
+
+      // Build card textures.
+      deck.forEach((d) => d.texKey = "mem_" + d.k);
+      combos.forEach((d) => dinoTexture(this, "mem_" + d.k, d.s, d.c, () => {}));
+
+      // Back texture.
+      if (!this.textures.exists("mem_back")) {
+        const g = this.make.graphics({ add: false });
+        g.fillStyle(0x2f6b5a, 1); g.fillRoundedRect(0, 0, 100, 130, 12);
+        g.lineStyle(4, 0x1c4a3a, 1); g.strokeRoundedRect(0, 0, 100, 130, 12);
+        g.generateTexture("mem_back", 100, 130);
+        g.destroy();
+      }
+
+      // Layout: 3 columns x 2 rows.
+      const cw = 150, ch = 195, gx = 24, gy = 20;
+      const gridW = 3 * cw + 2 * gx;
+      const x0 = (W - gridW) / 2, y0 = 110;
+      this.cards = [];
+      deck.forEach((d, i) => {
+        const col = i % 3, row = Math.floor(i / 3);
+        const x = x0 + col * (cw + gx) + cw / 2;
+        const y = y0 + row * (ch + gy) + ch / 2;
+        const card = this.add.container(x, y);
+        const back = this.add.image(0, 0, "mem_back").setScale(cw / 100);
+        const front = this.add.image(0, 0, d.texKey).setScale((ch - 30) / 180).setVisible(false);
+        card.add([back, front]);
+        card.setDepth(5);
+        card.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-cw / 2, -ch / 2, cw, ch) });
+        card.setData({ d, back, front, up: false, matched: false });
+        card.on("pointerdown", () => this.tap(card));
+        this.cards.push(card);
+      });
+
+      this.startTitle();
+    }
+
+    startTitle() {
+      this.state = "title";
+      this.cards.forEach((c) => { c.getData().back.setVisible(true); c.getData().front.setVisible(false); c.setVisible(true); });
+      DUKit.title(this, {
+        emoji: "🃏",
+        title: "Dino Memory",
+        hint: "Look at the dinosaurs, then find the matching pairs. Remember where they hide!",
+        color: 0xe05a7a,
+        cssColor: "#e05a7a",
+      }, () => {
+        this.peek();
+      });
+    }
+
+    peek() {
+      this.state = "peek";
+      this.say("Look carefully! Remember where each dino hides...");
+      this.cards.forEach((c) => { c.getData().back.setVisible(false); c.getData().front.setVisible(true); });
+      DUKit.sfx("pop");
+      this.time.delayedCall(2400, () => {
+        this.cards.forEach((c) => { c.getData().back.setVisible(true); c.getData().front.setVisible(false); });
+        DUKit.sfx("whoosh");
+        this.state = "play";
+        this.locked = false;
+        this.say("Now find the matching pairs!");
+      });
+    }
+
+    tap(card) {
+      if (this.state !== "play" || this.locked) return;
+      const d = card.getData();
+      if (d.up || d.matched) return;
+      d.back.setVisible(false);
+      d.front.setVisible(true);
+      d.up = true;
+      DUKit.sfx("pop");
+      if (!this.first) { this.first = card; return; }
+
+      const a = this.first;
+      this.first = null;
+      this.locked = true;
+      this.moves++;
+      const da = a.getData();
+      if (da.d.k === d.d.k) {
+        this.combo++;
+        this.matched++;
+        [a, card].forEach((x) => { x.getData().matched = true; x.setScale(1.05); });
+        DUKit.sfx("star");
+        DUKit.burst(this, card.x, card.y, { tint: 0xff6b6b, n: 12 });
+        this.hud.setText("Pairs: " + this.matched + "/" + this.pairs);
+        this.say(this.combo > 1 ? this.combo + " in a row! Amazing!" : "A match! Great memory!");
+        if (this.matched === this.pairs) { this.time.delayedCall(500, () => this.win()); return; }
+        this.locked = false;
+      } else {
+        this.combo = 0;
+        DUKit.sfx("bad");
+        this.say("Not a match. Remember where they are!");
+        this.time.delayedCall(750, () => {
+          [a, card].forEach((x) => { const dd = x.getData(); dd.back.setVisible(true); dd.front.setVisible(false); dd.up = false; });
+          this.locked = false;
+        });
+      }
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      for (let i = 0; i < 3; i++) DUKit.burst(this, Phaser.Math.Between(W * 0.25, W * 0.75), H * 0.3, { tint: [0xff6b6b, 0xffd93d, 0x6bcb77][i], n: 24, gravity: 400, life: 1100, depth: 120 });
+      const stars = this.moves <= this.pairs ? 3 : this.moves <= this.pairs * 2 ? 2 : 1;
+      progress.stars["memory"] = Math.max(progress.stars["memory"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        emoji: "🃏",
+        title: "EVERY PAIR FOUND!",
+        line: this.moves + " guesses",
+        best: "Best: " + (progress.stars["memory"] || 0) + " ⭐",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+
+    say(msg) {
+      this.status.setText(msg);
+      this.status.setAlpha(1);
+      this.tweens.add({ targets: this.status, alpha: 0.15, delay: 1500, duration: 400 });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
     footprint: "footprint",
     mixer: "mixer",
+    memory: "memory",
   };
 
   window.game = new Phaser.Game({
@@ -758,6 +920,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene],
   });
 })();
