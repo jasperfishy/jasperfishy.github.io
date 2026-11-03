@@ -69,6 +69,7 @@
     { id: "dot", title: "Dot-to-Dot", emoji: "🔢", color: 0x4d96ff, desc: "Join the dots in order and reveal a dinosaur!" },
     { id: "color",  emoji: "🎨", title: "Colouring", desc: "Paint the dino, part by part", color: 0xe0508f },
     { id: "feed",  emoji: "🍽", title: "Dino Cafe", desc: "Catch the food your dino wants", color: 0xe0762e },
+    { id: "dash",  emoji: "🏃", title: "Dino Dash", desc: "Jump the obstacles, grab stars", color: 0x2f9e5e },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -1536,6 +1537,192 @@
     }
   }
 
+
+  /* ------------------------------------------------------ dash (runner) */
+  class DashScene extends Phaser.Scene {
+    constructor() { super("dash"); }
+
+    THEMES() {
+      return [
+        { sky: [0x8fd8f0, 0xe6f7d8], m1: 0x8cc4a6, m2: 0xa6d6b4, ground: 0x6bbf5f, ground2: 0x58a84f, obs: ["🪨", "🌵", "🪵"], len: 3600 },
+        { sky: [0xffb27a, 0xffe3a8], m1: 0xa8604a, m2: 0xc4785a, ground: 0x9a5b3c, ground2: 0x84492f, obs: ["🪨", "🔥", "🌋"], len: 5000 },
+        { sky: [0xa6d4f5, 0xf2fbff], m1: 0x9ab7d0, m2: 0xbcd2e4, ground: 0xe8f4fb, ground2: 0xcfe6f4, obs: ["⛄", "🪨", "🧊"], len: 6400 },
+      ];
+    }
+
+    create() {
+      DUKit.textures(this);
+      this.T = this.THEMES()[2]; // snow (hardest)
+      this.state = "title";
+      this.GY = 452;
+      this.dinoX = 150;
+      this.P = { y: 0, vy: 0, jumps: 0, x: 0, speed: 320, stumble: 0, inv: 0, stars: 0 };
+      this.obs = [];
+      this.picks = [];
+      this.nextObs = 620;
+      this.time2 = 0;
+
+      sky(this, this.T.sky[0], this.T.sky[1]);
+
+      // parallax mountain layers (two bands)
+      this.mtn1 = this.buildMtn(0xa6d6b4, 0x8cc4a6, 96, 120);
+      this.mtn2 = this.buildMtn(0xc4e6cf, 0xa6d6b4, 60, 90);
+      // ground
+      this.ground = this.add.graphics();
+      this.gfxGround();
+
+      this.add.text(40, 22, "🏃 Dino Dash", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.hud = this.add.text(920, 22, "🌟 0", { fontSize: "20px", fontFamily: DUKit.FONT, color: "#3d6b5a", fontStyle: "bold" }).setOrigin(1, 0);
+
+      this.dinoKey = "dash_trex_green";
+      dinoTexture(this, this.dinoKey, "trex", "green", () => {});
+      this.dino = this.add.image(this.dinoX, this.GY - 30, this.dinoKey).setScale(0.7).setDepth(6);
+
+      // progress bar
+      this.progBg = this.add.rectangle(W / 2, H - 20, 320, 14, 0xffffff, 0.5).setOrigin(0.5);
+      this.prog = this.add.rectangle(W / 2 - 160, H - 20, 0, 14, 0xff5d5d, 1).setOrigin(0, 0.5);
+      this.flag = this.add.text(W / 2 + 168, H - 20, "🏁", { fontSize: "20px" }).setOrigin(0, 0.5);
+
+      this.jumpBind = () => {
+        if (this.state === "title") return;
+        if (this.state !== "play") return;
+        this.jump();
+      };
+      this.input.on("pointerdown", this.jumpBind);
+      this.input.keyboard.on("keydown-SPACE", this.jumpBind);
+      this.input.keyboard.on("keydown-UP", this.jumpBind);
+
+      DUKit.title(this, {
+        emoji: "🏃",
+        title: "Dino Dash",
+        hint: "Tap or press SPACE to jump (double jump!). Dodge the obstacles, grab the stars, reach the flag.",
+        color: 0x2f9e5e,
+        cssColor: "#2f9e5e",
+      }, () => { this.state = "play"; });
+    }
+
+    buildMtn(c1, c2, h, step) {
+      const g = this.add.graphics().setDepth(0);
+      for (let i = 0; i < 14; i++) {
+        const x = i * step;
+        g.fillStyle(i % 2 ? c2 : c1, 1);
+        g.fillTriangle(x, this.GY, x + step / 2, this.GY - h, x + step, this.GY);
+      }
+      return g;
+    }
+
+    gfxGround() {
+      const g = this.ground;
+      g.clear();
+      g.fillStyle(this.T.ground, 1).fillRect(0, this.GY, W, H - this.GY);
+      g.fillStyle(this.T.ground2, 1);
+      for (let i = -1; i < 18; i++) { const x = i * 48 - (this.P.x % 48); g.fillRect(x, this.GY + 16, 28, 5); }
+      g.fillStyle(0x000000, 0.12).fillRect(0, this.GY, W, 4);
+    }
+
+    jump() {
+      const P = this.P;
+      if (P.jumps >= 2) return;
+      P.vy = P.jumps === 0 ? 620 : 500;
+      P.jumps++;
+      DUKit.sfx("boing");
+    }
+
+    spawn() {
+      if (this.P.x > this.nextObs && this.P.x < this.T.len - 500) {
+        const e = pick(this.T.obs);
+        const o = this.add.text(0, this.GY + 8, e, { fontSize: "46px" }).setOrigin(0.5).setDepth(4);
+        this.obs.push({ x: this.P.x + 720, t: o });
+        if (Math.random() < 0.75) {
+          const h = 80 + rnd(120);
+          const st = pick(["⭐", "⭐", "🥚"]);
+          const p = this.add.text(0, this.GY - h, st, { fontSize: "34px" }).setOrigin(0.5).setDepth(4);
+          this.picks.push({ x: this.P.x + 720 + 110, h: h, got: false, t: p });
+        }
+        this.nextObs = this.P.x + 300 + rnd(220) - 20;
+      }
+      if (Math.random() < 0.02) {
+        const h = 30 + rnd(30);
+        const p = this.add.text(0, this.GY - h, "⭐", { fontSize: "30px" }).setOrigin(0.5).setDepth(4);
+        this.picks.push({ x: this.P.x + 720, h: h, got: false, t: p });
+      }
+    }
+
+    update(time, delta) {
+      if (this.state !== "play") return;
+      const dt = Math.min(0.04, delta / 1000);
+      this.time2 += dt;
+      const P = this.P;
+      const sp = P.speed * (P.stumble > 0 ? 0.45 : 1);
+      P.x += sp * dt;
+      P.stumble = Math.max(0, P.stumble - dt);
+      P.inv = Math.max(0, P.inv - dt);
+      P.vy -= 1500 * dt;
+      P.y += P.vy * dt;
+      if (P.y <= 0) { P.y = 0; P.vy = 0; if (P.jumps) P.jumps = 0; }
+
+      this.spawn();
+      this.dino.setY(this.GY - 30 - P.y);
+      this.dino.setAlpha(P.inv > 0 ? 0.4 : 1);
+      this.dino.setAngle(P.y > 6 ? -12 : P.y < -6 ? 8 : 0);
+
+      // parallax scroll
+      this.mtn1.x = -((P.x * 0.15) % 1680);
+      this.mtn2.x = -((P.x * 0.32) % 1260);
+      this.gfxGround();
+
+      // move obstacles + picks to screen
+      this.obs = this.obs.filter((o) => {
+        const sx = o.x - P.x + 140;
+        if (sx < -120) { o.t.destroy(); return false; }
+        o.t.setX(sx);
+        if (P.inv <= 0 && Math.abs(sx - this.dinoX) < 34 && P.y < 40) {
+          P.stumble = 0.8; P.inv = 1.3;
+          DUKit.sfx("bad");
+          DUKit.shake(this, 220, 0.01);
+          DUKit.burst(this, this.dinoX, this.dino.y, { tint: 0xd8d8d8, n: 10, gravity: 400 });
+        }
+        return true;
+      });
+      this.picks = this.picks.filter((p) => {
+        const sx = p.x - P.x + 140;
+        if (sx < -120) { p.t.destroy(); return false; }
+        p.t.setX(sx);
+        p.t.setY(this.GY - p.h + Math.sin(this.time2 * 5 + p.x) * 4);
+        if (!p.got && Math.abs(sx - this.dinoX) < 40 && Math.abs((this.GY - p.h) - this.dino.y) < 55) {
+          p.got = true;
+          P.stars++;
+          this.hud.setText("🌟 " + P.stars);
+          DUKit.sfx("star");
+          DUKit.burst(this, this.dinoX, this.dino.y, { tint: 0xffd23f, n: 10 });
+          p.t.destroy();
+          return false;
+        }
+        return true;
+      });
+
+      this.prog.width = Math.max(0, Math.min(320, P.x / this.T.len * 320));
+      this.prog.setX(W / 2 - 160);
+
+      if (P.x >= this.T.len) this.win();
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      for (let i = 0; i < 3; i++) DUKit.burst(this, Phaser.Math.Between(W * 0.25, W * 0.75), H * 0.3, { tint: [0xff6b6b, 0xffd93d, 0x6bcb77][i], n: 24, gravity: 400, life: 1100, depth: 120 });
+      const stars = this.P.stars >= 6 ? 3 : this.P.stars >= 3 ? 2 : 1;
+      progress.stars["dash"] = Math.max(progress.stars["dash"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        title: "TO THE FLAG!",
+        line: this.P.stars + " stars collected",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
@@ -1547,6 +1734,7 @@
     dot: "dot",
     color: "color",
     feed: "feed",
+    dash: "dash",
   };
 
   window.game = new Phaser.Game({
@@ -1556,6 +1744,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene, CafeScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene, DotScene, ColourScene, CafeScene, DashScene],
   });
 })();
