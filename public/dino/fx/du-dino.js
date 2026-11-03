@@ -28,7 +28,10 @@
   DUFX.dinoColors = Object.keys(PALETTES);
 
   let uidN = 0;
-  const st = (extra) => `stroke="${OUT}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"${extra ? ' ' + extra : ''}`;
+  const st = (extra) => {
+    const width = extra && /stroke-width="([^"]+)"/.exec(extra);
+    return `stroke="${OUT}" stroke-width="${width ? width[1] : 5}" stroke-linejoin="round" stroke-linecap="round"`;
+  };
   const eye = (x, y, r) => `
     <g class="d-eye" style="transform-origin:${x}px ${y}px">
       <circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${OUT}" stroke-width="3"/>
@@ -221,7 +224,7 @@
         art = sb.pre + '<g transform="translate(' + (bx - hx) + ' ' + (by - hy) + ')">' + sh.head + '</g>' + sb.post;
       }
     }
-    return `<svg class="du-dino-svg" viewBox="0 0 240 180" role="img" aria-label="A friendly ${r.species === 'trex' ? 'tyrannosaurus' : r.species}" focusable="false">
+    return `<svg xmlns="http://www.w3.org/2000/svg" class="du-dino-svg" width="240" height="180" viewBox="0 0 240 180" role="img" aria-label="A friendly ${r.species === 'trex' ? 'tyrannosaurus' : r.species}" focusable="false">
       <ellipse class="d-shadow" cx="120" cy="170" rx="74" ry="7" fill="#143c3a" opacity=".16"/>
       <g class="d-all">${art}</g>
       <g class="d-zzz" opacity="0" fill="#5b7fa8" font-weight="900" font-family="system-ui,sans-serif"><text x="180" y="40" font-size="20">z</text><text x="196" y="24" font-size="15">z</text><text x="208" y="12" font-size="11">z</text></g>

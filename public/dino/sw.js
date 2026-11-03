@@ -1,9 +1,10 @@
-// Dinosaur Universe — hub service worker.
-// The ONLY service worker in the combined app. Chapter pages do not register
-// their own when embedded (they check window.self === window.top).
-const VERSION = 'du-v14';
+// Dinosaur Universe — one app-wide service worker.
+// The versioned Pages build writes the release id into VERSION.
+const VERSION = "__DU_VERSION__";
 const ASSETS = [
   './',
+  './version.json',
+  './update-manager.js',
   './chapters/adventures/assets/courtney-head.webp',
   './chapters/adventures/assets/daddy-head.webp',
   './chapters/adventures/assets/real/manifest.json',
@@ -30,6 +31,9 @@ const ASSETS = [
   './chapters/adventures/src/modules/storybook.js',
   './chapters/adventures/src/modules/wonder-activities.js',
   './chapters/adventures/src/style.css',
+  './chapters/adventures-phaser/index.html',
+  './chapters/adventures-phaser/main.js',
+  './chapters/adventures-phaser/adventures-pack.js',
   './chapters/drive/css/style.css',
   './chapters/drive/index.html',
   './chapters/drive/js/data-cars.js',
@@ -39,6 +43,14 @@ const ASSETS = [
   './chapters/drive/js/screens/customize.js',
   './chapters/drive/js/screens/drive.js',
   './chapters/drive/js/screens/garage.js',
+  './chapters/car-studio-phaser/index.html',
+  './chapters/car-studio-phaser/main.js',
+  './chapters/meadow-phaser/index.html',
+  './chapters/meadow-phaser/main.js',
+  './chapters/park-phaser/index.html',
+  './chapters/park-phaser/main.js',
+  './chapters/phaser-kit.js',
+  './lib/phaser.min.js',
   './chapters/meadow/app.js',
   './chapters/meadow/art.js',
   './chapters/meadow/catalog.js',
@@ -69,35 +81,56 @@ const ASSETS = [
   './icon-512.png',
   './icon.svg',
   './index.html',
-  './manifest.webmanifest',
+  './manifest.webmanifest'
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(VERSION).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
-  );
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    // Existing du-vN caches predate the update control. Activate this one
+    // migration so those cached pages can load the new updater; later hashed
+    // releases remain staged until the player applies them.
+    const previousCaches = await caches.keys();
+    const needsUpdaterMigration = previousCaches.some((name) => /^du-v\d+$/.test(name));
+    const cache = await caches.open(VERSION);
+    await cache.addAll(ASSETS);
+    if (needsUpdaterMigration) await self.skipWaiting();
+  })());
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'DU_SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((key) => key.startsWith('du-') && key !== VERSION).map((key) => caches.delete(key)))
     ).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
   if (url.origin !== location.origin) return;
-  e.respondWith(
-    caches.match(req).then((hit) =>
-      hit ||
-      fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(VERSION).then((c) => c.put(req, copy));
-        return res;
+
+  const versionPath = new URL('./version.json', self.registration.scope).pathname;
+  if (url.pathname === versionPath) {
+    event.respondWith(
+      fetch(request, { cache: 'no-store' }).then((response) => {
+        if (response.ok) caches.open(VERSION).then((cache) => cache.put(request, response.clone()));
+        return response;
+      }).catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request).then((cached) =>
+      cached || fetch(request).then((response) => {
+        if (response.ok) caches.open(VERSION).then((cache) => cache.put(request, response.clone()));
+        return response;
       })
     )
   );

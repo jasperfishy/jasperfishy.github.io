@@ -1,4 +1,4 @@
-const CACHE_NAME = "dinosaur-universe-shell-v14";
+const CACHE_NAME = "dinosaur-universe-shell-du-1d7a3c7d7a268f5a";
 const CORE_FILES = [
   "./",
   "./index.html",
@@ -20,15 +20,27 @@ const CORE_FILES = [
   "./src/modules/moonbeam-rescue.js",
   "./src/modules/dino-parade.js",
   "./src/modules/dino-constellations.js",
-  "./src/modules/wonder-activities.js"
+  "./src/modules/wonder-activities.js",
+  "../../update-manager.js"
 ];
 
 self.addEventListener("install", function (event) {
-  event.waitUntil(caches.open(CACHE_NAME).then(function (cache) {
-    return cache.addAll(CORE_FILES);
-  }).then(function () {
-    return self.skipWaiting();
-  }));
+  event.waitUntil((async function () {
+    // The vN cache is from before the update control existed. Activate this
+    // one migration so cached Adventures pages can load the shared updater;
+    // future release caches wait for the player's choice.
+    const previousCaches = await caches.keys();
+    const needsUpdaterMigration = previousCaches.some(function (name) {
+      return /^dinosaur-universe-shell-v\d+$/.test(name);
+    });
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(CORE_FILES);
+    if (needsUpdaterMigration) await self.skipWaiting();
+  })());
+});
+
+self.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "DU_SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", function (event) {

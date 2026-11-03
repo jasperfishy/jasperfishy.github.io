@@ -1,4 +1,6 @@
 // Dinosaur Universe — chapter registry.
+// Each world card opens its polished Phaser edition (url). The original full
+// chapter is kept at classicUrl and reached from a "Classic world" button.
 // To add a chapter:
 //  1. Put its files under chapters/<id>/ (its own html, css, js, assets).
 //  2. The chapter page must NOT load its own service worker when embedded:
@@ -10,33 +12,37 @@ export const chapters = [
   {
     id: 'park',
     title: 'Dino Park',
-    subtitle: '10 puzzle games · full Park chapter',
+    subtitle: 'Phaser edition — catch the eggs, chase the stars',
     icon: '🦖',
-    url: 'chapters/park/index.html',
+    url: 'chapters/park-phaser/index.html',
+    classicUrl: 'chapters/park/index.html',
     storagePrefix: 'dino_',
   },
   {
     id: 'meadow',
     title: 'Dino Meadow',
-    subtitle: '20 game types · 100 variations · 120-page colouring book',
+    subtitle: 'Phaser edition — memory match under a drifting meadow',
     icon: '🌿',
-    url: 'chapters/meadow/index.html',
+    url: 'chapters/meadow-phaser/index.html',
+    classicUrl: 'chapters/meadow/index.html',
     storagePrefix: 'dm-',
   },
   {
     id: 'drive',
     title: 'Dino Car Studio',
-    subtitle: '6 dinosaur worlds · race rivals · unlock 48 cars',
+    subtitle: 'Phaser edition — race your painted dino car',
     icon: '🏎️',
-    url: 'chapters/drive/index.html',
+    url: 'chapters/car-studio-phaser/index.html',
+    classicUrl: 'chapters/drive/index.html',
     storagePrefix: 'dino-car-studio-v1',
   },
   {
     id: 'adventures',
     title: 'Dino Adventures',
-    subtitle: '21 adventures · chase Daddy · help Mummy · hatch, build, rescue',
+    subtitle: 'Phaser edition — balloon flight through the clouds',
     icon: '🎈',
-    url: 'chapters/adventures/index.html',
+    url: 'chapters/adventures-phaser/index.html',
+    classicUrl: 'chapters/adventures/index.html',
     storagePrefix: 'dinosaur-universe-player-v1',
   },
 ];
