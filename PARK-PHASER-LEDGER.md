@@ -45,10 +45,23 @@ The update release id includes all Dinosaur Universe files, so a game-only publi
 
 ## Validation and release status
 
-- `npm run build:pages` completed successfully after correcting the Pages preparation script's `src/data/apps.json` path.
-- Prepared Pages release: `du-1d7a3c7d7a268f5a`. The generated root copy matches all source files; only its two versioned service workers and `version.json` intentionally differ.
-- `git diff --check` completed without whitespace errors.
-- Browser gameplay checks were performed against the local source server; live deployment checks are still required after pushing this release to `main`.
+### Earlier migration checkpoint
+
+- Earlier prepared release: `du-1d7a3c7d7a268f5a`; it is historical and superseded by the live-verified releases below.
 - Safety backups for the rewritten Meadow, Adventures and Car files are under `Documents/Codex/backups/`; the pre-release Park/update/build snapshot is `Documents/Codex/backups/dino-phaser-release-20261103-prebuild/`.
 
-The user explicitly authorized committing and publishing the prepared game changes. Remaining work: commit the finished source and Pages output, push/merge to `main`, then verify the deployed release and update panel at jasperfish.com.
+### Latest live verification — 2026-11-03
+
+- `npm run build:pages` completed successfully for `du-58eb19b6b425f48c`: 80 versioned HTML asset URLs and 49 versioned local JavaScript imports.
+- `git diff --check` passed. PR #3 (release cache busting) and PR #4 (module import cache busting and compact homepage) are merged; latest merge commit is `82ca88bf0671aa31f4221051bbb5ab6245da2a35`.
+- GitHub Pages deployment run `41687136597` completed successfully. The live `/dino/version.json` returns release `du-58eb19b6b425f48c`.
+- Local Playwright checks opened the hub from the homepage and showed all four worlds. All 12 Park launch paths displayed their start screens, each with a canvas and return control; Puzzle and Dig were started.
+- Meadow showed all 20 activities; a Matching round opened and accepted a correct selection. Adventures showed 23 activities; Great Dino Rescue opened and accepted a path choice.
+- Car Studio's Phaser race showed the car upright from behind; steering and pause/resume controls worked. The classic drive race also showed upright cars.
+- A stale live browser offered the published update; applying it loaded all four worlds, and a manual update check then reported up to date.
+- The compact homepage keeps both app links visible in the desktop first viewport and collapses the FocusDrop-only tour. At 390×844 the page has no horizontal overflow.
+- Known unrelated issue: the main homepage still attempts to register `/sw.js`, which returns 404. This was present on the pre-change live page and does not prevent page rendering.
+
+### Next step
+
+Continue the broader user-requested visual and gameplay audit across the remaining activities and screens, and decide separately whether to repair the root homepage service-worker registration.
