@@ -65,6 +65,7 @@
     { id: "mixer", title: "Dino Mixer", emoji: "🧬", color: 0x2fa58a, desc: "Mix heads and bodies to invent a brand-new dinosaur!" },
     { id: "memory", title: "Dino Memory", emoji: "🃏", color: 0xe05a7a, desc: "Remember where each dinosaur hides - find the pairs!" },
     { id: "size", title: "Size Parade", emoji: "📏", color: 0x3d9bd6, desc: "Line up the dinosaurs smallest to biggest, then parade!" },
+    { id: "counting", title: "Snack Time", emoji: "🍓", color: 0xe0762e, desc: "Feed the dino the right number of berries!" },
   ];
 
   class MenuScene extends Phaser.Scene {
@@ -1069,6 +1070,122 @@
     }
   }
 
+
+  /* ------------------------------------------------------ snack time (counting) */
+  class CountingScene extends Phaser.Scene {
+    constructor() { super("counting"); }
+
+    create(data) {
+      DUKit.textures(this);
+      this.species = ["trex", "stego", "raptor"];
+      this.state = "title";
+      this.n = Phaser.Math.Between(3, 5);
+      this.fed = 0;
+      this.busy = false;
+      this.sp = this.species[rnd(3)];
+      this.col = ["green", "teal", "purple", "orange", "pink", "blue"][rnd(6)];
+      this.dinoKey = "cnt_" + this.sp + "_" + this.col;
+      this.texKey = "cnt_dino_" + this.sp + "_" + this.col;
+      dinoTexture(this, this.texKey, this.sp, this.col, () => {});
+
+      sky(this, 0xbfe8ff, 0xfff3d9);
+      this.add.text(40, 22, "🍓 Snack Time", { fontSize: "24px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#1c4a3a" }).setOrigin(0, 0);
+      this.hud = this.add.text(920, 22, "0 / " + this.n, { fontSize: "20px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#3d6b5a" }).setOrigin(1, 0);
+      this.status = this.add.text(W / 2, H - 22, "", { fontSize: "17px", fontFamily: DUKit.FONT, color: "#5a3a12", fontStyle: "bold" }).setOrigin(0.5);
+
+      // Dino with speech bubble.
+      this.add.rectangle(250, 240, 300, 240, 0xffffff, 0.5).setStrokeStyle(4, 0xe0762e, 0.6);
+      this.dino = this.add.image(250, 270, this.texKey).setScale(180 / 240).setDepth(3);
+      this.bubble = this.add.text(250, 120, "" + this.n + " 🍓", { fontSize: "34px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", backgroundColor: "#e0762e", padding: 14 }).setOrigin(0.5).setDepth(4);
+
+      // Pile of foods.
+      const tricky = true;
+      const foods = [];
+      const berry = "🍓";
+      for (let i = 0; i < this.n + 4; i++) foods.push(berry);
+      foods.push("🪨", "🧦", "🪨", "🧦");
+      for (let i = foods.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = foods[i]; foods[i] = foods[j]; foods[j] = t; }
+
+      const cols = 6, cw = 70, ch = 70, gx = 16, gy = 18;
+      const x0 = 470, y0 = 90;
+      this.add.text(x0 + (cols * (cw + gx) - gx) / 2 - 20, 66, "Tap the berries (not the rocks or socks!)", { fontSize: "15px", fontFamily: DUKit.FONT, color: "#3d6b5a" }).setOrigin(0, 0);
+      foods.forEach((f, i) => {
+        const x = x0 + (i % cols) * (cw + gx) + cw / 2;
+        const y = y0 + Math.floor(i / cols) * (ch + gy) + ch / 2;
+        const b = this.add.container(x, y);
+        const bg = this.add.circle(0, 0, 32, 0xffffff, 0.92).setStrokeStyle(3, 0xe0762e, 0.8);
+        const t = this.add.text(0, 0, f, { fontSize: "34px" }).setOrigin(0.5);
+        b.add([bg, t]);
+        b.setDepth(5);
+        b.setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Circle(0, 0, 32) });
+        b.setData({ f, used: false });
+        b.on("pointerdown", () => this.tap(b));
+      });
+
+      this.startTitle();
+    }
+
+    tap(b) {
+      if (this.state !== "play" || this.busy) return;
+      const d = b.getData();
+      if (d.used) return;
+      d.used = true;
+      b.setAlpha(0.3);
+      if (d.f === "🍓") {
+        this.busy = true;
+        DUKit.sfx("chomp");
+        this.tweens.add({ targets: b, x: 250, y: 250, scale: 0.4, duration: 400, ease: "Quad.easeIn", onComplete: () => b.destroy() });
+        this.fed++;
+        this.hud.setText(this.fed + " / " + this.n);
+        this.say("Mmm! " + (this.n - this.fed) + " more!");
+        this.busy = false;
+        if (this.fed >= this.n) this.win();
+      } else {
+        DUKit.sfx("bad");
+        DUKit.shake(this, 160, 2);
+        this.say(d.f === "🧦" ? "Yuck, a sock!" : "That is a rock, not a berry!");
+      }
+    }
+
+    win() {
+      this.state = "won";
+      DUKit.sfx("win");
+      DUKit.burst(this, 250, 240, { tint: 0xffd93d, n: 24 });
+      DUKit.burst(this, 250, 200, { tint: 0xff6b6b, n: 14, gravity: 300 });
+      const stars = 3;
+      progress.stars["counting"] = Math.max(progress.stars["counting"] || 0, stars);
+      saveProgress();
+      DUKit.endPanel(this, {
+        emoji: "🍓",
+        title: "TUMMY FULL!",
+        line: this.n + " berries",
+        best: "Best: " + (progress.stars["counting"] || 0) + " ⭐",
+        stars: stars,
+        again: "TAP TO PLAY AGAIN",
+      }, () => { this.scene.restart(); });
+    }
+
+    say(msg) {
+      this.status.setText(msg);
+      this.status.setAlpha(1);
+      this.tweens.add({ targets: this.status, alpha: 0.15, delay: 1400, duration: 400 });
+    }
+
+    startTitle() {
+      this.state = "title";
+      DUKit.title(this, {
+        emoji: "🍓",
+        title: "Snack Time",
+        hint: "Count the berries! Feed the dino exactly the number it asks for - skip the rocks and socks.",
+        color: 0xe0762e,
+        cssColor: "#e0762e",
+      }, () => {
+        this.state = "play";
+        this.say("Feed me " + this.n + " berries!");
+      });
+    }
+  }
+
   const GAME_MAP = {
     puzzle: "puzzle",
     dig: "dig",
@@ -1076,6 +1193,7 @@
     mixer: "mixer",
     memory: "memory",
     size: "size",
+    counting: "counting",
   };
 
   window.game = new Phaser.Game({
@@ -1085,6 +1203,6 @@
     parent: "game-root",
     backgroundColor: "#bfe8ff",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene],
+    scene: [MenuScene, PuzzleScene, DigScene, FootScene, MixerScene, MemoryScene, SizeScene, CountingScene],
   });
 })();
