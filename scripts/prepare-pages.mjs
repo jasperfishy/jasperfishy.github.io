@@ -98,6 +98,32 @@ async function versionHtmlAssets() {
   return changedUrls;
 }
 
+// Give browser module imports the release URL too; HTML-only cache busting would leave
+// imports such as chapters.js vulnerable to the same long CDN cache.
+async function versionJavaScriptImports() {
+  let changedImports = 0;
+  const origin = "https://jasperfish.com";
+  const appBase = origin + "/dino/";
+  for (const file of files.filter((item) => /\.m?js$/i.test(item))) {
+    const relative = path.relative(dinoSource, file).split(path.sep).join("/");
+    const outputPath = path.join(dinoTarget, ...relative.split("/"));
+    const moduleUrl = new URL(relative, appBase);
+    const source = await readFile(outputPath, "utf8");
+    const versioned = source.replace(/(\bfrom\s*|\bimport\s*(?:\(\s*)?)(["'])(\.\.?\/[^"'\r\n]+)\2/g, (match, prefix, quote, specifier) => {
+      let resolved;
+      try { resolved = new URL(specifier, moduleUrl); } catch { return match; }
+      if (resolved.origin !== origin || !resolved.pathname.startsWith("/dino/")) return match;
+      if (!/\.(?:m?js|css|json)(?:$|[?#])/i.test(resolved.pathname)) return match;
+      changedImports += 1;
+      return prefix + quote + withReleaseQuery(specifier) + quote;
+    });
+    if (versioned !== source) await writeFile(outputPath, versioned);
+  }
+  if (!changedImports) throw new Error("No local JavaScript module imports were release-versioned.");
+  return changedImports;
+}
+
+const versionedModuleImports = await versionJavaScriptImports();
 const appWorker = await readFile(path.join(dinoSource, "sw.js"), "utf8");
 const versionedAppWorker = versionCacheEntries(
   appWorker.replace(/const VERSION = "[^"]+";/, 'const VERSION = "' + revision + '";'),
@@ -119,4 +145,4 @@ for (const directory of [dinoSource, dinoTarget]) {
   await writeFile(path.join(directory, "version.json"), release);
 }
 
-console.log("Dinosaur Universe release " + revision + " with " + versionedHtmlAssets + " versioned page asset URLs.");
+console.log("Dinosaur Universe release " + revision + " with " + versionedHtmlAssets + " versioned page asset URLs and " + versionedModuleImports + " module imports.");
