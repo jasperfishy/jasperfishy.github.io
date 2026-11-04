@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
+import TidalPlate from "./TidalPlate";
+import "../tidal.css";
 import apps from "../data/apps.json";
-import "../index.css";
+
 
 const APP_URL = "https://focusdrop.jasperfish.com";
 
@@ -222,44 +224,12 @@ export default function AppDashboard() {
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
       const context = gsap.context(() => {
-        gsap.from(
-          ".hero-kicker, .hero-title-line, .hero-lede, .hero-actions, .hero-proof li",
-          {
-            opacity: 0,
-            y: 24,
-            duration: 0.75,
-            stagger: 0.08,
-            ease: "power3.out",
-          },
-        );
-        gsap.from(".orbit-stage", {
-          opacity: 0,
-          scale: 0.9,
-          rotate: -4,
-          duration: 1.1,
-          delay: 0.18,
-          ease: "power3.out",
-        });
-        gsap.to(".orbit-ring-one", {
-          rotate: 360,
-          duration: 42,
-          repeat: -1,
-          ease: "none",
-        });
-        gsap.to(".orbit-ring-two", {
-          rotate: -360,
-          duration: 56,
-          repeat: -1,
-          ease: "none",
-        });
-        gsap.to(".hero-product-card", {
-          y: -8,
-          duration: 2.8,
-          stagger: 0.55,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-        });
+        const intro = gsap.timeline({ defaults: { ease: "power2.out" } });
+        intro.from(".hero-kicker, .hero-title-line, .hero-lede, .hero-actions", {
+          y: 14, duration: 0.65, stagger: 0.07, clearProps: "transform",
+        }).from(".setting-sun", { y: 16, duration: 2.8 }, 0)
+          .from(".sea-birds", { x: -22, y: 3, duration: 3.6 }, 0)
+          .fromTo(".tidal-lines", { x: -10 }, { x: 0, duration: 4.5, ease: "sine.inOut" }, 0);
       }, landingRef);
       return () => context.revert();
     });
@@ -280,7 +250,7 @@ export default function AppDashboard() {
             </span>
           </a>
           <nav aria-label="Main navigation">
-            <a href="#apps">The apps</a>
+            <a href="#app-catalogue">The apps</a>
             <a href="#about">The idea</a>
             <a
               className="nav-github"
@@ -296,60 +266,22 @@ export default function AppDashboard() {
           <section id="apps" className="app-directory" aria-labelledby="apps-title" ref={landingRef}>
             <div className="landing-hero">
               <div className="hero-copy">
-                <p className="hero-kicker"><span /> Independent apps · made with care</p>
+                <p className="hero-kicker"><span/> The Jasperfish collection</p>
                 <h1 id="apps-title">
                   <span className="hero-title-line">Small apps.</span>
-                  <span className="hero-title-line hero-title-accent">Bright little worlds.</span>
+                  <em className="hero-title-line">Bright little </em>
+                  <em className="hero-title-line">worlds.</em>
                 </h1>
-                <p className="hero-lede">
-                  Thoughtful tools for everyday life, and a colourful dinosaur
-                  universe made for curious explorers.
-                </p>
-                <div className="hero-actions">
-                  <a className="button button-primary" href="#app-catalogue">
-                    Explore the apps <Icon name="arrow" />
-                  </a>
-                  <a className="button button-quiet" href="/dino/">
-                    Enter Dinosaur Universe
-                  </a>
-                </div>
-                <ul className="hero-proof" aria-label="Jasperfish at a glance">
-                  <li><strong>{apps.length}</strong><span>live experiences</span></li>
-                  <li><strong>4</strong><span>dinosaur worlds</span></li>
-                  <li><strong>0</strong><span>accounts required</span></li>
-                </ul>
+                <p className="hero-lede">A quiet place to catch a thought. A dinosaur world to get lost in. Pick a current and see where it takes you.</p>
+                <div className="hero-actions"><a className="button button-primary" href="#app-catalogue">Explore the apps <Icon name="down"/></a></div>
               </div>
-              <div className="hero-visual" aria-label="Jasperfish app constellation">
-                <div className="orbit-stage">
-                  <div className="hero-glow hero-glow-blue" />
-                  <div className="hero-glow hero-glow-mint" />
-                  <div className="orbit-ring orbit-ring-one"><i /><i /><i /></div>
-                  <div className="orbit-ring orbit-ring-two"><i /><i /></div>
-                  <div className="hero-core">
-                    <span className="hero-core-label">Jasperfish</span>
-                    <FishMark />
-                    <span>Small on purpose.</span>
-                  </div>
-                  <a className="hero-product-card product-focus" href={APP_URL}>
-                    <span className="product-symbol"><DropMark /></span>
-                    <span><small>A little headspace</small><strong>FocusDrop</strong></span>
-                    <Icon name="arrow" />
-                  </a>
-                  <a className="hero-product-card product-dino" href="/dino/">
-                    <img src="/dino/icon-192.png" width="56" height="56" alt="" />
-                    <span><small>Made to explore</small><strong>Dinosaur Universe</strong></span>
-                    <Icon name="arrow" />
-                  </a>
-                  <span className="spark spark-one" />
-                  <span className="spark spark-two" />
-                  <span className="spark spark-three" />
-                </div>
-              </div>
+              <TidalPlate />
             </div>
-            <div className="directory-heading" id="app-catalogue"><h2>Explore the apps</h2><span>{apps.length} apps to discover</span></div>
+            <div className="directory-heading" id="app-catalogue"><div><p className="folio">01 / Directory</p><h2>Choose your current.</h2></div><span>{String(apps.length).padStart(2, "0")} apps</span></div>
             <div className="app-catalogue">
-              {apps.map(app => (
+              {apps.map((app, index) => (
                 <article className={'catalogue-card ' + (app.id === 'dino' ? 'catalogue-play' : '')} key={app.id}>
+                  <span className="card-index">No. {String(index + 1).padStart(2, "0")}</span>
                   <div className="catalogue-identity">
                     {app.icon ? <img src={app.icon} alt="" width="72" height="72" /> : <span className="catalogue-icon"><DropMark /></span>}
                     <div><p>{app.category}</p><h3>{app.name}</h3></div>
@@ -520,7 +452,7 @@ export default function AppDashboard() {
             <span>jasperfish.</span>
           </a>
           <p>A little curiosity. A little more headspace.</p>
-          <a href="#apps">
+          <a href="#app-catalogue">
             Explore all apps <Icon name="arrow" />
           </a>
         </footer>
