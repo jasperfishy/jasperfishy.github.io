@@ -10,3 +10,7 @@ The homepage introduces small apps, with FocusDrop as the current featured proje
 Review: refined the generic gallery idea into one focused product story. The demo is visibly labelled and never writes to storage or the real app. Reduced motion is respected.
 
 Scope: website repository only. FocusDrop's separate repository and local changes are preserved. Publishing the root build to main updates GitHub Pages; deployment is a separate step.
+
+## Homepage film
+
+Footage courtesy of NOAA Ocean Exploration, 2016 Deepwater Exploration of the Marianas. [Original dive footage](https://oceanexplorer.noaa.gov/multimedia/video-playlist-best-jellyfish/). The homepage uses a silent, reframed excerpt with a short dissolve across the loop. Mobile devices receive a smaller encode.

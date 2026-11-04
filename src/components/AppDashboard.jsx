@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import TidalPlate from "./TidalPlate";
+import diveFilm from "../assets/marianas-film.mp4";
+import mobileDiveFilm from "../assets/marianas-small.mp4";
+import divePoster from "../assets/marianas-poster.webp";
 import "../tidal.css";
 import apps from "../data/apps.json";
 
@@ -273,7 +275,12 @@ export default function AppDashboard() {
                 <p className="hero-lede">A quiet place to catch a thought. A dinosaur world to get lost in. Pick a current and see where it takes you.</p>
                 <div className="hero-actions"><a className="button button-primary" href="#app-catalogue">Explore the apps <Icon name="down"/></a></div>
               </div>
-              <TidalPlate />
+              <div className="hero-film" aria-hidden="true">
+                <video autoPlay muted playsInline loop preload="auto" poster={divePoster} disablePictureInPicture>
+                  <source media="(max-width: 650px)" src={mobileDiveFilm} type="video/mp4" />
+                  <source src={diveFilm} type="video/mp4" />
+                </video>
+              </div>
             </div>
             <div className="directory-heading" id="app-catalogue"><div><p className="folio">01 / Directory</p><h2>Choose your current.</h2></div><span>{String(apps.length).padStart(2, "0")} apps</span></div>
             <div className="app-catalogue">
