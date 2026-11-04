@@ -44,6 +44,12 @@
   "visualReview": {
     "passed": true,
     "desktopCapture": "../screenshots/review-1440x900.png",
-    "mobileCapture": "../screenshots/review-375x812.png"
+    "mobileCapture": "../screenshots/review-375x812.png",
+    "socialPreview": {
+      "path": "../../../public/og-jasperfish.png",
+      "width": 1200,
+      "height": 630,
+      "visuallyReviewed": true
+    }
   }
 }

@@ -26,6 +26,8 @@ Status: local implementation complete; deployment not requested.
 - Interactions: primary CTA resolves to `#app-catalogue`; the FocusDrop demo accepts and clears an entry while announcing status; FAQ disclosure opens.
 - Keyboard: the first in-document Tab target is the visible `Skip to content` link with a browser focus outline.
 - Visual review: desktop and mobile full-page captures were inspected after repairing below-fold component sizing. Final captures are in `screenshots/`.
+- Social preview: a project-owned 1200x630 PNG was rendered from the verified hero, visually reviewed, and wired to Open Graph and Twitter metadata.
+- Targeted landing lint: `src/components/AppDashboard.jsx`, `src/main.jsx`, and `vite.config.js` pass ESLint. The repository-wide lint remains blocked by 1,664 existing errors in legacy/generated Dinosaur and bundled files; this pass did not modify or suppress them.
 - Source hygiene: `git diff --check` and a final clean production build are required immediately before commit and are recorded separately in the final handoff.
 
 Structured results: `verification/results.json`.
