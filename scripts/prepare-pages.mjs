@@ -12,8 +12,8 @@ const target = name => fileURLToPath(new URL(name, root));
 await cp(source("assets"), target("assets"), { recursive: true });
 await cp(source("fonts"), target("fonts"), { recursive: true });
 await copyFile(source("favicon.svg"), target("favicon.svg"));
+await copyFile(source("og-jasperfish.png"), target("og-jasperfish.png"));
 await copyFile(source("index.source.html"), target("index.html"));
-
 // Publish every discovered local app, not only the first one added.
 const apps = JSON.parse(await readFile(new URL("src/data/apps.json", root), "utf8"));
 for (const app of apps) if (app.folder) await cp(source(app.folder), target(app.folder), { recursive: true });
