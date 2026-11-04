@@ -51,5 +51,41 @@
       "height": 630,
       "visuallyReviewed": true
     }
+  },
+  "accessibilityPerformanceAudit": {
+    "testedAt": "2026-11-04",
+    "accessibility": {
+      "standard": "WCAG 2.1 AA",
+      "passedAutomatedAndKeyboardChecks": true,
+      "viewportFixtures": 8,
+      "horizontalOverflowFailures": 0,
+      "unnamedInteractiveControls": 0,
+      "duplicateIds": 0,
+      "targetsBelow44Pixels": 0,
+      "minimumCheckedTextContrast": 5.25,
+      "keyboardFocusIndicator": "solid 3px",
+      "manualScreenReaderTest": "not-run",
+      "axeCore": "unavailable"
+    },
+    "performance": {
+      "mode": "local cold-cache Chromium synthetic",
+      "ttfbMs": 2.2,
+      "domContentLoadedMs": 24.7,
+      "loadMs": 25.0,
+      "fcpMs": 88,
+      "lcpMs": 116,
+      "cls": 0,
+      "tbtApproximationMs": 0,
+      "requiredRequests": 4,
+      "transferredResourceBytes": 114069,
+      "decodedResourceBytes": 330933,
+      "lighthouse": "unavailable",
+      "fieldData": "not-measured"
+    },
+    "visualReview": {
+      "desktopCapture": "../screenshots/audit-1440x900.png",
+      "mobileCapture": "../screenshots/audit-375x812.png",
+      "passed": true
+    }
   }
 }
