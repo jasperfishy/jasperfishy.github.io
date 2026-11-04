@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "source": { "url": "https://jasperfish.com/", "capturedAt": "2026-11-04T12:39:00Z", "mode": "browser" },
+  "business": { "name": { "value": "Jasperfish", "status": "observed", "evidence": ["home-h1", "home-kicker"] } },
+  "visual": {
+    "colors": [
+      { "role": "background", "value": "#0c1729", "status": "observed", "evidence": ["body-colors"] },
+      { "role": "foreground", "value": "#f4f6f8", "status": "observed", "evidence": ["body-colors"] },
+      { "role": "focus-accent", "value": "#65bfff", "status": "inferred", "evidence": ["body-colors"] },
+      { "role": "play-accent", "value": "#7de2c5", "status": "inferred", "evidence": ["dino-card"] }
+    ],
+    "fonts": {
+      "heading": { "value": "Manrope, Inter, system-ui", "status": "inferred", "evidence": ["body-font"] },
+      "body": { "value": "Inter, system-ui, sans-serif", "status": "observed", "evidence": ["body-font"] }
+    },
+    "logoCandidates": ["/favicon.svg", "inline FishMark component", "/dino/icon-192.png"]
+  },
+  "voice": {
+    "attributes": ["gentle", "compact", "curious", "playful"],
+    "status": "inferred",
+    "supportingExcerpts": ["home-kicker", "about-copy", "focusdrop-card", "dino-card"]
+  },
+  "verifiedClaims": [
+    { "value": "Two live experiences are linked from the homepage.", "evidence": ["focusdrop-card", "dino-card"] },
+    { "value": "Dinosaur Universe contains four worlds and is free with no ads or accounts.", "evidence": ["dino-card"] }
+  ],
+  "unknowns": ["Formal company status", "Team size", "Release dates"],
+  "restrictions": ["Do not imply medical outcomes for FocusDrop.", "Do not extend Dinosaur Universe privacy claims to unrelated apps."]
+}

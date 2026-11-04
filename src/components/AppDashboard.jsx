@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 import apps from "../data/apps.json";
 import "../index.css";
 
@@ -214,76 +215,57 @@ function CaptureDemo() {
   );
 }
 
-function AppModal({ onClose }) {
-  const dialogRef = useRef(null);
-  const closeRef = useRef(null);
-  const pointerOutside = useRef(false);
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    const opener = document.activeElement;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    dialog.showModal();
-    closeRef.current?.focus();
-    return () => {
-      dialog.close();
-      document.body.style.overflow = overflow;
-      if (opener instanceof HTMLElement && opener.isConnected)
-        opener.focus({ preventScroll: true });
-    };
-  }, []);
-  return (
-    <dialog
-      ref={dialogRef}
-      className="app-modal"
-      aria-labelledby="modal-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
-      }}
-      onPointerDown={(event) => {
-        pointerOutside.current = event.target === event.currentTarget;
-      }}
-      onClick={(event) => {
-        if (pointerOutside.current && event.target === event.currentTarget)
-          onClose();
-        pointerOutside.current = false;
-      }}
-    >
-      <div className="modal-panel">
-        <header>
-          <div className="modal-brand">
-            <DropMark />
-            <h2 id="modal-title">FocusDrop</h2>
-          </div>
-          <button
-            ref={closeRef}
-            className="close-button"
-            onClick={onClose}
-            aria-label="Close FocusDrop window"
-          >
-            <Icon name="close" />
-          </button>
-        </header>
-        <iframe
-          src={APP_URL}
-          title="FocusDrop application"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allow="fullscreen"
-        />
-        <footer>
-          <p>Your own little space to think.</p>
-          <a href={APP_URL} target="_blank" rel="noopener noreferrer">
-            Open in new tab <Icon name="external" />
-          </a>
-        </footer>
-      </div>
-    </dialog>
-  );
-}
-
 export default function AppDashboard() {
-  const [appOpen, setAppOpen] = useState(false);
+  const landingRef = useRef(null);
+
+  useEffect(() => {
+    const media = gsap.matchMedia();
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      const context = gsap.context(() => {
+        gsap.from(
+          ".hero-kicker, .hero-title-line, .hero-lede, .hero-actions, .hero-proof li",
+          {
+            opacity: 0,
+            y: 24,
+            duration: 0.75,
+            stagger: 0.08,
+            ease: "power3.out",
+          },
+        );
+        gsap.from(".orbit-stage", {
+          opacity: 0,
+          scale: 0.9,
+          rotate: -4,
+          duration: 1.1,
+          delay: 0.18,
+          ease: "power3.out",
+        });
+        gsap.to(".orbit-ring-one", {
+          rotate: 360,
+          duration: 42,
+          repeat: -1,
+          ease: "none",
+        });
+        gsap.to(".orbit-ring-two", {
+          rotate: -360,
+          duration: 56,
+          repeat: -1,
+          ease: "none",
+        });
+        gsap.to(".hero-product-card", {
+          y: -8,
+          duration: 2.8,
+          stagger: 0.55,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+      }, landingRef);
+      return () => context.revert();
+    });
+    return () => media.revert();
+  }, []);
+
   return (
     <>
       <a className="skip-link" href="#main">
@@ -311,13 +293,60 @@ export default function AppDashboard() {
           </nav>
         </header>
         <main id="main">
-          <section id="apps" className="app-directory" aria-labelledby="apps-title">
-            <div className="directory-intro">
-              <p>Small apps, made with care.</p>
-              <h1 id="apps-title">A little focus.<br />A little play.</h1>
-              <p>Small tools for everyday life, and a dinosaur universe to explore.</p>
+          <section id="apps" className="app-directory" aria-labelledby="apps-title" ref={landingRef}>
+            <div className="landing-hero">
+              <div className="hero-copy">
+                <p className="hero-kicker"><span /> Independent apps · made with care</p>
+                <h1 id="apps-title">
+                  <span className="hero-title-line">Small apps.</span>
+                  <span className="hero-title-line hero-title-accent">Bright little worlds.</span>
+                </h1>
+                <p className="hero-lede">
+                  Thoughtful tools for everyday life, and a colourful dinosaur
+                  universe made for curious explorers.
+                </p>
+                <div className="hero-actions">
+                  <a className="button button-primary" href="#app-catalogue">
+                    Explore the apps <Icon name="arrow" />
+                  </a>
+                  <a className="button button-quiet" href="/dino/">
+                    Enter Dinosaur Universe
+                  </a>
+                </div>
+                <ul className="hero-proof" aria-label="Jasperfish at a glance">
+                  <li><strong>{apps.length}</strong><span>live experiences</span></li>
+                  <li><strong>4</strong><span>dinosaur worlds</span></li>
+                  <li><strong>0</strong><span>accounts required</span></li>
+                </ul>
+              </div>
+              <div className="hero-visual" aria-label="Jasperfish app constellation">
+                <div className="orbit-stage">
+                  <div className="hero-glow hero-glow-blue" />
+                  <div className="hero-glow hero-glow-mint" />
+                  <div className="orbit-ring orbit-ring-one"><i /><i /><i /></div>
+                  <div className="orbit-ring orbit-ring-two"><i /><i /></div>
+                  <div className="hero-core">
+                    <span className="hero-core-label">Jasperfish</span>
+                    <FishMark />
+                    <span>Small on purpose.</span>
+                  </div>
+                  <a className="hero-product-card product-focus" href={APP_URL}>
+                    <span className="product-symbol"><DropMark /></span>
+                    <span><small>A little headspace</small><strong>FocusDrop</strong></span>
+                    <Icon name="arrow" />
+                  </a>
+                  <a className="hero-product-card product-dino" href="/dino/">
+                    <img src="/dino/icon-192.png" width="56" height="56" alt="" />
+                    <span><small>Made to explore</small><strong>Dinosaur Universe</strong></span>
+                    <Icon name="arrow" />
+                  </a>
+                  <span className="spark spark-one" />
+                  <span className="spark spark-two" />
+                  <span className="spark spark-three" />
+                </div>
+              </div>
             </div>
-            <div className="directory-heading"><h2>Explore the apps</h2><span>{apps.length} apps to discover</span></div>
+            <div className="directory-heading" id="app-catalogue"><h2>Explore the apps</h2><span>{apps.length} apps to discover</span></div>
             <div className="app-catalogue">
               {apps.map(app => (
                 <article className={'catalogue-card ' + (app.id === 'dino' ? 'catalogue-play' : '')} key={app.id}>
@@ -332,8 +361,6 @@ export default function AppDashboard() {
             </div>
             <p className="directory-note">Choose an app to open it. Each has its own place to play or work.</p>
           </section>
-          <details className="focusdrop-details">
-            <summary>More about FocusDrop, including a quick demo</summary>
           <section
             id="focusdrop"
             className="project-section"
@@ -371,13 +398,14 @@ export default function AppDashboard() {
                   thing when you have the space.
                 </p>
                 <div className="project-actions">
-                  <button
+                  <a
                     className="button button-primary"
-                    aria-haspopup="dialog"
-                    onClick={() => setAppOpen(true)}
+                    href={APP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Open FocusDrop <Icon name="arrow" />
-                  </button>
+                  </a>
                   <a
                     className="install-link"
                     href={`${APP_URL}/?install=1`}
@@ -419,27 +447,71 @@ export default function AppDashboard() {
               </article>
             </div>
           </section>
-          </details>
           <section
             id="about"
             className="about-section"
             aria-labelledby="about-title"
           >
-            <span className="about-symbol" aria-hidden="true">
-              <FishMark />
-            </span>
             <div>
+              <span className="about-symbol" aria-hidden="true">
+                <FishMark />
+              </span>
               <h2 id="about-title">Small on purpose.</h2>
-              <p>Useful little apps for a little more headspace and play.</p>
+              <p>
+                Jasperfish is my home for useful little apps. I build things
+                that solve an everyday problem, feel good to use, and know when
+                to get out of the way.
+              </p>
+              <p>
+                From a quiet place to collect your thoughts to a colourful world
+                for little dinosaur explorers, every app starts with someone
+                who could use it.
+              </p>
+              <a
+                className="inline-link"
+                href="https://github.com/jasperfishy"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                See what I’m building <Icon name="external" />
+              </a>
             </div>
-            <a
-              className="inline-link"
-              href="https://github.com/jasperfishy"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              See what I’m building <Icon name="external" />
-            </a>
+            <div className="questions">
+              <h3>A few things to know</h3>
+              <details>
+                <summary>
+                  Can I use FocusDrop on my phone?
+                  <Icon name="down" />
+                </summary>
+                <p>
+                  Yes. Open it in your browser, or use “Install the app” for
+                  guidance on adding it to your phone or desktop. Once installed
+                  and loaded, it works offline too.
+                </p>
+              </details>
+              <details>
+                <summary>
+                  Where do my thoughts go?
+                  <Icon name="down" />
+                </summary>
+                <p>
+                  FocusDrop stores your thoughts in the browser on the device
+                  you’re using. There’s no account to create. Browser data can
+                  be cleared, so use the app’s export option for a backup.
+                </p>
+              </details>
+              <details>
+                <summary>
+                  Is this a task manager?
+                  <Icon name="down" />
+                </summary>
+                <p>
+                  Think of it as a place to capture and revisit things. You can
+                  take a small first step, snooze something, or let it go. You
+                  don’t have to organise your whole life first.
+                </p>
+              </details>
+            </div>
           </section>
         </main>
         <footer className="site-footer">
@@ -453,7 +525,6 @@ export default function AppDashboard() {
           </a>
         </footer>
       </div>
-      {appOpen && <AppModal onClose={() => setAppOpen(false)} />}
     </>
   );
 }

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "testedAt": "2026-11-04",
+  "target": "http://127.0.0.1:4178/index.source.html",
+  "deploymentPerformed": false,
+  "build": {
+    "command": "npm run build",
+    "passed": true,
+    "viteVersion": "8.3.3",
+    "modulesTransformed": 21
+  },
+  "responsiveGate": {
+    "passed": true,
+    "viewports": [
+      { "width": 320, "height": 568, "passed": true },
+      { "width": 375, "height": 812, "passed": true },
+      { "width": 430, "height": 932, "passed": true },
+      { "width": 768, "height": 1024, "passed": true },
+      { "width": 1280, "height": 800, "passed": true },
+      { "width": 1440, "height": 900, "passed": true },
+      { "width": 1920, "height": 1080, "passed": true }
+    ],
+    "criteria": {
+      "horizontalOverflow": false,
+      "visibleH1Count": 1,
+      "landmarksPresent": true,
+      "primaryCtaVisible": true,
+      "brokenInternalAnchors": 0,
+      "runtimeErrors": 0
+    }
+  },
+  "reducedMotion": {
+    "passed": true,
+    "contentVisible": true,
+    "orbitTransform": "none",
+    "productCardTransform": "none"
+  },
+  "interactions": {
+    "primaryCtaHash": "#app-catalogue",
+    "focusDropDemo": "passed",
+    "faqDisclosure": "passed",
+    "keyboardEntry": "Skip to content"
+  },
+  "visualReview": {
+    "passed": true,
+    "desktopCapture": "../screenshots/review-1440x900.png",
+    "mobileCapture": "../screenshots/review-375x812.png"
+  }
+}

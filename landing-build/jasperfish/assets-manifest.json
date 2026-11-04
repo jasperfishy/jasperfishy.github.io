@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0",
+  "assets": [
+    { "path": "public/favicon.svg", "role": "Jasperfish mark", "origin": "existing project", "permission": "project-owned", "format": "svg", "upscaled": false },
+    { "path": "public/dino/icon-192.png", "role": "Dinosaur Universe product mark", "origin": "existing project", "permission": "project-owned", "format": "png", "nativeWidth": 192, "nativeHeight": 192, "deliveryWidth": 56, "deliveryHeight": 56, "upscaled": false }
+  ],
+  "generatedAssets": [],
+  "notes": ["The cinematic scene uses project-owned vector geometry, CSS gradients and existing app marks; no stock or diffusion imagery was introduced."]
+}
