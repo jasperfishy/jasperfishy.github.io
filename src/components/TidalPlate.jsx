@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 
 // A vector field plate. The shoreline and its reflection share the same horizon.
@@ -17,31 +17,17 @@ function ripple(row) {
 }
 export default function TidalPlate() {
   const figure = useRef(null);
-  const [playing, setPlaying] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  const timeline = useRef(null);
-
   useEffect(() => {
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncPreference = () => setPlaying(!preference.matches);
-    preference.addEventListener("change", syncPreference);
     const context = gsap.context(() => {
-      const scene = gsap.timeline({ paused: true, repeat: -1, yoyo: true, defaults: { ease: "sine.inOut" } });
+      const scene = gsap.timeline({ repeat: -1, yoyo: true, defaults: { ease: "sine.inOut" } });
       scene.to(".sailing-boat", { x: 128, duration: 9, ease: "none" }, 0)
         .to(".boat-hull", { rotation: 4, y: -3, svgOrigin: "225 305", duration: 1.5, repeat: 5, yoyo: true }, 0)
         .to(".sea-birds", { x: 112, y: -14, duration: 9 }, 0)
         .to(".tidal-lines", { x: 19, duration: 3, repeat: 2, yoyo: true }, 0)
         .to(".sun-glitter", { opacity: 0.46, duration: 1.5, repeat: 5, yoyo: true }, 0);
-      timeline.current = scene;
     }, figure);
-    return () => {
-      preference.removeEventListener("change", syncPreference);
-      context.revert();
-      timeline.current = null;
-    };
+    return () => context.revert();
   }, []);
-  useEffect(() => {
-    timeline.current?.paused(!playing);
-  }, [playing]);
 
   return <figure className="tidal-plate" ref={figure}>
     <div className="plate-frame">
@@ -74,10 +60,5 @@ export default function TidalPlate() {
         <rect width="720" height="470" fill="url(#etch)"/>
       </svg>
     </div>
-    <figcaption><span>Fig. 01</span><i/>The tidal pool
-      <button type="button" className="scene-control" onClick={() => setPlaying(value => !value)}>
-        {playing ? "Pause animation" : "Play animation"}
-      </button>
-    </figcaption>
   </figure>;
 }
