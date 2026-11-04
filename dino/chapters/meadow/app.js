@@ -1,6 +1,6 @@
-import {normalizeName,address} from './profile.js?v=du-58eb19b6b425f48c';
-import {types,themes,activities,tokens,colours,shuffle,mazeFor} from './catalog.js?v=du-58eb19b6b425f48c';
-import {dinosaurs,scenes,dinoSVG,pageSVG,heroSVG} from './art.js?v=du-58eb19b6b425f48c';
+import {normalizeName,address} from './profile.js?v=du-0d928b5c7d8c29dc';
+import {types,themes,activities,tokens,colours,shuffle,mazeFor} from './catalog.js?v=du-0d928b5c7d8c29dc';
+import {dinosaurs,scenes,dinoSVG,pageSVG,heroSVG} from './art.js?v=du-0d928b5c7d8c29dc';
 const app=document.querySelector('#app');
 let profile={name:'',asked:false};
 try{const saved=JSON.parse(localStorage.getItem('dm-profile')||'null');if(saved&&normalizeName(saved.name)!==null)profile={name:normalizeName(saved.name),asked:saved.asked===true};}catch{}

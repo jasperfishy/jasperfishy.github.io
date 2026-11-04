@@ -1,4 +1,4 @@
-import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-58eb19b6b425f48c";
+import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-0d928b5c7d8c29dc";
 
 const DINOSAURS = PREHISTORIC_CREATURES.filter(function (creature) { return creature.kind === "Dinosaur"; });
 const COSTUMES = ["🌸", "🎩", "🦋", "🎀", "✨", "🌿"];
