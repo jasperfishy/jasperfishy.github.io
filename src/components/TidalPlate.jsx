@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+
 // A vector field plate. The shoreline and its reflection share the same horizon.
 const ridges = [
   ["#b7b49a", "M-20 223 62 196 114 203 184 164 218 177 284 138 324 159 371 142 441 179 509 153 582 176 638 153 740 183"],
@@ -13,9 +16,36 @@ function ripple(row) {
   }).join(" ");
 }
 export default function TidalPlate() {
-  return <figure className="tidal-plate">
+  const figure = useRef(null);
+  const [playing, setPlaying] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const timeline = useRef(null);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setPlaying(!preference.matches);
+    preference.addEventListener("change", syncPreference);
+    const context = gsap.context(() => {
+      const scene = gsap.timeline({ paused: true, repeat: -1, yoyo: true, defaults: { ease: "sine.inOut" } });
+      scene.to(".sailing-boat", { x: 128, duration: 9, ease: "none" }, 0)
+        .to(".boat-hull", { rotation: 4, y: -3, svgOrigin: "225 305", duration: 1.5, repeat: 5, yoyo: true }, 0)
+        .to(".sea-birds", { x: 112, y: -14, duration: 9 }, 0)
+        .to(".tidal-lines", { x: 19, duration: 3, repeat: 2, yoyo: true }, 0)
+        .to(".sun-glitter", { opacity: 0.46, duration: 1.5, repeat: 5, yoyo: true }, 0);
+      timeline.current = scene;
+    }, figure);
+    return () => {
+      preference.removeEventListener("change", syncPreference);
+      context.revert();
+      timeline.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    timeline.current?.paused(!playing);
+  }, [playing]);
+
+  return <figure className="tidal-plate" ref={figure}>
     <div className="plate-frame">
-      <svg viewBox="0 0 720 470" role="img" aria-label="An engraved estuary at sunset, with distant mountains, birds and copper light on the water">
+      <svg viewBox="0 0 720 470" role="img" aria-label="An engraved estuary at sunset, with a sailboat, distant mountains, birds and copper light on the water">
         <defs>
           <linearGradient id="sky" x2=".18" y2="1" gradientUnits="objectBoundingBox"><stop stopColor="#92aba2"/><stop offset=".62" stopColor="#e5c99d"/><stop offset="1" stopColor="#f5b68b"/></linearGradient>
           <linearGradient id="water" x2=".2" y2="1"><stop stopColor="#75998a"/><stop offset=".3" stopColor="#436f65"/><stop offset="1" stopColor="#123f40"/></linearGradient>
@@ -29,12 +59,25 @@ export default function TidalPlate() {
         <path d="M0 224q98 23 172 12t147-2q100 9 181-4t220-12v40H0z" fill="#315b53"/>
         <rect y="245" width="720" height="225" fill="url(#water)"/>
         <g className="tidal-lines" fill="none">{Array.from({length:35},(_,i)=><path key={i} d={ripple(i)} stroke={i%3===0?"#c2ceaa":"#99b5a1"} opacity={.62-i*.009} strokeWidth={i%3===0?1.5:.8}/>)}</g>
-        <g clipPath="url(#sun-track)" fill="none" stroke="#f5c68e" opacity=".9">{Array.from({length:45},(_,i)=><path key={i} d={`M365 ${247+i*4} q50 ${i%5-2} 150 0`} strokeWidth={i%3===0?2.5:1.2}/>)}</g>
+        <g className="sun-glitter" clipPath="url(#sun-track)" fill="none" stroke="#f5c68e" opacity=".9">{Array.from({length:45},(_,i)=><path key={i} d={`M365 ${247+i*4} q50 ${i%5-2} 150 0`} strokeWidth={i%3===0?2.5:1.2}/>)}</g>
         <g fill="none" stroke="#284c46" strokeWidth="2.6" strokeLinecap="round" className="sea-birds">{[[153,97,1],[180,89,.65],[128,109,.58]].map(([x,y,s])=><path key={x} transform={`translate(${x} ${y}) scale(${s})`} d="M-10-3q7-1 10 4 4-7 12-8"/>)}</g>
         <path d="M0 354q56-9 90-4t79 14q-57 1-90 6t-79 4zM720 294q-56 0-97 6t-68 10q74-3 97-1t68-4z" fill="#27534d"/>
+        <g className="sailing-boat">
+          <path d="M178 310q28 5 62 0m-54 6q22 3 43 0" stroke="#d0c8a5" fill="none" opacity=".72"/>
+          <g className="boat-hull">
+            <path d="M225 246v56" stroke="#374b41" strokeWidth="2"/>
+            <path d="M222 251q-7 22-31 43l31 2z" fill="#ffdea4"/>
+            <path d="M228 259q16 21 19 36l-19 1z" fill="#d68159"/>
+            <path d="M187 299q29 4 66-1l-11 8h-45z" fill="#193f3a"/>
+          </g>
+        </g>
         <rect width="720" height="470" fill="url(#etch)"/>
       </svg>
     </div>
-    <figcaption><span>Fig. 01</span><i/>The tidal pool</figcaption>
+    <figcaption><span>Fig. 01</span><i/>The tidal pool
+      <button type="button" className="scene-control" onClick={() => setPlaying(value => !value)}>
+        {playing ? "Pause animation" : "Play animation"}
+      </button>
+    </figcaption>
   </figure>;
 }

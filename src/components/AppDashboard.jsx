@@ -227,9 +227,7 @@ export default function AppDashboard() {
         const intro = gsap.timeline({ defaults: { ease: "power2.out" } });
         intro.from(".hero-kicker, .hero-title-line, .hero-lede, .hero-actions", {
           y: 14, duration: 0.65, stagger: 0.07, clearProps: "transform",
-        }).from(".setting-sun", { y: 16, duration: 2.8 }, 0)
-          .from(".sea-birds", { x: -22, y: 3, duration: 3.6 }, 0)
-          .fromTo(".tidal-lines", { x: -10 }, { x: 0, duration: 4.5, ease: "sine.inOut" }, 0);
+        });
       }, landingRef);
       return () => context.revert();
     });
