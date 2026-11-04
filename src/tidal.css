@@ -38,3 +38,15 @@ main>section{animation:none}.thought-card p{overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 .skip-link{transition:none}@media(max-width:560px){.landing-hero h1 em.hero-title-line{display:block;margin:0}}
+
+.scene-control {
+  min-height: 44px;
+  padding: 0 12px;
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: 600 .73rem/1.2 Manrope, sans-serif;
+  cursor: pointer;
+}
+.scene-control:hover { border-color: var(--accent); }
