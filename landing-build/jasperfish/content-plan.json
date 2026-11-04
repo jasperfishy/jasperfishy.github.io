@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "sections": [
+    {
+      "id": "hero",
+      "heading": "Small apps. Bright little worlds.",
+      "body": "Thoughtful tools for everyday life, and a colourful dinosaur universe made for curious explorers.",
+      "cta": ["Explore the apps", "Enter Dinosaur Universe"],
+      "claimEvidence": ["home-kicker", "focusdrop-card", "dino-card"],
+      "confirmationRequired": false
+    },
+    {
+      "id": "app-catalogue",
+      "heading": "Explore the apps",
+      "body": "Retain the existing generated catalogue as the canonical app list.",
+      "cta": ["Open FocusDrop", "Open Dinosaur Universe"],
+      "claimEvidence": ["focusdrop-card", "dino-card"],
+      "confirmationRequired": false
+    },
+    {
+      "id": "about",
+      "heading": "Small on purpose.",
+      "body": "Retain the existing evidence-backed Jasperfish philosophy and FocusDrop details.",
+      "cta": ["See what I’m building"],
+      "claimEvidence": ["about-copy"],
+      "confirmationRequired": false
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "preset": "cinematic-depth",
+  "reason": "The landing needs a stronger product introduction while preserving Jasperfish's calm tone.",
+  "sections": [
+    { "id": "hero-copy", "effect": "staggered opacity and 24px rise", "durationSeconds": 0.75, "offsetPixels": 24, "staggerSeconds": 0.08 },
+    { "id": "orbit-stage", "effect": "scale and rotate into place", "durationSeconds": 1.1, "offsetPixels": 0, "staggerSeconds": 0 },
+    { "id": "orbit-rings", "effect": "continuous slow rotation", "durationSeconds": 42, "offsetPixels": 0, "staggerSeconds": 0 },
+    { "id": "product-cards", "effect": "8px ambient float", "durationSeconds": 2.8, "offsetPixels": 8, "staggerSeconds": 0.55 }
+  ],
+  "reducedMotion": "static"
+}

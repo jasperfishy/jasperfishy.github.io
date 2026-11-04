@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "capturedAt": "2026-11-04T12:39:00Z",
+  "pages": [
+    {
+      "url": "https://jasperfish.com/",
+      "title": "Jasperfish — Small apps, made with care",
+      "evidence": [
+        { "id": "home-h1", "selector": "h1", "value": "A little focus. A little play." },
+        { "id": "home-kicker", "selector": ".directory-intro p:first-child", "value": "Small apps, made with care." },
+        { "id": "focusdrop-card", "selector": "article:first-of-type", "value": "FocusDrop — A calm place to capture thoughts, revisit ideas, and take one small step." },
+        { "id": "dino-card", "selector": "article:nth-of-type(2)", "value": "Dinosaur Universe — Four dinosaur worlds; free, no ads, no accounts." },
+        { "id": "about-copy", "selector": "#about", "value": "Useful little apps for a little more headspace and play." },
+        { "id": "body-colors", "selector": "body", "property": "background/color", "value": "#0c1729 / #f4f6f8" },
+        { "id": "body-font", "selector": "body", "property": "font-family", "value": "Inter, system-ui, sans-serif" },
+        { "id": "live-runtime", "selector": "serviceWorker.register", "value": "Observed /sw.js returning HTTP 404 on the deployed homepage." }
+      ]
+    }
+  ]
+}
