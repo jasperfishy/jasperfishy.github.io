@@ -32,6 +32,14 @@ Status: local implementation complete; deployment not requested.
 
 Structured results: `verification/results.json`.
 
+## Accessibility and performance continuation
+
+- A scoped WCAG 2.1 AA and local synthetic performance audit was completed after the initial visual gate.
+- Four observed issues were repaired: supporting-copy contrast, 44 px targets, immediate input focus visibility, and the cross-origin iframe dialog's unreliable keyboard containment.
+- Eight responsive/zoom fixtures passed the post-fix browser matrix with no overflow, undersized targets, unnamed controls, duplicate IDs or runtime errors.
+- Local cold-cache Chromium measured FCP 88 ms, LCP 116 ms, CLS 0 and a 0 ms Total Blocking Time approximation. These are local synthetic measurements, not Lighthouse or production field scores.
+- Full findings, evidence and unavailable-tool limitations are recorded in `ACCESSIBILITY_PERFORMANCE_AUDIT.md`.
+
 ## Deployment
 
 Not requested and not performed.
