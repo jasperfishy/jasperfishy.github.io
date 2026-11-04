@@ -1,8 +1,8 @@
 // Shared arcade driving loop for every world and both play modes.
 
-import { CARS } from "../data-cars.js?v=du-58eb19b6b425f48c";
-import { SCENES } from "../data-scenes.js?v=du-58eb19b6b425f48c";
-import { drawCarCanvas } from "../render-car.js?v=du-58eb19b6b425f48c";
+import { CARS } from "../data-cars.js?v=du-0d928b5c7d8c29dc";
+import { SCENES } from "../data-scenes.js?v=du-0d928b5c7d8c29dc";
+import { drawCarCanvas } from "../render-car.js?v=du-0d928b5c7d8c29dc";
 
 const RACE_LAPS = 3;
 const LAP_LENGTH = 2300;

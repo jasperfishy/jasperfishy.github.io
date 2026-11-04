@@ -1,5 +1,5 @@
-import { CARS, PAINTS, STICKERS } from "../drive/js/data-cars.js?v=du-58eb19b6b425f48c";
-import { SCENE_LIST } from "../drive/js/data-scenes.js?v=du-58eb19b6b425f48c";
+import { CARS, PAINTS, STICKERS } from "../drive/js/data-cars.js?v=du-0d928b5c7d8c29dc";
+import { SCENE_LIST } from "../drive/js/data-scenes.js?v=du-0d928b5c7d8c29dc";
 
 const W = 960, H = 540, STORAGE_KEY = "dino-car-studio-v1";
 const ui = document.getElementById("game-ui");

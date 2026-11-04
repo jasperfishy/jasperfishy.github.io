@@ -1,7 +1,7 @@
 // Dinosaur Universe — hub shell.
 // Shared state: child name and parent preferences. Chapters receive them via postMessage.
-import { chapters, activities } from './chapters.js?v=du-58eb19b6b425f48c';
-import { heroScene, chapterArt } from './hub-art.js?v=du-58eb19b6b425f48c';
+import { chapters, activities } from './chapters.js?v=du-0d928b5c7d8c29dc';
+import { heroScene, chapterArt } from './hub-art.js?v=du-0d928b5c7d8c29dc';
 
 const FX = window.DUFX;
 const hub = document.querySelector('#hub');
