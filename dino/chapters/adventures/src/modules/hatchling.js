@@ -1,6 +1,6 @@
 /* Hatchling Nursery — keep a speckled egg warm until it cracks, meet the baby, then look after it:
  * a snack, a toy and a cuddle make it grow. Name it and it joins your nursery shelf (saved on this device). */
-import { createPlay, shuffle, collect, collection } from "../adv-kit.js?v=du-04c80678fe526be4";
+import { createPlay, shuffle, collect, collection } from "../adv-kit.js?v=du-5ee3d40e60884152";
 
 const BABIES = [["trex", "green", "T. rex"], ["tricera", "teal", "Triceratops"], ["stego", "purple", "Stegosaurus"], ["bronto", "orange", "Brontosaurus"], ["raptor", "red", "Velociraptor"], ["ptero", "blue", "Pteranodon"]];
 const COLORS = ["green", "teal", "purple", "orange", "pink", "blue", "yellow", "red"];

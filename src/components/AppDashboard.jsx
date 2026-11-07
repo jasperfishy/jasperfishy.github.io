@@ -4,6 +4,12 @@ import diveFilm from "../assets/marianas-film.mp4";
 import mobileDiveFilm from "../assets/marianas-small.mp4";
 import divePoster from "../assets/marianas-poster.webp";
 import "../tidal.css";
+import "../premium.css";
+import dinoHub from "../assets/dino-hub.jpg";
+import dinoPark from "../assets/dino-park.jpg";
+import dinoMeadow from "../assets/dino-meadow.jpg";
+import dinoDrive from "../assets/dino-drive.jpg";
+import dinoAdventures from "../assets/dino-adventures.jpg";
 import apps from "../data/apps.json";
 
 
@@ -30,6 +36,14 @@ function Icon({ name, className = "" }) {
       </>
     ),
     down: <path d="m6 9 6 6 6-6" />,
+    hand: <path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.5a6 6 0 0 1-5-2.7L3.7 15a1.5 1.5 0 0 1 2.4-1.8L8 15" />,
+    shield: <path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Zm-3 9 2 2 4-4" />,
+    wifi: (
+      <>
+        <path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0" />
+        <circle cx="12" cy="19.5" r=".8" fill="currentColor" />
+      </>
+    ),
   };
   return (
     <svg
@@ -85,6 +99,144 @@ function DropMark() {
         strokeLinecap="round"
       />
     </svg>
+  );
+}
+
+const DINO_URL = "/dino/";
+
+const CARD_FACTS = {
+  focusdrop: ["Free", "No account", "Works offline"],
+  dino: ["Free", "No ads", "No accounts", "Works offline"],
+};
+
+const DINO_WORLDS = [
+  { id: "park", name: "Dino Park", count: "13 games", image: dinoPark, alt: "Dino Dash: a green dinosaur jumps a log while collecting a trail of stars", text: "Rebuild skeletons bone by bone, dig for fossils, dash, catch eggs and paint." },
+  { id: "meadow", name: "Dino Meadow", count: "20 game types", image: dinoMeadow, alt: "Dino music: three dinosaurs beside a colourful xylophone playing Hot Cross Buns", text: "Gentle counting, colours, shapes, music and a 120-page colouring book." },
+  { id: "drive", name: "Dino Car Studio", count: "6 worlds", image: dinoDrive, alt: "A red dino car races a rival along a mountain road with snowy peaks", text: "Paint a car, then race rival dinos along curving roads through six worlds." },
+  { id: "adventures", name: "Dino Adventures", count: "23 adventures", image: dinoAdventures, alt: "The Great Dino Rescue map: a T-rex at home with seven chapters along a mountain path", text: "Hatch, build and rescue, with story quests and a 48-sticker album." },
+];
+
+function useHeaderState() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return scrolled;
+}
+
+// Sections ease in as they scroll into view. Without JavaScript, or with
+// reduced motion, everything is simply visible.
+function useReveal() {
+  useEffect(() => {
+    const motionOK = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+    if (!motionOK || !("IntersectionObserver" in window)) return undefined;
+    const root = document.documentElement;
+    root.classList.add("reveal-ready");
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) { entry.target.classList.add("is-visible"); io.unobserve(entry.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+    document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+    return () => { io.disconnect(); root.classList.remove("reveal-ready"); };
+  }, []);
+}
+
+function FocusArt() {
+  return (
+    <div className="card-art card-art-focus" aria-hidden="true">
+      <span className="focus-orb" />
+      <span className="focus-drop"><DropMark /></span>
+      <span className="focus-chip chip-a">An idea for later</span>
+      <span className="focus-chip chip-b">One small thing</span>
+    </div>
+  );
+}
+
+function DinoArt() {
+  return (
+    <div className="card-art card-art-dino" aria-hidden="true">
+      <img src={dinoHub} alt="" loading="lazy" width="968" height="400" />
+    </div>
+  );
+}
+
+function DinoSection() {
+  return (
+    <section id="dinosaur-universe" className="project-section dino-section" aria-labelledby="dino-title" data-reveal>
+      <div className="section-heading">
+        <span>A closer look at Dinosaur Universe</span>
+        <span className="project-status"><span />Free for little explorers</span>
+      </div>
+      <div className="dino-intro">
+        <div className="project-copy">
+          <div className="app-identity">
+            <img className="app-icon-img" src="/dino/icon-192.png" alt="" width="48" height="48" />
+            <div>
+              <h2 id="dino-title">Dinosaur Universe</h2>
+              <span>A colourful world for little explorers.</span>
+            </div>
+          </div>
+          <h3>
+            Four worlds.
+            <br />
+            Endless small adventures.
+          </h3>
+          <p>
+            Rebuild a skeleton, race a painted dino car, play a tune on a
+            xylophone or rescue Mummy and Daddy from the storm. Every game is
+            made of big friendly buttons, gentle hints and plenty of stars.
+          </p>
+          <div className="project-actions">
+            <a className="button button-primary" href={DINO_URL}>
+              Open Dinosaur Universe <Icon name="arrow" />
+            </a>
+            <span className="install-hint"><Icon name="device" />Add it to a tablet’s home screen</span>
+          </div>
+          <p className="app-facts">Free to play. No ads, no accounts, nothing to buy.</p>
+        </div>
+        <figure className="dino-device">
+          <div className="device-frame">
+            <img src={dinoHub} alt="The Dinosaur Universe home: Rex the T-rex says hello beside palm trees and a volcano" loading="lazy" width="968" height="400" />
+          </div>
+          <figcaption>The home of Dinosaur Universe, where every world begins.</figcaption>
+        </figure>
+      </div>
+      <ul className="dino-worlds">
+        {DINO_WORLDS.map((world, index) => (
+          <li className="world-card" key={world.id} data-reveal style={{ "--reveal-delay": `${index * 70}ms` }}>
+            <a href={DINO_URL} aria-label={`${world.name}: ${world.count}. Open Dinosaur Universe`}>
+              <span className="world-shot"><img src={world.image} alt={world.alt} loading="lazy" /></span>
+              <span className="world-body">
+                <span className="world-count">{world.count}</span>
+                <strong>{world.name}</strong>
+                <span>{world.text}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div className="benefits">
+        <article>
+          <Icon name="hand" />
+          <h3>Made for little hands.</h3>
+          <p>Big buttons, simple taps and drags, gentle hints and kind retries. Lots of praise and stars, never a scary game over.</p>
+        </article>
+        <article>
+          <Icon name="shield" />
+          <h3>Grown-ups stay in charge.</h3>
+          <p>A parents panel sets the sound, the difficulty, spoken instructions and calmer celebrations.</p>
+        </article>
+        <article>
+          <Icon name="wifi" />
+          <h3>Ready for the car.</h3>
+          <p>Once it has loaded, it keeps working offline. Progress is saved on the device you play on.</p>
+        </article>
+      </div>
+    </section>
   );
 }
 
@@ -221,6 +373,8 @@ function CaptureDemo() {
 
 export default function AppDashboard() {
   const landingRef = useRef(null);
+  const scrolled = useHeaderState();
+  useReveal();
 
   useEffect(() => {
     const media = gsap.matchMedia();
@@ -242,7 +396,7 @@ export default function AppDashboard() {
         Skip to content
       </a>
       <div className="site-shell">
-        <header className="site-header">
+        <header className={`site-header${scrolled ? " is-scrolled" : ""}`}>
           <a className="wordmark" href="#" aria-label="Jasperfish home">
             <FishMark />
             <span>
@@ -251,6 +405,7 @@ export default function AppDashboard() {
           </a>
           <nav aria-label="Main navigation">
             <a href="#app-catalogue">The apps</a>
+            <a href="#dinosaur-universe">Dinosaurs</a>
             <a href="#about">The idea</a>
             <a
               className="nav-github"
@@ -275,6 +430,8 @@ export default function AppDashboard() {
                 <p className="hero-lede">A quiet place to catch a thought. A dinosaur world to get lost in. Pick a current and see where it takes you.</p>
                 <div className="hero-actions"><a className="button button-primary" href="#app-catalogue">Explore the apps <Icon name="down"/></a></div>
               </div>
+              <a className="hero-scroll" href="#app-catalogue" aria-label="Scroll to the apps"><span>Scroll</span><i /></a>
+              <p className="hero-credit">Film: <a href="https://oceanexplorer.noaa.gov/multimedia/video-playlist-best-jellyfish/" target="_blank" rel="noopener noreferrer">NOAA Ocean Exploration</a>, Marianas 2016</p>
               <div className="hero-film" aria-hidden="true">
                 <video autoPlay muted playsInline loop preload="auto" poster={divePoster} disablePictureInPicture>
                   <source media="(max-width: 650px)" src={mobileDiveFilm} type="video/mp4" />
@@ -282,16 +439,20 @@ export default function AppDashboard() {
                 </video>
               </div>
             </div>
-            <div className="directory-heading" id="app-catalogue"><div><p className="folio">01 / Directory</p><h2>Choose your current.</h2></div><span>{String(apps.length).padStart(2, "0")} apps</span></div>
+            <div className="directory-heading" id="app-catalogue" data-reveal><div><p className="folio">01 / Directory</p><h2>Choose your current.</h2></div><span>{String(apps.length).padStart(2, "0")} apps</span></div>
             <div className="app-catalogue">
               {apps.map((app, index) => (
-                <article className={'catalogue-card ' + (app.id === 'dino' ? 'catalogue-play' : '')} key={app.id}>
+                <article className={'catalogue-card ' + (app.id === 'dino' ? 'catalogue-play' : '')} key={app.id} data-reveal style={{ "--reveal-delay": `${index * 90}ms` }}>
+                  {app.id === "dino" ? <DinoArt /> : <FocusArt />}
                   <span className="card-index">No. {String(index + 1).padStart(2, "0")}</span>
                   <div className="catalogue-identity">
                     {app.icon ? <img src={app.icon} alt="" width="72" height="72" /> : <span className="catalogue-icon"><DropMark /></span>}
                     <div><p>{app.category}</p><h3>{app.name}</h3></div>
                   </div>
                   <p className="catalogue-description">{app.description}</p>
+                  <ul className="card-facts" aria-label={`${app.name} at a glance`}>
+                    {(CARD_FACTS[app.id] || []).map((fact) => <li key={fact}>{fact}</li>)}
+                  </ul>
                   <a className="button button-primary" href={app.url}>Open {app.name}<Icon name="arrow" /></a>
                 </article>
               ))}
@@ -302,6 +463,7 @@ export default function AppDashboard() {
             id="focusdrop"
             className="project-section"
             aria-labelledby="focusdrop-title"
+            data-reveal
           >
             <div className="section-heading">
               <span>A closer look at FocusDrop</span>
@@ -384,10 +546,12 @@ export default function AppDashboard() {
               </article>
             </div>
           </section>
+          <DinoSection />
           <section
             id="about"
             className="about-section"
             aria-labelledby="about-title"
+            data-reveal
           >
             <div>
               <span className="about-symbol" aria-hidden="true">
@@ -448,18 +612,56 @@ export default function AppDashboard() {
                   don’t have to organise your whole life first.
                 </p>
               </details>
+              <details>
+                <summary>
+                  Is Dinosaur Universe OK for young children?
+                  <Icon name="down" />
+                </summary>
+                <p>
+                  It was made for a little dinosaur fan. There are no ads, no
+                  accounts and nothing to buy. Progress stays on the device it’s
+                  played on, and a parents panel sets the sound, the difficulty and
+                  calmer celebrations.
+                </p>
+              </details>
+              <details>
+                <summary>
+                  Can we play Dinosaur Universe on a tablet?
+                  <Icon name="down" />
+                </summary>
+                <p>
+                  Yes. Open jasperfish.com/dino in the tablet’s browser and add it
+                  to the home screen, and it opens like an app. After the first
+                  visit it keeps working without internet, which helps on journeys.
+                </p>
+              </details>
             </div>
           </section>
         </main>
-        <footer className="site-footer">
-          <a className="wordmark" href="#" aria-label="Jasperfish home">
-            <FishMark />
-            <span>jasperfish.</span>
-          </a>
-          <p>A little curiosity. A little more headspace.</p>
-          <a href="#app-catalogue">
-            Explore all apps <Icon name="arrow" />
-          </a>
+        <footer className="site-footer site-footer-rich">
+          <div className="footer-brand">
+            <a className="wordmark" href="#" aria-label="Jasperfish home">
+              <FishMark />
+              <span>jasperfish.</span>
+            </a>
+            <p>A little curiosity. A little more headspace.</p>
+          </div>
+          <nav className="footer-links" aria-label="Footer">
+            <div>
+              <h2>Apps</h2>
+              <a href={APP_URL} target="_blank" rel="noopener noreferrer">FocusDrop</a>
+              <a href={DINO_URL}>Dinosaur Universe</a>
+            </div>
+            <div>
+              <h2>Jasperfish</h2>
+              <a href="#about">The idea</a>
+              <a href="https://github.com/jasperfishy" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </div>
+          </nav>
+          <p className="footer-fine">
+            © {new Date().getFullYear()} Jasperfish. Opening film courtesy of{" "}
+            <a href="https://oceanexplorer.noaa.gov/multimedia/video-playlist-best-jellyfish/" target="_blank" rel="noopener noreferrer">NOAA Ocean Exploration</a>.
+          </p>
         </footer>
       </div>
     </>

@@ -1,4 +1,4 @@
-/* Dinosaur Universe — animated people (Daddy Ellis and Mummy Courtney).
+/* Dinosaur Universe — animated people (Daddy and Mummy). Keep them generic: other children play too.
  * A paper-doll style rig: the real cartoon face sits on a vector body whose arms, legs and head are
  * animated with CSS. States: idle, walk, run, panic, caught, yawn, tired, sleep, happy, sit, lie, wave.
  *     el.innerHTML = DUFX.personHTML('daddy', { state: 'run', size: .8 });
@@ -14,9 +14,9 @@
   })();
   const WHO = {
     daddy: { img: BASE + 'chapters/adventures/assets/daddy-head.webp', w: 120, h: 146, top: 0, sweater: '#13607a', sleeve: '#0f4e65', pants: '#3f5d8a', shoe: '#6b4a2b', skin: '#efb88c', lid: '#f9ab78',
-      eyes: [[.307, .478], [.62, .516]], eyeW: .17, mouth: [.4, .735], mouthW: .2, name: 'Daddy Ellis' },
+      eyes: [[.307, .478], [.62, .516]], eyeW: .17, mouth: [.4, .735], mouthW: .2, name: 'Daddy' },
     courtney: { img: BASE + 'chapters/adventures/assets/courtney-head.webp', w: 124, h: 124, top: 18, sweater: '#a9b99a', sleeve: '#97a888', pants: '#6c628f', shoe: '#e8dccb', skin: '#efb48b', lid: '#dc9468', tilt: -18, round: true,
-      eyes: [[.515, .52], [.706, .37]], eyeW: .15, mouth: [.74, .63], mouthW: .17, name: 'Mummy Courtney' },
+      eyes: [[.515, .52], [.706, .37]], eyeW: .15, mouth: [.74, .63], mouthW: .17, name: 'Mummy' },
   };
   DUFX.personWho = WHO;
 

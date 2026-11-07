@@ -36,6 +36,9 @@ const THEMES = {
 const freq = (root, scale, deg) => { const sc = SCALES[scale], n = sc.length, oct = Math.floor(deg / n), i = ((deg % n) + n) % n; return root * Math.pow(2, (sc[i] + oct * 12) / 12); };
 export const noteFreq = (deg, scale) => freq(261.6, scale || 'major', deg);
 
+// The player's own name, if they typed one in; '' otherwise. Never hard-code a child's name.
+export const kidName = (E) => String((E && E.context && E.context.playerName) || '').trim();
+
 export function createEngine(context) {
   const E = { context, save: loadSave(), alive: true, skip: null, musicOn: true, theme: null };
   const timers = new Set();
@@ -94,7 +97,7 @@ export function createEngine(context) {
   };
 
   // ---------------------------------------------------------------- words
-  const FACES = { narrator: '📖', mummy: '<i class="rs-head m"></i>', daddy: '<i class="rs-head d"></i>', pip: '🐦', grayson: '🧒', bumper: '🦕', grumble: '⛈️', owl: '🦉', volcano: '🌋' };
+  const FACES = { narrator: '📖', mummy: '<i class="rs-head m"></i>', daddy: '<i class="rs-head d"></i>', pip: '🐦', child: '🧒', bumper: '🦕', grumble: '⛈️', owl: '🦉', volcano: '🌋' };
   E.say = async function (text, who, hold) {
     if (!E.alive) return;
     E.cap.hidden = false; E.cap.classList.remove('pop'); void E.cap.offsetWidth; E.cap.classList.add('pop');

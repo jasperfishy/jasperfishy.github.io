@@ -1,7 +1,7 @@
 /* Dinosaur Dress-up Parade — dress a real animated dinosaur (hat, glasses, neck, back, tail), pick its colour and a
  * magical world, then watch it lead a parade past a cheering crowd. The judges score Style, Sparkle and Smile, and you
  * can take a photo for the parade album (saved on this device). More dress-up items unlock as levels grow. */
-import { createPlay, shuffle, collect, collection } from "../adv-kit.js?v=du-04c80678fe526be4";
+import { createPlay, shuffle, collect, collection } from "../adv-kit.js?v=du-5ee3d40e60884152";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const SPECIES = [["trex", "T. rex", "green"], ["tricera", "Trike", "teal"], ["stego", "Spike", "purple"], ["bronto", "Bronte", "orange"], ["raptor", "Zippy", "red"], ["ptero", "Skye", "blue"]];

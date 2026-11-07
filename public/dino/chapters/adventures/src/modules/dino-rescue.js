@@ -1,5 +1,5 @@
 // The Great Dino Rescue: a seven-chapter story quest. Mummy and Daddy are trapped at the Sky Nest by
-// Grumblecloud the storm, and Grayson rides a dinosaur through forest, bridge, cave, lava and sky to save them.
+// Grumblecloud the storm, and the player rides a dinosaur through forest, bridge, cave, lava and sky to save them.
 // Progress is saved after every chapter, so the quest can be played across many days and replayed.
 import { createEngine, writeSave, wait, MOUNTS } from './rescue/engine.js';
 import { chapter1, chapter2, chapter3 } from './rescue/chapters-a.js';

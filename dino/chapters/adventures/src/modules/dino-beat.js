@@ -1,7 +1,7 @@
 /* Dino Beat Parade — four dinosaur drummers on little stages. Watch the rhythm, then play it back. Every success makes
  * the rhythm one beat longer and adds another dinosaur to the parade; mistakes just replay the tune (no starting over).
  * At the end the whole parade marches to the song you played. Replay and a slower "show me" button are always there. */
-import { createPlay } from "../adv-kit.js?v=du-04c80678fe526be4";
+import { createPlay } from "../adv-kit.js?v=du-5ee3d40e60884152";
 
 const DRUMS = [
   { sp: "trex", color: "green", name: "Rex", drum: 0, note: 0, tint: "#91d09c" },

@@ -1,5 +1,5 @@
 // Chapters 1–3 of The Great Dino Rescue: The Call, the Whispering Forest, the Rickety Bridge.
-import { wait, rnd, tile, MOUNTS, writeSave } from './engine.js?v=du-04c80678fe526be4';
+import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js?v=du-5ee3d40e60884152';
 const FX = window.DUFX;
 
 const HILLS = tile('<path d="M0 100 L0 60 Q50 10 100 55 T200 50 T300 58 T400 60 L400 100Z" fill="#9ed7a6"/>', 400, 100);
@@ -38,12 +38,12 @@ export async function chapter1(E) {
     '<svg class="rs-house" viewBox="0 0 220 180"><rect x="30" y="80" width="150" height="90" rx="6" fill="#fff3d6" stroke="#b9895a" stroke-width="5"/><path d="M14 86 L105 14 L196 86Z" fill="#d6604d" stroke="#8c3a2c" stroke-width="5" stroke-linejoin="round"/><rect x="90" y="115" width="34" height="55" rx="4" fill="#8f5d3b"/><rect x="44" y="100" width="32" height="30" fill="#aee1f5" stroke="#b9895a" stroke-width="4"/><rect x="138" y="100" width="32" height="30" fill="#ffe27a" stroke="#b9895a" stroke-width="4"/><rect x="140" y="20" width="22" height="40" fill="#b9895a"/></svg>' +
     par(GRASS, 'near') + '<div class="rs-storm"><i></i><i></i><i></i></div><div class="rs-flash"></div>', { ambient: 'meadow', music: 'home', cls: 'dusk' });
   E.hush();
-  await E.titleCard(0, 'The Great Dino Rescue', 'A quest for Grayson');
+  await E.titleCard(0, 'The Great Dino Rescue', kidName(E) ? 'A quest for ' + kidName(E) : 'A quest for you');
   const mum = E.person('courtney', 38, 34, .72, 'idle'), dad = E.person('daddy', 50, 32, .72, 'idle');
   await E.say('One golden evening, Mummy and Daddy packed a picnic basket to take up to the Sky Nest, high on Mount Roar.');
   FX.personState(mum.el, 'wave'); FX.personState(dad.el, 'wave');
-  await E.say('Bye bye, Grayson! We will be back before bedtime!', 'mummy');
-  await E.say('Look after the dinosaurs for us, Grayson!', 'daddy');
+  await E.say(kidName(E) ? 'Bye bye, ' + kidName(E) + '! We will be back before bedtime!' : 'Bye bye, little one! We will be back before bedtime!', 'mummy');
+  await E.say(kidName(E) ? 'Look after the dinosaurs for us, ' + kidName(E) + '!' : 'Look after the dinosaurs for us!', 'daddy');
   FX.personState(mum.el, 'walk'); FX.personState(dad.el, 'walk');
   await E.walk(mum, 112, 34, 5200 / 2); E.moveTo(dad, 112, 32, 2600);
   await wait(2600);
@@ -54,7 +54,7 @@ export async function chapter1(E) {
   for (let i = 0; i < 3; i++) { E.world.querySelector('.rs-flash').animate([{ opacity: 0 }, { opacity: .9 }, { opacity: 0 }], { duration: 450 }); FX.sfx.drum(); await wait(700); }
   const pip = E.dino('ptero', -20, 22, 22, 'idle', 'pink');
   await E.moveTo(pip, 52, 30, 1500); FX.dinoState(pip.el, 'happy');
-  await E.say('Grayson! Grayson! It is me, Pip the pterosaur!', 'pip');
+  await E.say(kidName(E) ? kidName(E) + '! ' + kidName(E) + '! It is me, Pip the pterosaur!' : 'Hello! Hello! It is me, Pip the pterosaur!', 'pip');
   await E.say('Grumblecloud the storm has trapped Mummy and Daddy at the Sky Nest! Only a brave dino rider can reach them!', 'pip');
   await E.say('Will you save them?', 'pip', 400);
   const go = await E.choose('Will you save Mummy and Daddy?', [{ icon: '🦖', label: 'YES! Let’s go!' }, { icon: '💪', label: 'I am brave, I will!' }]);
@@ -68,7 +68,7 @@ export async function chapter1(E) {
   E.save.mount = pick.id; writeSave(E.save);
   pip.remove();
   const me = E.mount(30, 50, 26, 'happy');
-  await E.say(pick.name + ' roars and lowers a big friendly head. Grayson climbs on, ready to ride!', 'narrator', 600);
+  await E.say(pick.name + ' roars and lowers a big friendly head. ' + (kidName(E) ? kidName(E) + ' climbs' : 'You climb') + ' on, ready to ride!', 'narrator', 600);
   FX.dinoState(me.el, 'roar', 900); E.sfx.roar(); FX.celebrate();
   await sing(E, 'The Dino Riders Song', RIDER_SONG);
   await E.finishBadge('rider', '🏇', 'Dino Rider!', 'You chose ' + pick.name + ' and set out to rescue Mummy and Daddy.');

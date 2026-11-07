@@ -1,5 +1,5 @@
 // Mummy's Cozy Corner — a little story game.
-// Mummy Courtney comes home very tired. Grayson sends a dinosaur helper to fetch things so she can
+// Mummy comes home very tired. The player sends a dinosaur helper to fetch things so she can
 // relax in the living room (a comfy chair, a cup of tea, some cake, a feather fan), then it is bedtime:
 // she is tucked in, her pillow is fluffed, a bedtime story is read, a lullaby is played, a goodnight
 // nuzzle is given and finally the light goes out. Wrong choices are funny, never punished.
@@ -89,7 +89,7 @@ export function mountMummyCozyCorner(context) {
 
   // ------------------------------------------------------------ choose a helper
   root.innerHTML = `<div class="mc-pick"><div class="mc-pick-mum">${FX.personHTML('courtney', { state: 'tired', size: .55 })}</div>
-    <div><h2>Mummy’s Cozy Corner</h2><p>Mummy Courtney has had a very long day and she is <b>so</b> tired. Pick a dinosaur helper to bring her everything she needs to relax, and then tuck her in for the night.</p></div></div>
+    <div><h2>Mummy’s Cozy Corner</h2><p>Mummy has had a very long day and she is <b>so</b> tired. Pick a dinosaur helper to bring her everything she needs to relax, and then tuck her in for the night.</p></div></div>
     <div class="mc-helpers">${helperPool.map((h, i) => `<button class="mc-helper" data-i="${i}"><span class="mc-helper-art">${FX.dinoHTML(h.id, { color: h.color })}</span><b>${h.name}</b></button>`).join('')}</div>`;
   root.querySelectorAll('.mc-helper').forEach((b) => {
     b.addEventListener('pointerenter', () => FX.dinoState(b.querySelector('.du-dino'), 'happy', 800));
@@ -121,7 +121,7 @@ export function mountMummyCozyCorner(context) {
     mumWrap.innerHTML = FX.personHTML('courtney', { state: 'walk', size: 1 }); mum = mumWrap.firstElementChild;
     dinoWrap.innerHTML = FX.dinoHTML(helper.id, { color: helper.color, state: 'idle', size: 150 });
     dino = dinoWrap.firstElementChild;
-    panel.innerHTML = '<div class="mc-ask"><span class="mc-thought">🏠</span><b>Mummy Courtney is coming home…</b></div>';
+    panel.innerHTML = '<div class="mc-ask"><span class="mc-thought">🏠</span><b>Mummy is coming home…</b></div>';
     mumWrap.style.transform = 'translate(-260px,150px) scale(.8)'; dinoWrap.style.transform = 'translate(-300px,380px)';
     fitScene(); window.addEventListener('resize', fitScene); mood(0);
     await wait(120);
@@ -295,6 +295,6 @@ export function mountMummyCozyCorner(context) {
     panel.innerHTML = `<div class="mc-ask mc-end"><span class="mc-thought">💤</span><b>${esc(context.message('Goodnight, Mummy. Sweet dreams!'))}</b></div>`;
     FX.celebrate(); await wait(2200); A();
     window.removeEventListener('resize', fitScene); mo.disconnect();
-    context.advance('you looked after Mummy Courtney so well and she is fast asleep. Sweet dreams!');
+    context.advance('you looked after Mummy so well and she is fast asleep. Sweet dreams!');
   }
 }

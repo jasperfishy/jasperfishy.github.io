@@ -1,7 +1,7 @@
 /* Shape Safari — a hidden-object meadow. Three shape missions per game: find every circle, triangle, star… hiding
  * among the things in the meadow (some peek out from behind bushes). Found shapes fly into the shape basket.
  * Tap the wrong thing and a friendly dinosaur tells you what shape it really is. */
-import { createPlay, shuffle } from "../adv-kit.js?v=du-04c80678fe526be4";
+import { createPlay, shuffle } from "../adv-kit.js?v=du-5ee3d40e60884152";
 
 const SHAPES = {
   circle: { name: "circle", plural: "circles", sides: "round, no corners", path: '<circle cx="20" cy="20" r="15"/>', items: ["☀️", "🏀", "🍊", "🪙", "🍪", "🔴", "🌕", "🎾"] },

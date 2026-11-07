@@ -2,7 +2,7 @@
  * snap with a sound. Bigger puzzles hide the guide picture (Peek / Hint buttons help) and start with pieces turned
  * the wrong way (tap to spin). When the picture is whole it comes alive, then a bonus "Spot it!" round asks you to
  * find three little things hidden in it. Finished pictures go into your gallery with star ratings. */
-import { createPlay, shuffle, enter, dragPiece, collect, collection } from "../adv-kit.js?v=du-04c80678fe526be4";
+import { createPlay, shuffle, enter, dragPiece, collect, collection } from "../adv-kit.js?v=du-5ee3d40e60884152";
 
 const SKY = (id, a, b) => '<linearGradient id="' + id + '" x2="0" y2="1"><stop stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient>';
 const E = (ch, x, y, size, extra) => '<text x="' + x + '" y="' + y + '" font-size="' + size + '" text-anchor="middle" ' + (extra || "") + '>' + ch + '</text>';

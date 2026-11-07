@@ -1,0 +1,215 @@
+/* Premium layer: depth, motion and the Dinosaur Universe showcase.
+   Builds on index.css and tidal.css; uses the same tidal palette. */
+
+:root {
+  --tide-deep: #0b2322;
+  --tide-panel: #193b37;
+  --tide-panel-2: #1f4540;
+  --cream: #faf1dd;
+  --peach: #f4d2aa;
+  --peach-2: #edc49f;
+  --mist: #c5d0bc;
+  --line: rgba(237, 196, 159, 0.16);
+  --glow: 0 30px 80px -30px rgba(0, 0, 0, 0.6);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* The full-bleed hero is 100vw wide, which includes the scrollbar; clip the stray pixels. */
+html, body { overflow-x: clip; }
+/* Anchor jumps land below the sticky header. */
+:where(section, div, article)[id] { scroll-margin-top: 92px; }
+::selection { background: rgba(244, 210, 170, 0.35); color: #fff; }
+
+/* ---------- Header: glass once you scroll ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  transition: padding 0.35s var(--ease-out);
+}
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(50% - 50vw);
+  z-index: -1;
+  background: rgba(13, 36, 35, 0.88);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+.site-header.is-scrolled { padding-block: 11px; }
+.site-header.is-scrolled::before { opacity: 1; }
+.site-header nav a { position: relative; transition: color 0.2s ease; }
+.site-header nav a:not(.nav-github)::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 8px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-out);
+}
+.site-header nav a:hover::after, .site-header nav a:focus-visible::after { transform: scaleX(1); }
+
+/* ---------- Hero finishing ---------- */
+.landing-hero { position: relative; }
+.landing-hero h1 em { background: linear-gradient(100deg, #f6d6b2 0%, #edc49f 45%, #e3a77f 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero-scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  color: rgba(250, 241, 221, 0.72);
+  font: 600 0.62rem/1 ui-monospace, Consolas, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  transition: color 0.2s ease;
+}
+.hero-scroll:hover { color: var(--cream); }
+.hero-scroll i { position: relative; width: 1px; height: 38px; overflow: hidden; background: rgba(250, 241, 221, 0.22); }
+.hero-scroll i::after { content: ""; position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: var(--peach); animation: scroll-cue 2.2s var(--ease-out) infinite; }
+@keyframes scroll-cue { to { top: 110%; } }
+.hero-credit {
+  position: absolute;
+  right: max(5vw, calc((100vw - 1420px) / 2));
+  bottom: 22px;
+  margin: 0;
+  color: rgba(224, 229, 225, 0.55);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+.hero-credit a { color: inherit; text-decoration: underline; text-decoration-color: rgba(224, 229, 225, 0.3); text-underline-offset: 3px; }
+.hero-credit a:hover { color: var(--cream); }
+
+/* ---------- Buttons: a little more presence ---------- */
+.button.button-primary {
+  box-shadow: 0 10px 28px -12px rgba(244, 210, 170, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), background 0.2s ease;
+}
+.button.button-primary:hover { box-shadow: 0 16px 36px -14px rgba(244, 210, 170, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+.button.button-primary .icon { transition: transform 0.25s var(--ease-out); }
+.button.button-primary:hover .icon { transform: translateX(3px); }
+:where(a, button, summary):focus-visible { outline: 2px solid var(--peach); outline-offset: 3px; border-radius: 4px; }
+
+/* ---------- App directory cards ---------- */
+.app-catalogue { gap: clamp(18px, 2.4vw, 32px); margin-top: clamp(24px, 3vw, 40px); }
+.catalogue-card, .catalogue-card:hover, .catalogue-card:nth-child(even) {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 clamp(22px, 2.4vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  overflow: hidden;
+  transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out), border-color 0.3s ease;
+}
+.catalogue-card:hover { transform: translateY(-6px); box-shadow: var(--glow); border-color: rgba(237, 196, 159, 0.34); }
+.catalogue-card > :not(.card-art) { margin-inline: clamp(20px, 2.6vw, 34px); }
+.catalogue-card .card-index { margin-top: clamp(18px, 2vw, 24px); }
+.catalogue-card .button { margin-top: auto; }
+
+.card-art { position: relative; height: clamp(170px, 17vw, 230px); overflow: hidden; border-bottom: 1px solid var(--line); }
+.card-art-dino img { width: 100%; height: 100%; object-fit: cover; object-position: 30% 60%; transform: scale(1.02); transition: transform 1.2s var(--ease-out); }
+.catalogue-card:hover .card-art-dino img { transform: scale(1.07); }
+.card-art-dino::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(16, 46, 45, 0.55), transparent 45%); }
+.card-art-focus { background: radial-gradient(120% 90% at 30% 20%, #2f6460 0%, #1a403c 45%, #102e2d 100%); }
+.focus-orb { position: absolute; width: 62%; aspect-ratio: 1; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; background: radial-gradient(circle, rgba(181, 205, 255, 0.28), rgba(181, 205, 255, 0) 65%); }
+.focus-drop { position: absolute; left: 50%; top: 50%; translate: -50% -56%; width: 54px; color: #b5cdff; filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35)); animation: drop-bob 6s ease-in-out infinite; }
+.focus-drop .drop-mark { width: 100%; height: auto; }
+.focus-chip { position: absolute; padding: 8px 12px; border-radius: 10px; background: rgba(250, 241, 221, 0.95); color: #193531; font-size: 0.74rem; font-weight: 600; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); border-left: 3px solid #b5cdff; }
+.chip-a { left: 9%; top: 22%; animation: chip-float 7s ease-in-out infinite; }
+.chip-b { right: 9%; bottom: 20%; border-left-color: var(--peach); animation: chip-float 8s ease-in-out -3s infinite; }
+@keyframes drop-bob { 50% { translate: -50% -64%; } }
+@keyframes chip-float { 50% { transform: translateY(-8px); } }
+
+.card-facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 0; margin-bottom: 20px; padding: 0; list-style: none; }
+.card-facts li { padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--mist); font-size: 0.74rem; }
+
+/* ---------- Shared section polish ---------- */
+.project-section { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--glow); }
+.project-section::before { content: ""; position: absolute; inset: -40% -10% auto auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(244, 210, 170, 0.08), transparent 60%); pointer-events: none; }
+.demo-window { box-shadow: 0 40px 80px -36px rgba(0, 0, 0, 0.65); }
+
+/* ---------- Dinosaur Universe showcase ---------- */
+.dino-section { margin-top: clamp(40px, 6vw, 80px); background: linear-gradient(160deg, #1d4640 0%, #193b37 45%, #15332f 100%); }
+.dino-section::before { inset: -30% auto auto -15%; background: radial-gradient(circle, rgba(255, 192, 139, 0.12), transparent 60%); }
+.dino-section .project-status { color: #ffc08b; }
+.dino-section .project-status span { background: #ffc08b; box-shadow: 0 0 0 4px rgba(255, 192, 139, 0.18); }
+.dino-intro { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+.app-icon-img { width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.5); }
+.install-hint { display: inline-flex; align-items: center; gap: 8px; color: var(--peach-2); font-size: 0.88rem; }
+.install-hint .icon { width: 18px; height: 18px; }
+
+.dino-device { margin: 0; }
+.device-frame {
+  position: relative;
+  padding: 12px;
+  border-radius: 26px;
+  background: linear-gradient(145deg, #0d2725, #0a1e1d);
+  box-shadow: 0 50px 90px -40px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: perspective(1400px) rotateY(-7deg) rotateX(3deg);
+  transition: transform 0.8s var(--ease-out);
+}
+.dino-device:hover .device-frame { transform: perspective(1400px) rotateY(-2deg) rotateX(1deg); }
+.device-frame img { display: block; width: 100%; height: auto; border-radius: 16px; }
+.device-frame::after { content: ""; position: absolute; inset: 12px; border-radius: 16px; background: linear-gradient(115deg, rgba(255, 255, 255, 0.16), transparent 32%); pointer-events: none; }
+.dino-device figcaption { margin-top: 16px; color: var(--mist); font-size: 0.8rem; text-align: center; }
+
+.dino-worlds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 1.8vw, 22px); margin: clamp(40px, 5vw, 64px) 0 0; padding: 0; list-style: none; }
+.world-card a { display: flex; flex-direction: column; height: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: rgba(8, 26, 25, 0.35); color: inherit; text-decoration: none; transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out), border-color 0.3s ease; }
+.world-card a:hover { transform: translateY(-6px); box-shadow: var(--glow); border-color: rgba(237, 196, 159, 0.36); }
+.world-shot { display: block; aspect-ratio: 16 / 10; overflow: hidden; background: #0d2725; }
+.world-shot img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 1.1s var(--ease-out); }
+.world-card a:hover .world-shot img { transform: scale(1.06); }
+.world-body { display: grid; gap: 6px; padding: 16px 18px 20px; }
+.world-body strong { font: 400 1.35rem/1.15 Georgia, "Times New Roman", serif; letter-spacing: -0.03em; color: var(--cream); }
+.world-body > span:last-child { color: var(--mist); font-size: 0.86rem; line-height: 1.55; }
+.world-count { justify-self: start; padding: 3px 9px; border-radius: 999px; background: rgba(244, 210, 170, 0.14); color: var(--peach); font: 600 0.64rem/1.5 ui-monospace, Consolas, monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ---------- Footer ---------- */
+.about-section { margin-bottom: 0; border-bottom: 0; }
+.site-footer.site-footer-rich { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; gap: 28px 40px; padding: 48px 0 40px; border-top: 1px solid var(--line); }
+.site-footer .footer-brand p { margin: 12px 0 0; color: var(--mist); text-align: left; }
+.footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.footer-links h2 { margin: 0 0 12px; color: var(--peach-2); font: 600 0.66rem/1.5 ui-monospace, Consolas, monospace; letter-spacing: 0.14em; text-transform: uppercase; }
+.footer-links a { display: block; width: fit-content; padding: 4px 0; color: var(--cream); }
+.footer-links a:hover { color: var(--peach); }
+.site-footer .footer-fine { grid-column: 1 / -1; text-align: left; margin: 8px 0 0; padding-top: 22px; border-top: 1px solid var(--line); color: rgba(197, 208, 188, 0.7); font-size: 0.78rem; }
+.footer-fine a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Scroll reveal (only when JavaScript and motion are on) ---------- */
+.reveal-ready [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out); transition-delay: var(--reveal-delay, 0ms); }
+.reveal-ready [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1020px) {
+  .dino-worlds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .dino-intro { grid-template-columns: 1fr; }
+  .device-frame, .dino-device:hover .device-frame { transform: none; }
+}
+@media (max-width: 780px) {
+  .hero-scroll { display: none; }
+  .hero-credit { left: max(20px, 5vw); right: auto; bottom: 12px; }
+  .site-header nav a[href="#dinosaur-universe"] { display: none; }
+}
+@media (max-width: 560px) {
+  .app-catalogue { gap: 16px; }
+  .catalogue-card, .catalogue-card:nth-child(n) { padding: 0 0 22px; border: 1px solid var(--line); }
+  .dino-worlds { grid-template-columns: 1fr; }
+  .section-heading { flex-direction: column; gap: 10px; }
+  .site-footer.site-footer-rich, .footer-links { grid-template-columns: 1fr; }
+  .chip-a { left: 6%; }
+  .chip-b { right: 6%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-ready [data-reveal] { opacity: 1; transform: none; }
+  .device-frame { transform: none; }
+}

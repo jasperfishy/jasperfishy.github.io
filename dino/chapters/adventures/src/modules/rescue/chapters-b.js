@@ -1,6 +1,6 @@
 // Chapters 4–7: the Crystal Cave, the River of Fire, the Sky Ride and Grumblecloud's Peak.
-import { wait, rnd, MOUNTS, writeSave } from './engine.js?v=du-04c80678fe526be4';
-import { sing } from './chapters-a.js?v=du-04c80678fe526be4';
+import { wait, rnd, MOUNTS, writeSave, kidName } from './engine.js?v=du-5ee3d40e60884152';
+import { sing } from './chapters-a.js?v=du-5ee3d40e60884152';
 const FX = window.DUFX;
 const KEYS = [{ icon: '💎', deg: 0, color: '#4fd0ff' }, { icon: '🔮', deg: 1, color: '#c18bff' }, { icon: '💚', deg: 2, color: '#5be39b' }, { icon: '🧡', deg: 3, color: '#ffb04d' }];
 const seqOf = (n) => { const a = []; for (let i = 0; i < n; i++) a.push(Math.floor(Math.random() * 4)); return a; };
@@ -167,7 +167,7 @@ export async function chapter7(E) {
   const mum = E.person('courtney', 70, 30, .66, 'panic'), dad = E.person('daddy', 81, 28, .66, 'panic'); mum.style.zIndex = 3; dad.style.zIndex = 3;
   const grumble = E.world.querySelector('.rs-grumble'), flash = E.world.querySelector('.rs-flash');
   await E.say('Mummy and Daddy are in the Sky Nest, trapped behind a cage of thorny vines!', 'narrator', 600);
-  await E.say('GRAYSON! Be careful! The storm is angry!', 'mummy');
+  await E.say(kidName(E) ? kidName(E).toUpperCase() + '! Be careful! The storm is angry!' : 'Be careful, little one! The storm is angry!', 'mummy');
   await E.say('You can do it, my brave dino rider!', 'daddy');
   grumble.classList.add('roar'); E.sfx.roar(); FX.shakeScreen();
   await E.say('RUMBLE GRUMBLE! Nobody gets past Grumblecloud! I am too grumpy and my tummy is empty!', 'grumble');
@@ -218,9 +218,9 @@ export async function chapter7(E) {
   await E.say('THE CAGE IS OPEN! Mummy and Daddy are free!', 'narrator', 500);
   await E.walk(mum, 40, 36, 1500); E.moveTo(dad, 29, 34, 1500); await wait(1500);
   FX.personState(mum.el, 'happy'); FX.personState(dad.el, 'happy');
-  await E.say('GRAYSON! You came all this way to save us! Oh, my brave, brave boy!', 'mummy', 600);
+  await E.say((kidName(E) ? kidName(E).toUpperCase() + '! ' : '') + 'You came all this way to save us! Oh, my brave, brave explorer!', 'mummy', 600);
   await E.say('That was the best rescue ever! You are a real Dino Rider!', 'daddy', 600);
-  await E.say('I love you both. Let’s go home!', 'grayson', 500);
+  await E.say('I love you both. Let’s go home!', 'child', 500);
   for (let i = 0; i < 5; i++) { const r = E.area.getBoundingClientRect(); FX.burst(r.left + r.width * (.2 + i * .15), r.top + r.height * .45, { kind: 'hearts', n: 8 }); await wait(250); }
   // the party
   E.hush();
@@ -230,7 +230,7 @@ export async function chapter7(E) {
     { words: ['We', 'rode', 'across', 'the', 'forest', 'wide,'], notes: [4, 4, 5, 7, 5, 4], beat: 340 },
     { words: ['We', 'sang', 'the', 'volcano', 'to', 'sleep,'], notes: [4, 5, 7, 9, 7, 5], beat: 340 },
     { words: ['Mummy', 'and', 'Daddy', 'by', 'our', 'side,'], notes: [7, 7, 9, 7, 5, 4], beat: 340 },
-    { words: ['Hooray', 'for', 'Grayson,', 'the', 'dino', 'king!'], notes: [9, 7, 9, 12, 9, 7], beat: 380 },
+    { words: ['Hooray', 'for', (kidName(E) || 'you') + ',', 'the', 'dino', 'star!'], notes: [9, 7, 9, 12, 9, 7], beat: 380 },
   ]);
   E.addGems(10);
   E.save.won += 1; E.save.next = 7; writeSave(E.save);

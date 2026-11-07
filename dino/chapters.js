@@ -86,7 +86,7 @@ export const activities = [
   { id: 'storybook', title: 'Dino Storybook', subtitle: 'Make a magical story together', icon: '📖', category: 'Creative' },
   { id: 'discoveries', title: 'Prehistoric Discoveries', subtitle: 'Meet dinosaurs and other ancient animals', icon: '🦴', category: 'Learning' },
   { id: 'care', title: 'Dino Care Clinic', subtitle: 'Help a dinosaur feel cosy and cared for', icon: '🧺', category: 'Cozy play' },
-  { id: 'mummy', title: 'Mummy’s Cozy Corner', subtitle: 'Help Mummy Courtney with dinosaur friends', icon: '🌿', category: 'Cozy play' },
+  { id: 'mummy', title: 'Mummy’s Cozy Corner', subtitle: 'Help Mummy with dinosaur friends', icon: '🌿', category: 'Cozy play' },
   { id: 'moonbeam', title: 'Moonbeam Rescue', subtitle: 'Remember a glowing trail and reunite a dino family', icon: '🌙', category: 'Adventures' },
   { id: 'parade', title: 'Dinosaur Dress-up Parade', subtitle: 'Choose a dinosaur, parade look and magical world', icon: '🎉', category: 'Creative' },
   { id: 'constellations', title: 'Starry Dino Constellations', subtitle: 'Connect the stars to draw a dinosaur in the night sky', icon: '🌌', category: 'Puzzles' },

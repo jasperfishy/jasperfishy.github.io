@@ -2,7 +2,7 @@
 // A little story journey: a dinosaur friend finds a lost egg, walks through a meadow, climbs a mountain,
 // spots a cave across the valley, explores it with a torch, and takes the egg home to its mother.
 // Optional real photos/videos for the "real dinosaur moment" cards come from assets/real/manifest.json.
-import { attachBonus } from "../adv-kit.js?v=du-04c80678fe526be4";
+import { attachBonus } from "../adv-kit.js?v=du-5ee3d40e60884152";
 const FX = window.DUFX;
 const DINOS = [
   { id: 'raptor', name: 'Velociraptor' }, { id: 'trex', name: 'T-rex' }, { id: 'tricera', name: 'Triceratops' },

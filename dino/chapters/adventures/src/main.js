@@ -1,26 +1,26 @@
-import { registerModule, getModule } from "./module-registry.js?v=du-04c80678fe526be4";
-import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-04c80678fe526be4";
-import { mountBuilder } from "./modules/builder.js?v=du-04c80678fe526be4";
-import { mountJigsaw } from "./modules/jigsaw.js?v=du-04c80678fe526be4";
-import { mountFossil } from "./modules/fossil.js?v=du-04c80678fe526be4";
-import { mountMemory } from "./modules/memory.js?v=du-04c80678fe526be4";
-import { mountPicnic } from "./modules/picnic.js?v=du-04c80678fe526be4";
-import { mountTrail } from "./modules/trail.js?v=du-04c80678fe526be4";
-import { mountHatchling } from "./modules/hatchling.js?v=du-04c80678fe526be4";
-import { mountShapeSafari } from "./modules/shape-safari.js?v=du-04c80678fe526be4";
-import { mountDinoBeat } from "./modules/dino-beat.js?v=du-04c80678fe526be4";
-import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-04c80678fe526be4";
-import { mountStorybook } from "./modules/storybook.js?v=du-04c80678fe526be4";
-import { mountDinoDiscoveries, PREHISTORIC_CREATURES } from "./modules/dino-discoveries.js?v=du-04c80678fe526be4";
-import { mountDinoCare } from "./modules/dino-care.js?v=du-04c80678fe526be4";
-import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-04c80678fe526be4";
-import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-04c80678fe526be4";
-import { mountDinoParade } from "./modules/dino-parade.js?v=du-04c80678fe526be4";
-import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-04c80678fe526be4";
-import { mountDinoQuest } from "./modules/dino-quest.js?v=du-04c80678fe526be4";
-import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-04c80678fe526be4";
-import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-04c80678fe526be4";
-import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-04c80678fe526be4";
+import { registerModule, getModule } from "./module-registry.js?v=du-5ee3d40e60884152";
+import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-5ee3d40e60884152";
+import { mountBuilder } from "./modules/builder.js?v=du-5ee3d40e60884152";
+import { mountJigsaw } from "./modules/jigsaw.js?v=du-5ee3d40e60884152";
+import { mountFossil } from "./modules/fossil.js?v=du-5ee3d40e60884152";
+import { mountMemory } from "./modules/memory.js?v=du-5ee3d40e60884152";
+import { mountPicnic } from "./modules/picnic.js?v=du-5ee3d40e60884152";
+import { mountTrail } from "./modules/trail.js?v=du-5ee3d40e60884152";
+import { mountHatchling } from "./modules/hatchling.js?v=du-5ee3d40e60884152";
+import { mountShapeSafari } from "./modules/shape-safari.js?v=du-5ee3d40e60884152";
+import { mountDinoBeat } from "./modules/dino-beat.js?v=du-5ee3d40e60884152";
+import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-5ee3d40e60884152";
+import { mountStorybook } from "./modules/storybook.js?v=du-5ee3d40e60884152";
+import { mountDinoDiscoveries, PREHISTORIC_CREATURES } from "./modules/dino-discoveries.js?v=du-5ee3d40e60884152";
+import { mountDinoCare } from "./modules/dino-care.js?v=du-5ee3d40e60884152";
+import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-5ee3d40e60884152";
+import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-5ee3d40e60884152";
+import { mountDinoParade } from "./modules/dino-parade.js?v=du-5ee3d40e60884152";
+import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-5ee3d40e60884152";
+import { mountDinoQuest } from "./modules/dino-quest.js?v=du-5ee3d40e60884152";
+import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-5ee3d40e60884152";
+import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-5ee3d40e60884152";
+import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-5ee3d40e60884152";
 
 const STORAGE_KEY = "dinosaur-universe-player-v1";
 const EMBEDDED = window.self !== window.top;
@@ -99,7 +99,7 @@ const ACTIVITIES = [
   { id: "storybook", title: "Dino Storybook", icon: "📖", category: "Creative", tint: "#eee5f5", description: "Choose a dinosaur, a place and a magical surprise to make a story." },
   { id: "discoveries", title: "Prehistoric Discoveries", icon: "🦴", category: "Learning", tint: "#eee8d8", description: "Meet more than twenty dinosaurs and learn about other ancient creatures." },
   { id: "care", title: "Dino Care Clinic", icon: "🧺", category: "Cozy play", tint: "#f4e7d9", description: "Choose a dinosaur and help it feel cosy with gentle care." },
-  { id: "mummy", title: "Mummy’s Cozy Corner", icon: "🌿", category: "Cozy play", tint: "#e4f0df", description: "Team up with dinosaur friends to help Mummy Courtney feel comfy and happy." },
+  { id: "mummy", title: "Mummy’s Cozy Corner", icon: "🌿", category: "Cozy play", tint: "#e4f0df", description: "Team up with dinosaur friends to help Mummy feel comfy and happy." },
   { id: "moonbeam", title: "Moonbeam Rescue", icon: "🌙", category: "Adventures", tint: "#e9e5f5", description: "Remember the glowing star path and guide a little dinosaur home." },
   { id: "parade", title: "Dinosaur Dress-up Parade", icon: "🎉", category: "Creative", tint: "#f8e5c9", description: "Choose a dinosaur, a parade look and a magical world for its show." },
   { id: "constellations", title: "Starry Dino Constellations", icon: "🌌", category: "Puzzles", tint: "#e5e8f6", description: "Watch the stars glow, then connect them to draw a dinosaur in the night sky." },
@@ -107,7 +107,7 @@ const ACTIVITIES = [
   { id: "weather", title: "Dino Weather Workshop", icon: "🌦️", category: "Discovery", tint: "#e2f0ec", description: "Notice the weather and help prehistoric friends find what they need." },
   { id: "coloring", title: "Coloring Studio", icon: "🎨", category: "Creative", tint: "#f7e1d7", description: "Colour dinosaur scenes and save your artwork." },
   { id: "quest", title: "Dino Quest: The Lost Egg", icon: "⛰️", category: "Adventures", tint: "#dcebd2", description: "Climb Mount Roar, find a cave and bring a lost egg home to its mummy." },
-  { id: "daddy", title: "Naughty Daddy", icon: "🏃", category: "Adventures", tint: "#f5e4cb", description: "Pick a dinosaur and catch Daddy Ellis in a silly chase." }
+  { id: "daddy", title: "Naughty Daddy", icon: "🏃", category: "Adventures", tint: "#f5e4cb", description: "Pick a dinosaur and catch Daddy in a silly chase." }
 ];
 
 function saveState() {
@@ -312,7 +312,7 @@ function exitActivity() {
 }
 
 function askName() {
-  showDialog("What is your name?", "A dinosaur can use your name in its friendly instructions. This is optional and stays on this device.", '<form id="nameForm"><label class="form-label" for="playerName">Your name</label><input class="text-input" id="playerName" name="playerName" maxlength="24" autocomplete="given-name" placeholder="For example, Grayson"><div class="dialog-actions"><button class="tiny-button" id="skipName" type="button">Maybe later</button><button class="primary-button" type="submit">Start playing</button></div></form>', function (card) {
+  showDialog("What is your name?", "A dinosaur can use your name in its friendly instructions. This is optional and stays on this device.", '<form id="nameForm"><label class="form-label" for="playerName">Your name</label><input class="text-input" id="playerName" name="playerName" maxlength="24" autocomplete="given-name" placeholder="Your first name"><div class="dialog-actions"><button class="tiny-button" id="skipName" type="button">Maybe later</button><button class="primary-button" type="submit">Start playing</button></div></form>', function (card) {
     const input = card.querySelector("#playerName");
     input.focus();
     card.querySelector("#nameForm").addEventListener("submit", function (event) {

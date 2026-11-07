@@ -1,4 +1,4 @@
-// Naughty Daddy — a 3-lane chase. Grayson's chosen dinosaur runs after Daddy Ellis through a garden,
+// Naughty Daddy — a 3-lane chase. The player's chosen dinosaur runs after Daddy through a garden,
 // a street and a beach. Daddy throws banana peels, dodges, escapes on a skateboard and a giant duck,
 // and when he is finally caught there is a full cartoon "gobble, burp, sorry!" cutscene.
 // Everything is pretend and silly: nobody is ever really hurt, and there is no losing screen.
@@ -29,7 +29,7 @@ export function mountDaddyChase(context) {
 
   // ------------------------------------------------------------------ pick a dinosaur
   context.stage.innerHTML = '<div class="dc-pick"><div class="dc-pick-head"><div class="dc-pick-daddy">' + FX.personHTML('daddy', { state: 'panic', size: .5 }) + '</div>' +
-    '<div><h2>Naughty Daddy!</h2><p>Daddy Ellis has been very naughty and run away with the biscuits! Pick a dinosaur and chase him down in <b>' + theme.name + '</b>.</p></div></div>' +
+    '<div><h2>Naughty Daddy!</h2><p>Daddy has been very naughty and run away with the biscuits! Pick a dinosaur and chase him down in <b>' + theme.name + '</b>.</p></div></div>' +
     '<div class="dc-dinos">' + unlocked.map((d, i) => '<button class="dc-dino" data-i="' + i + '"><span class="dc-dino-art">' + FX.dinoHTML(d.id, { state: 'run' }) + '</span><b>' + d.name + '</b><small>' + d.blurb + '</small>' +
       '<span class="dc-stats"><i style="--v:' + d.speed / 1.3 + '"></i><i class="t" style="--v:' + (1.1 - d.tough) + '"></i></span></button>').join('') + '</div>' +
     '<p class="gentle-hint">Tap a dinosaur to start. Left and right change lane, jump over the banana peels, and grab drumsticks for a speed boost!</p></div>';
@@ -72,7 +72,7 @@ export function mountDaddyChase(context) {
     window.addEventListener('keydown', onKey); window.addEventListener('resize', fit);
     for (let i = 0; i < 14; i++) S.scenery.push({ z: i / 14, side: i % 2 ? 1 : -1, e: theme.side[i % theme.side.length], off: .5 + (i * .37 % 1) * .9 });
     fit(); FX.ambient(null); FX.ambient(theme.ambient);
-    shout('Go go go! Catch Daddy Ellis!', 2600);
+    shout('Go go go! Catch Daddy!', 2600);
     let last = performance.now(); let foot = 0;
     const frame = (now) => {
       if (!alive) return;
@@ -209,6 +209,6 @@ export function mountDaddyChase(context) {
     speech(name === 'you' ? 'Hugs for everyone?' : 'Hugs for ' + name + '?', 30, 24, 1800); FX.personState(dad, 'happy'); FX.burst(r.left + r.width / 2, r.top, { kind: 'hearts', n: 14 });
     await wait(1900);
     stop(); obs.disconnect();
-    context.advance('You caught Daddy Ellis! He promised to be good… for at least five minutes.');
+    context.advance('You caught Daddy! He promised to be good… for at least five minutes.');
   }
 }
