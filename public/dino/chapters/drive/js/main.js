@@ -101,7 +101,18 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 }
 
+const WORLD_AMBIENT = { island: "meadow", city: "sun", mountain: "wind", snow: "snow", desert: "desert", space: "space" };
+function setAmbient(name) {
+  try {
+    const f = window.DUFX; if (!f || !f.ambient) return;
+    if (name === "drive") f.ambient(WORLD_AMBIENT[state.selectedScene] || "meadow");
+    else if (name === "garage") f.ambient("rainbow");
+    else f.ambient("meadow");
+  } catch (e) { /* ambient is optional */ }
+}
+
 function show(name) {
+  setAmbient(name);
   Object.entries(screens).forEach(([key, element]) => element.classList.toggle("hidden", key !== name));
   if (name === "home") refreshHome();
   if (name === "garage" && garageHandle) garageHandle.refresh();
@@ -148,6 +159,10 @@ document.querySelector("#btnRace").addEventListener("click", () => {
   saveState(state);
   show("drive");
 });
+document.querySelector("#btnRun").addEventListener("click", () => {
+  saveState(state);
+  location.href = "../car-studio-phaser/index.html";
+});
 document.querySelector("#btnHome").addEventListener("click", () => {
   saveState(state);
   show("home");
@@ -181,5 +196,10 @@ if (EMBEDDED) {
   window.parent.postMessage({ type: "du-ready" }, location.origin);
 }
 
+try {
+  const walker = document.querySelector("#homeWalker");
+  if (walker && window.DUFX && window.DUFX.dinoHTML) walker.innerHTML = window.DUFX.dinoHTML(["trex", "tricera", "stego", "bronto"][Math.floor(Math.random() * 4)], { state: "walk", size: 110 });
+  document.querySelectorAll(".big-btn").forEach(btn => btn.addEventListener("pointerenter", () => { try { window.DUFX.wiggle(btn); window.DUFX.sfx.tap(); } catch (e) { /* ok */ } }));
+} catch (e) { /* decoration is optional */ }
 refreshHome();
 show("home");

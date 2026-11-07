@@ -1,7 +1,7 @@
 // Dinosaur Universe — hub shell.
 // Shared state: child name and parent preferences. Chapters receive them via postMessage.
-import { chapters, activities } from './chapters.js?v=du-0d928b5c7d8c29dc';
-import { heroScene, chapterArt } from './hub-art.js?v=du-0d928b5c7d8c29dc';
+import { chapters, activities } from './chapters.js?v=du-04c80678fe526be4';
+import { heroScene, chapterArt } from './hub-art.js?v=du-04c80678fe526be4';
 
 const FX = window.DUFX;
 const hub = document.querySelector('#hub');
@@ -12,7 +12,6 @@ const stageTitle = document.querySelector('#stageTitle');
 const toastEl = document.querySelector('#toast');
 const params = new URLSearchParams(location.search);
 let toastTimer;
-let currentClassic = "";
 
 function normalizeName(value) {
   const candidate = String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24);
@@ -194,7 +193,7 @@ function applyTod() {
 // ---------- Progress badges read from each world's own saved data ----------
 function progress() {
   let park = 0, meadow = 0, drive = 0, adventures = [];
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^dino_[a-z]+$/.test(k)) park += Math.min(3, Number(JSON.parse(localStorage.getItem(k))) || 0); } } catch {}
+  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^dino_[a-z]+$/.test(k) && k !== 'dino_egg' && k !== 'dino_den') park +=Math.min(3, Number(JSON.parse(localStorage.getItem(k))) || 0); } } catch {}
   try { meadow = (JSON.parse(localStorage.getItem('dm-completed') || '[]') || []).length; } catch {}
   try { drive = Number((JSON.parse(localStorage.getItem('dino-car-studio-v1') || '{}') || {}).totalStars) || 0; } catch {}
   try { adventures = (JSON.parse(localStorage.getItem('dinosaur-universe-player-v1') || '{}') || {}).completed || []; } catch {}
@@ -223,16 +222,15 @@ function renderMenu() {
       <div class="hs-greet"><h1 class="wave">${wave(hello)}</h1><p>Where shall we go${name ? ', ' + escapeHtml(name) : ''}?</p></div>
       <span class="hs-hint">Tap Rex! Tap the sun!</span>
     </section>
-    <section class="worlds-section"><span class="section-kicker">${chapters.length} FULL DINO WORLDS</span><h2>Explore a dinosaur world</h2><p>Each world is a whole game of its own, with lots to find and do.</p>
+    <section class="worlds-section"><span class="section-kicker">${chapters.filter((c) => !c.artId).length} FULL DINO WORLDS</span><h2>Explore a dinosaur world</h2><p>Each world is a whole game of its own, with lots to find and do.</p>
     <div class="chapter-grid">
       ${chapters.map((c, i) => `
         <button class="chapter-card du-in" data-chapter="${c.id}" style="--du-delay:${i * .12 + .2}s">
-          <span class="cc-art">${chapterArt(c.id)}<span class="cc-play" aria-hidden="true">▶</span></span>
+          <span class="cc-art">${chapterArt(c.artId || c.id)}<span class="cc-play" aria-hidden="true">▶</span></span>
           <span class="cc-body">
             <span class="chapter-title">${c.title}</span>
             <span class="chapter-sub">${c.subtitle}</span>
-            ${chips[c.id] ? `<span class="cc-chip">${chips[c.id]}</span>` : ''}
-            ${c.classicUrl ? `<span class="cc-classic" data-classic="${c.id}" role="button">🎮 Classic world</span>` : ''}
+            ${!c.artId && chips[c.id] ? `<span class="cc-chip">${chips[c.id]}</span>` : ''}
           </span>
       </button>`).join('')}
     </div></section>
@@ -241,8 +239,6 @@ function renderMenu() {
   for (const c of chapters) {
     const el = document.querySelector(`[data-chapter="${c.id}"]`);
     el.onclick = (e) => openChapter(c, e);
-    const cl = el.querySelector('[data-classic]');
-    if (cl) cl.onclick = (ev) => { ev.stopPropagation(); openChapter({ ...c, url: c.classicUrl, classicUrl: '' }, ev); };
     tilt(el);
   }
   document.querySelector('#renameBtn').onclick = () => nameDialog(false);
@@ -315,7 +311,6 @@ function wireHero() {
 
 const CHAPTER_COLOUR = { park: '#ff8a4d', meadow: '#7fd16e', drive: '#4aa8ff' };
 function openChapter(c, e) {
-  currentClassic = c && c.classicUrl ? c.classicUrl : "";
   const x = e && e.clientX ? e.clientX : innerWidth / 2, y = e && e.clientY ? e.clientY : innerHeight / 2;
   const go = () => {
     hub.hidden = true;
@@ -328,13 +323,12 @@ function openChapter(c, e) {
     stageTitle.textContent = c.title;
     frame.title = c.title;
     frame.src = c.url;
-    const cb = document.querySelector('#classicBtn'); if (cb) cb.hidden = !currentClassic;
     clearTimeout(frame._guard);
     frame._guard = setTimeout(frameReady, 3500);   // never leave a child staring at a blank frame
     broadcast();
     window.scrollTo(0, 0);
   };
-  FX.iris(x, y, go, CHAPTER_COLOUR[c.id] || '#0b6e5f');
+  FX.iris(x, y, go, CHAPTER_COLOUR[c.artId || c.id] || '#0b6e5f');
 }
 function frameReady() {
   clearTimeout(frame._guard);
@@ -351,7 +345,6 @@ function closeChapter() {
 document.querySelector('#soundBtn').onclick = () => { settings.sound = !settings.sound; saveSettings(); if (settings.sound) FX.sfx.good(); };
 document.querySelector('#parentsBtn').onclick = parentsDialog;
 document.querySelector('#backBtn').onclick = closeChapter;
-document.querySelector('#classicBtn').onclick = () => { if (currentClassic) frame.src = currentClassic; };
 document.querySelector('#soundBtn').textContent = settings.sound ? '🔊' : '🔇';
 document.querySelector('#soundBtn').setAttribute('aria-label', settings.sound ? 'Turn sound off' : 'Turn sound on');
 
@@ -367,7 +360,6 @@ if (askForName && !params.get('open')) nameDialog(true);
 const wanted = params.get('open');
 if (wanted) {
   const c = chapters.find((x) => x.id === wanted), a = activities.find((x) => x.id === wanted);
-  if (wanted.indexOf('classic-') === 0) { const cc = chapters.find((x) => x.id === wanted.slice(8)); if (cc && cc.classicUrl) openChapter({ ...cc, url: cc.classicUrl, classicUrl: '' }); }
-  else if (c) openChapter(c);
+  if (c) openChapter(c);
   else if (a) openChapter({ title: a.title, url: 'chapters/adventures/index.html?activity=' + encodeURIComponent(a.id) });
 }

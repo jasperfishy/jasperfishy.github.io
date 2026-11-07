@@ -1,4 +1,11 @@
 import { registerModule, getModule } from "./module-registry.js";
+import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js";
+import { mountBuilder } from "./modules/builder.js";
+import { mountJigsaw } from "./modules/jigsaw.js";
+import { mountFossil } from "./modules/fossil.js";
+import { mountMemory } from "./modules/memory.js";
+import { mountPicnic } from "./modules/picnic.js";
+import { mountTrail } from "./modules/trail.js";
 import { mountHatchling } from "./modules/hatchling.js";
 import { mountShapeSafari } from "./modules/shape-safari.js";
 import { mountDinoBeat } from "./modules/dino-beat.js";
@@ -212,12 +219,14 @@ function renderHome() {
     '</section>' +
     '<section class="progress-panel" aria-label="Adventure progress">' +
       '<div class="progress-copy"><span class="progress-medal">🏅</span><span><strong>Your dino discoveries</strong><small>' + state.completed.length + ' activities tried · ' + state.stars + ' happy stars earned</small></span></div>' +
+      '<button class="soft-button" id="albumButton" type="button">Sticker album 🌟 ' + getExtras().stickers.length + '/' + STICKERS.length + '</button>' +
       '<span class="progress-count">' + state.stars + ' ⭐</span></section>' +
     '<div class="section-heading" id="adventures"><h2>Pick a little adventure</h2><p>More levels, surprises and dinosaur friends are waiting as you play.</p></div>' +
     '<div class="filter-row" id="filterRow"></div><div class="activity-grid" id="activityGrid"></div>' +
     '<p class="footer-note">Made for curious little explorers · Grown-up settings are tucked safely away</p>';
   document.getElementById("exploreButton").addEventListener("click", function () { document.getElementById("adventures").scrollIntoView({ behavior: "smooth" }); });
   document.getElementById("colorQuickButton").addEventListener("click", function () { openActivity("coloring"); });
+  document.getElementById("albumButton").addEventListener("click", function () { showDialog("Your sticker album", "Every round you finish and every butterfly you catch can win a new sticker.", albumHTML()); });
   renderFilters();
   renderActivityCards();
   if (window.DUFX && DUFX.dinoPets) { DUFX.dinoPets(app); DUFX.ambient('meadow'); }
@@ -382,6 +391,8 @@ function openActivity(id) {
     speak: speak,
     notify: showToast
   };
+  context.rate = function (n) { finishInfo.stars = Math.max(1, Math.min(3, Number(n) || 3)); };
+  finishInfo = { stars: 3, ratings: [], sticker: null };
   activeContext = context; context.stage._ctx = context;
   const moduleMount = getModule(id);
   if (window.DUFX && DUFX.ambient) DUFX.ambient(AMBIENT[id] || "meadow");
@@ -389,9 +400,12 @@ function openActivity(id) {
   else if (moduleMount) moduleMount(context);
 }
 
+let finishInfo = { stars: 3, ratings: [], sticker: null };
+
 function runRounds(context, mount, baseLevel) {
   const total = roundsFor(baseLevel);
-  let round = 1, busy = false;
+  let round = 1, busy = false, pending = 0;
+  const ratings = [];
   const banner = document.querySelector(".level-banner");
   const bar = document.createElement("div");
   bar.className = "round-bar"; bar.id = "roundBar";
@@ -403,22 +417,42 @@ function runRounds(context, mount, baseLevel) {
   }
   paint();
   const finalAdvance = context.advance;
+  context.rate = function (n) { pending = Math.max(1, Math.min(3, Number(n) || 3)); };
   context.advance = function (message) {
     if (busy) return;
-    if (round >= total) { bar.classList.add("all-done"); finalAdvance(message); return; }
+    const got = pending || 3; pending = 0;
+    ratings.push(got);
+    if (round >= total) {
+      bar.classList.add("all-done");
+      finishInfo.ratings = ratings.slice();
+      finishInfo.stars = Math.max(1, Math.round(ratings.reduce(function (a, b) { return a + b; }, 0) / ratings.length));
+      finalAdvance(message); return;
+    }
     busy = true;
     const F = window.DUFX;
-    if (F) { F.sfx.win(); const r = context.stage.getBoundingClientRect(); F.burst(r.left + r.width / 2, r.top + r.height / 3, { kind: "stars", n: 22 }); F.floatText && F.floatText(r.left + r.width / 2, r.top + r.height / 2, "Round " + round + " done! ⭐"); }
+    const sticker = awardSticker();
+    if (F) { F.sfx.win(); const r = context.stage.getBoundingClientRect(); F.burst(r.left + r.width / 2, r.top + r.height / 3, { kind: state.calmCelebrations ? "sparkle" : "confetti", n: 30 }); F.burst(r.left + r.width / 2, r.top + r.height / 3, { kind: "stars", n: 22 }); F.floatText && F.floatText(r.left + r.width / 2, r.top + r.height / 2, "Round " + round + " done! ⭐"); }
+    const done = round;
     round += 1; paint();
-    const ids = ["Super", "Brilliant", "Fantastic", "Dino-mite", "Roarsome"];
-    context.stage.innerHTML = '<div class="round-interlude"><div class="ri-dino">' + (F && F.dinoHTML ? F.dinoHTML(["trex", "tricera", "stego", "bronto", "raptor"][round % 5], { state: "happy" }) : "🦖") + '</div><h2>' + ids[round % 5] + '! Round ' + (round - 1) + ' complete.</h2><p>Get ready for round ' + round + ' of ' + total + '…</p></div>';
-    window.setTimeout(function () {
-      if (!document.contains(context.stage)) return;
+    const words = ["Super", "Brilliant", "Fantastic", "Dino-mite", "Roarsome"];
+    const species = ["trex", "tricera", "stego", "bronto", "raptor"];
+    context.stage.innerHTML = '<div class="round-interlude"><div class="ri-dino">' + (F && F.dinoHTML ? F.dinoHTML(species[round % 5], { state: "happy" }) : "🦖") + '</div>' +
+      '<h2>' + words[round % 5] + '! Round ' + done + ' complete.</h2>' +
+      '<div class="ri-stars" aria-label="' + got + ' stars">' + [1, 2, 3].map(function (n) { return '<i style="--i:' + n + '" class="' + (n <= got ? "" : "off") + '">' + (n <= got ? "⭐" : "☆") + "</i>"; }).join("") + '</div>' +
+      (sticker ? '<div class="ri-sticker">New sticker <span>' + sticker + '</span></div>' : "") +
+      '<p>Get ready for round ' + round + ' of ' + total + '…</p><button class="soft-button ri-skip" type="button">Go! →</button></div>';
+    let gone = false;
+    function go() {
+      if (gone) return; gone = true;
+      if (!document.contains(context.stage) || !context.stage.querySelector(".round-interlude")) return;
       context.stage.innerHTML = "";
       context.level = baseLevel + round - 1;
       busy = false;
       mount(context);
-    }, 2000);
+    }
+    const skip = context.stage.querySelector(".ri-skip");
+    if (skip) skip.addEventListener("click", go);
+    window.setTimeout(go, 3200);
   };
   mount(context);
 }
@@ -433,7 +467,9 @@ function finishLevel(message) {
   const dino = DINOSAURS[(state.stars - 1) % DINOSAURS.length];
   speak(personalized("You did it! A new dinosaur friend is cheering for you."));
   if (state.sound) sound("good");
+  finishInfo.sticker = awardSticker();
   celebrate(dino, message, id);
+  finishInfo = { stars: 3, ratings: [], sticker: null };
 }
 
 function celebrate(dino, message, id) {
@@ -443,9 +479,10 @@ function celebrate(dino, message, id) {
   layer.className = "celebration";
   if (state.calmCelebrations) layer.classList.add("calm");
   layer.innerHTML = '<div class="celebration-dino" aria-hidden="true">' + dino.icon + '</div><div class="celebration-card" role="dialog" aria-modal="true">' +
-    '<div class="big-prize" aria-hidden="true">⭐</div><h2>' + escapeHtml(personalized("Wonderful work!")) + '</h2>' +
+    '<div class="big-prize" aria-hidden="true">' + [1, 2, 3].map(function (n) { return '<i class="cs-star' + (n <= finishInfo.stars ? "" : " off") + '" style="--i:' + n + '">' + (n <= finishInfo.stars ? "⭐" : "☆") + "</i>"; }).join("") + '</div><h2>' + escapeHtml(personalized(finishInfo.stars === 3 ? "Perfect, wonderful work!" : "Wonderful work!")) + '</h2>' +
     '<p>' + escapeHtml(personalized(message || dino.name + " " + dino.cheer + "!")) + '</p>' +
     '<span class="reward-badge">' + dino.icon + ' New friend: ' + escapeHtml(dino.name) + ' · Level ' + levelOf(id) + '</span>' +
+    (finishInfo.sticker ? '<span class="reward-badge cs-sticker">New sticker: ' + finishInfo.sticker + '</span>' : "") +
     '<div class="win-actions"><button class="primary-button" id="nextLevelButton">Play next level →</button><button class="soft-button" id="chooseGameButton">Choose another game</button></div>' +
     '<p class="balloon-hint">Tap a balloon to pop it!</p></div>';
   const palette = ["#ef806f", "#ffd166", "#6ec7a0", "#8ab8ed", "#bd91d5", "#f3a75e"];
@@ -476,85 +513,6 @@ function stageTitle(context, emoji, title, instruction) {
   return '<div class="stage-heading"><span class="stage-emoji" aria-hidden="true">' + emoji + '</span><h2>' + escapeHtml(title) + '</h2><p>' + escapeHtml(context.message(instruction)) + '</p></div>';
 }
 
-const PARTS = [
-  { id: "tail", label: "Tail", icon: "🦴", slot: "slot-tail" },
-  { id: "body", label: "Body", icon: "🦕", slot: "slot-body" },
-  { id: "head", label: "Head", icon: "🙂", slot: "slot-head" },
-  { id: "feetA", label: "Back feet", icon: "🦶", slot: "slot-leg-a" },
-  { id: "feetB", label: "Front feet", icon: "🦶", slot: "slot-leg-b" },
-  { id: "plates", label: "Dino plates", icon: "🔺", slot: "slot-plates" },
-  { id: "belly", label: "Belly", icon: "🟡", slot: "slot-belly" },
-  { id: "wing", label: "Little wing", icon: "🪽", slot: "slot-wing" }
-];
-
-function mountBuilder(context) {
-  const count = Math.min(PARTS.length, 6 + Math.floor(context.challenge / 2));
-  const parts = PARTS.slice(0, count);
-  context.stage.innerHTML = stageTitle(context, "🦖", "Build a dinosaur", "Pick up a dinosaur part and drop it on its matching place.") +
-    '<div class="assemble-layout"><div class="assemble-board"><svg class="dino-silhouette" viewBox="0 0 300 190" aria-hidden="true">' +
-    '<path d="M67 96c0-32 28-54 66-54h72c36 0 57 18 57 39 0 17-11 29-32 33v39h-19v-32h-23v32h-20v-32h-37c-38 0-64-9-64-25Z" fill="#d9eadb" stroke="#8fb79a" stroke-width="5" stroke-dasharray="8 7"/>' +
-    '<path d="m67 96-39-18 7 17 34 16" fill="#d9eadb" stroke="#8fb79a" stroke-width="5" stroke-dasharray="7 6"/>' +
-    '<circle cx="225" cy="76" r="4" fill="#8fb79a"/></svg>' +
-    parts.map(function (part) { return '<button class="part-slot ' + part.slot + '" data-part="' + part.id + '" aria-label="Place the ' + part.label + ' here"><span>' + part.label + '</span></button>'; }).join("") +
-    '</div><div><div class="stage-side-title">Dino parts</div><div class="piece-tray" id="pieceTray">' +
-    shuffle(parts.slice()).map(function (part) { return '<button class="drag-piece" data-piece="' + part.id + '" aria-label="Pick up ' + part.label + '"><span class="piece-icon">' + part.icon + '</span><small>' + part.label + '</small></button>'; }).join("") +
-    '</div><p class="gentle-hint" id="builderHint">' + escapeHtml(context.message("Tap a part, then tap where it belongs. You can drag it too!")) + '</p></div></div>' +
-    '<div class="progress-track" aria-label="Dinosaur parts placed"><span id="builderProgress" style="width:0%"></span></div>';
-  let selected = null;
-  let placed = 0;
-  let ghost = null;
-  const tray = context.stage.querySelector("#pieceTray");
-  const hint = context.stage.querySelector("#builderHint");
-  const slots = context.stage.querySelectorAll(".part-slot");
-  function place(piece, slot) {
-    if (!piece || !slot || piece.dataset.piece !== slot.dataset.part || piece.classList.contains("used")) return false;
-    const part = parts.find(function (item) { return item.id === piece.dataset.piece; });
-    slot.classList.add("filled"); slot.dataset.piece = part.icon; slot.setAttribute("aria-label", part.label + " placed");
-    piece.classList.add("used"); piece.setAttribute("aria-pressed", "true");
-    selected = null; placed += 1; context.sound("good");
-    context.stage.querySelector("#builderProgress").style.width = (placed / parts.length * 100) + "%";
-    if (placed === parts.length) window.setTimeout(function () { context.advance("Your dinosaur is all put together!"); }, 350);
-    return true;
-  }
-  tray.querySelectorAll(".drag-piece").forEach(function (piece) {
-    piece.addEventListener("click", function () {
-      selected = piece;
-      tray.querySelectorAll(".drag-piece").forEach(function (item) { item.classList.toggle("selected", item === piece && !item.classList.contains("used")); });
-      if (!piece.classList.contains("used")) hint.textContent = context.message("Now tap the matching place on the dinosaur.");
-    });
-    piece.addEventListener("pointerdown", function (event) {
-      if (piece.classList.contains("used")) return;
-      selected = piece;
-      ghost = piece.cloneNode(true);
-      ghost.classList.add("drag-ghost");
-      ghost.style.left = event.clientX + "px"; ghost.style.top = event.clientY + "px";
-      document.body.appendChild(ghost);
-      try { piece.setPointerCapture(event.pointerId); } catch (error) {}
-    });
-    piece.addEventListener("pointermove", function (event) {
-      if (!ghost) return;
-      ghost.style.left = event.clientX + "px"; ghost.style.top = event.clientY + "px";
-    });
-    piece.addEventListener("pointerup", function (event) {
-      if (!ghost) return;
-      ghost.remove(); ghost = null;
-      const target = document.elementFromPoint(event.clientX, event.clientY);
-      const slot = target && target.closest ? target.closest(".part-slot") : null;
-      if (slot && place(piece, slot)) return;
-      selected = piece;
-      hint.textContent = context.message("That part is ready. Find the place with the same name.");
-    });
-  });
-  slots.forEach(function (slot) {
-    slot.addEventListener("click", function () {
-      if (place(selected, slot)) return;
-      context.sound("tap");
-      slot.classList.add("nudge");
-      window.setTimeout(function () { slot.classList.remove("nudge"); }, 240);
-    });
-  });
-}
-
 function shuffle(list) {
   const result = list.slice();
   for (let i = result.length - 1; i > 0; i--) {
@@ -562,203 +520,6 @@ function shuffle(list) {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
-}
-
-function jigsawScene() {
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240">' +
-    '<defs><linearGradient id="s" x2="0" y2="1"><stop stop-color="#bce5ee"/><stop offset="1" stop-color="#fff0c7"/></linearGradient></defs>' +
-    '<rect width="360" height="240" fill="url(#s)"/><circle cx="300" cy="49" r="26" fill="#ffd36d"/>' +
-    '<path d="M0 157q74-67 148-4t120-10 92 6v91H0z" fill="#79bd82"/><path d="M0 197q84-50 176 0t184-9v52H0z" fill="#45896d"/>' +
-    '<path d="M91 145c0-38 29-63 66-63h44c32 0 52 18 52 39 0 17-11 28-29 32v37h-19v-29h-23v29h-20v-30h-27c-27 0-44-6-44-15z" fill="#49a67d" stroke="#245f52" stroke-width="5"/>' +
-    '<path d="m92 145-39-18 6 17 35 15" fill="#49a67d" stroke="#245f52" stroke-width="5"/>' +
-    '<path d="m126 88 11-23 15 24m18-26 16-25 16 29" fill="#e98a62" stroke="#245f52" stroke-width="4"/>' +
-    '<circle cx="240" cy="108" r="5" fill="#183e40"/><path d="M245 126q-11 9-21 0" fill="none" stroke="#183e40" stroke-width="3" stroke-linecap="round"/>' +
-    '<path d="M37 185q12-26 23 0m267 0q12-25 24 0" fill="none" stroke="#fff2c6" stroke-width="6" stroke-linecap="round"/>' +
-    '</svg>';
-}
-
-function mountJigsaw(context) {
-  const challenge = context.challenge;
-  const rows = challenge < 5 ? 2 : 3;
-  const cols = 3;
-  const total = rows * cols;
-  const image = 'data:image/svg+xml;base64,' + window.btoa(jigsawScene());
-  const imageBackground = "url('" + image + "')";
-  let tiles = shuffle(Array.from({ length: total }, function (_, index) { return index; }));
-  let selected = -1;
-  context.stage.innerHTML = stageTitle(context, "🧩", "Dino picture jigsaw", "Tap one piece, then another, to put the picture back together.") +
-    '<figure class="jigsaw-reference"><figcaption>Picture clue</figcaption><img src="' + image + '" alt="The complete dinosaur meadow picture" /></figure>' +
-    '<div class="jigsaw-board" id="jigsawBoard" style="--jigsaw-cols:' + cols + ';--jigsaw-rows:' + rows + '"></div>' +
-    '<p class="gentle-hint" id="jigsawHint">' + escapeHtml(context.message("Every piece belongs in a special spot.")) + '</p>';
-  const board = context.stage.querySelector("#jigsawBoard");
-  function draw() {
-    board.innerHTML = tiles.map(function (piece, index) {
-      const x = piece % cols;
-      const y = Math.floor(piece / cols);
-      const px = cols === 1 ? 0 : (x / (cols - 1)) * 100;
-      const py = rows === 1 ? 0 : (y / (rows - 1)) * 100;
-      return '<button class="jigsaw-tile' + (selected === index ? " selected" : "") + '" data-index="' + index + '" aria-pressed="' + (selected === index) + '" aria-label="Picture piece ' + (index + 1) + '" style="background-image:' + imageBackground + ';background-size:' + (cols * 100) + '% ' + (rows * 100) + '%;background-position:' + px + '% ' + py + '%"></button>';
-    }).join("");
-    board.querySelectorAll(".jigsaw-tile").forEach(function (tile) {
-      tile.addEventListener("click", function () {
-        const index = Number(tile.dataset.index);
-        if (selected < 0) {
-          selected = index; context.sound("tap"); draw();
-          context.stage.querySelector("#jigsawHint").textContent = context.message("Piece " + (index + 1) + " is selected. Choose another piece to swap it.");
-          return;
-        }
-        if (selected === index) {
-          selected = -1; draw();
-          context.stage.querySelector("#jigsawHint").textContent = context.message("Piece unselected. Choose a piece, then another to swap them.");
-          return;
-        }
-        [tiles[selected], tiles[index]] = [tiles[index], tiles[selected]];
-        selected = -1; context.sound("good"); draw();
-        context.stage.querySelector("#jigsawHint").textContent = context.message("Lovely swap! Keep going until the picture is back together.");
-        if (tiles.every(function (item, place) { return item === place; })) window.setTimeout(function () { context.advance("You put the whole dinosaur picture back together!"); }, 250);
-      });
-    });
-  }
-  draw();
-}
-
-function mountFossil(context) {
-  const challenge = context.challenge;
-  const targetCount = Math.min(8, 6 + Math.floor(challenge / 2));
-  const cellCount = Math.min(30, Math.max(12, targetCount * 3));
-  const targets = new Set(shuffle(Array.from({ length: cellCount }, function (_, i) { return i; })).slice(0, targetCount));
-  let found = 0;
-  context.stage.innerHTML = stageTitle(context, "🦴", "Fossil explorer", "Brush away the earth to discover the ancient bones.") +
-    '<div class="dig-grid" id="digGrid" style="--dig-cols:' + (cellCount > 18 ? 5 : 4) + '"></div>' +
-    '<div class="dig-progress"><strong id="boneCount">0</strong> of ' + targetCount + ' fossil finds<div class="progress-track"><span id="digProgress" style="width:0%"></span></div></div>';
-  const grid = context.stage.querySelector("#digGrid");
-  grid.innerHTML = Array.from({ length: cellCount }, function (_, index) { return '<button class="dig-cell" data-cell="' + index + '" aria-label="Brush away soil">✧</button>'; }).join("");
-  grid.querySelectorAll(".dig-cell").forEach(function (cell) {
-    cell.addEventListener("click", function () {
-      if (cell.classList.contains("revealed")) return;
-      const index = Number(cell.dataset.cell);
-      cell.classList.add("revealed");
-      if (targets.has(index)) {
-        cell.textContent = ["🦴", "🥚", "🦷", "🐾", "🦴", "✨", "🪨", "🦴"][found % 8];
-        found += 1; context.sound("good");
-        context.stage.querySelector("#boneCount").textContent = found;
-        context.stage.querySelector("#digProgress").style.width = (found / targetCount * 100) + "%";
-        if (found >= targetCount) window.setTimeout(function () { context.advance("You uncovered a whole dinosaur fossil!"); }, 350);
-      } else {
-        cell.classList.add("empty"); cell.textContent = ["🍃", "🪨", "🌱"][index % 3]; context.sound("tap");
-      }
-    });
-  });
-}
-
-function mountMemory(context) {
-  const pairs = Math.min(8, 5 + Math.floor(context.challenge / 2));
-  const icons = ["🦖", "🦕", "🥚", "🦴", "🌋", "🌿", "🐾", "🪽"];
-  const deck = shuffle(icons.slice(0, pairs).concat(icons.slice(0, pairs)));
-  let first = null;
-  let locked = false;
-  let matched = 0;
-  context.stage.innerHTML = stageTitle(context, "🥚", "Memory eggs", "Turn over two eggs and find the matching dinosaur friends.") +
-    '<div class="memory-grid" id="memoryGrid" style="--memory-cols:' + (pairs >= 5 ? 4 : 3) + '"></div>' +
-    '<p class="gentle-hint" id="memoryHint">' + escapeHtml(context.message("Take your time. The friends are hiding nearby.")) + '</p>';
-  const grid = context.stage.querySelector("#memoryGrid");
-  grid.innerHTML = deck.map(function (icon, index) { return '<button class="memory-card" data-icon="' + icon + '" data-card="' + index + '" aria-label="Mystery egg">🥚</button>'; }).join("");
-  grid.querySelectorAll(".memory-card").forEach(function (card) {
-    card.addEventListener("click", function () {
-      if (locked || card.classList.contains("matched") || card === first) return;
-      card.classList.add("open"); card.textContent = card.dataset.icon; context.sound("tap");
-      if (!first) { first = card; return; }
-      locked = true;
-      if (first.dataset.icon === card.dataset.icon) {
-        first.classList.add("matched"); card.classList.add("matched");
-        matched += 1; first = null; locked = false; context.sound("good");
-        if (matched === pairs) window.setTimeout(function () { context.advance("You found every dinosaur friend!"); }, 300);
-      } else {
-        const previous = first;
-        first = null;
-        window.setTimeout(function () {
-          previous.classList.remove("open"); previous.textContent = "🥚";
-          card.classList.remove("open"); card.textContent = "🥚";
-          locked = false;
-        }, state.calmCelebrations ? 900 : 650);
-      }
-    });
-  });
-}
-
-function mountPicnic(context) {
-  const rounds = Math.min(10, 5 + context.challenge);
-  const foods = [
-    { icon: "🥬", label: "leafy greens", type: "plants" },
-    { icon: "🍓", label: "berries", type: "plants" },
-    { icon: "🐟", label: "fishy snack", type: "fish" },
-    { icon: "🍎", label: "apple", type: "plants" },
-    { icon: "🥕", label: "crunchy carrot", type: "plants" },
-    { icon: "🦐", label: "tiny shrimp", type: "fish" }
-  ];
-  let round = 0;
-  let target = null;
-  let friend = null;
-  function nextMeal() {
-    target = foods[Math.floor(Math.random() * foods.length)];
-    friend = DINOSAURS[Math.floor(Math.random() * DINOSAURS.length)];
-    draw();
-  }
-  function draw() {
-    context.stage.innerHTML = stageTitle(context, friend.icon, "Dino picnic", "Choose the treat this dinosaur is asking for.") +
-      '<div class="picnic-friend">' + friend.icon + '<span>' + friend.name + '</span></div>' +
-      '<div class="snack-request">' + escapeHtml(context.message("I would love " + target.label + "!")) + '</div>' +
-      '<div class="snack-row" id="snackRow"></div>' +
-      '<div class="dig-progress"><strong id="mealCount">' + round + '</strong> of ' + rounds + ' picnic treats shared</div>';
-    const choices = shuffle([target].concat(foods.filter(function (food) { return food.type !== target.type; }).slice(0, 2)));
-    context.stage.querySelector("#snackRow").innerHTML = choices.map(function (food) {
-      return '<button class="snack-button" data-food="' + food.label + '"><span>' + food.icon + '</span><small>' + food.label + '</small></button>';
-    }).join("");
-    context.stage.querySelectorAll("[data-food]").forEach(function (button) {
-      button.addEventListener("click", function () {
-        if (button.dataset.food === target.label) {
-          round += 1; context.sound("good");
-          button.classList.add("served");
-          if (round >= rounds) window.setTimeout(function () { context.advance("Every dinosaur had a lovely picnic!"); }, 300);
-          else window.setTimeout(nextMeal, 350);
-        } else {
-          button.classList.add("nudge"); context.sound("tap");
-          context.stage.querySelector(".snack-request").textContent = context.message("That snack can wait. Look for " + target.label + ".");
-          window.setTimeout(function () { button.classList.remove("nudge"); }, 350);
-        }
-      });
-    });
-  }
-  nextMeal();
-}
-
-function mountTrail(context) {
-  const length = Math.min(16, 8 + context.challenge * 2);
-  let next = 1;
-  const order = shuffle(Array.from({ length: 16 }, function (_, index) { return index; })).slice(0, length);
-  context.stage.innerHTML = stageTitle(context, "👣", "Footprint trail", "Tap the footprints in number order to see who has been here.") +
-    '<div class="trail-grid" id="trailGrid"></div><p class="gentle-hint" id="trailHint">' + escapeHtml(context.message("Start with footprint number one.")) + '</p>' +
-    '<div class="progress-track"><span id="trailProgress" style="width:0%"></span></div>';
-  const grid = context.stage.querySelector("#trailGrid");
-  const spots = new Array(16).fill(null);
-  order.forEach(function (spot, index) { spots[spot] = index + 1; });
-  grid.innerHTML = spots.map(function (number) {
-    if (!number || number > length) return '<span class="trail-space" aria-hidden="true"></span>';
-    return '<button class="trail-dot" data-number="' + number + '">' + number + '</button>';
-  }).join("");
-  grid.querySelectorAll("[data-number]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      const value = Number(button.dataset.number);
-      if (value === next) {
-        button.classList.add("done"); button.disabled = true; next += 1; context.sound("tap");
-        context.stage.querySelector("#trailProgress").style.width = ((next - 1) / length * 100) + "%";
-        if (next > length) window.setTimeout(function () { context.advance("You followed the footprints all the way home!"); }, 300);
-        else context.stage.querySelector("#trailHint").textContent = context.message("Lovely! Now find footprint number " + next + ".");
-      } else {
-        context.stage.querySelector("#trailHint").textContent = context.message("Let’s look for number " + next + ".");
-      }
-    });
-  });
 }
 
 function svgForPage(index) {
@@ -887,6 +648,7 @@ function svgForPage(index) {
     '<path d="M57 212c4-21 11-35 20-44m-11 27q-24-2-27-18m37 7q20-9 20-24" fill="none" stroke="' + fill("plant", "#5d9c72") + '" stroke-width="8" stroke-linecap="round" data-region="plant"/>' +
     dino.tail + dino.body + dino.plates + dino.head + dino.belly + dino.legs + dino.detail +
     '<path d="M350 222q11-23 22 0m-318 4q10-20 20 0" fill="none" stroke="#fffdf4" stroke-width="6" stroke-linecap="round"/>' +
+    (colors.__st || []).map(function (st) { return '<text x="' + st.x + '" y="' + st.y + '" font-size="30" text-anchor="middle" class="cw-sticker">' + st.e + '</text>'; }).join("") +
     '</svg>';
 }
 
@@ -911,6 +673,10 @@ function coloringSceneDetails(index, fill) {
 function mountColoring(context) {
   let pageIndex = 0;
   let undo = [];
+  let stamp = null, magicIdx = 0, lastRegion = null;
+  const celebrated = new Set();
+  const RAINBOW = ["#ef795f", "#f5b64e", "#f7d76d", "#6fb881", "#65abd2", "#9182c7", "#d6789a"];
+  const STICKERS = ["🦋", "⭐", "🌸", "🦴", "🌈", "🥚", "☀️", "💎", "🐞", "🎈"];
   function pageLimit() { return Math.min(COLOR_PAGES.length, 4 + Math.floor(state.stars / 2)); }
   function draw() {
     const unlocked = pageLimit();
@@ -931,21 +697,47 @@ function mountColoring(context) {
     palette.innerHTML = colors.map(function (color, index) {
       return '<button class="color-swatch' + (activeColor === color ? " selected" : "") + '" style="background:' + color + '" data-color="' + color + '" aria-label="Colour ' + (index + 1) + '" aria-pressed="' + (activeColor === color) + '"></button>';
     }).join("");
+    palette.insertAdjacentHTML("beforeend", '<button class="color-swatch magic' + (activeColor === "magic" ? " selected" : "") + '" data-color="magic" aria-label="Rainbow magic paint" aria-pressed="' + (activeColor === "magic") + '">🌈</button>');
+    palette.insertAdjacentHTML("afterend", '<h3 class="sticker-h">Stickers</h3><div class="sticker-row" id="stickerRow">' + STICKERS.map(function (e) { return '<button class="sticker-pick' + (stamp === e ? " selected" : "") + '" data-sticker="' + e + '" aria-label="Sticker ' + e + '" aria-pressed="' + (stamp === e) + '">' + e + '</button>'; }).join("") + '</div>');
     palette.querySelectorAll("[data-color]").forEach(function (button) {
-      button.addEventListener("click", function () { activeColor = button.dataset.color; draw(); });
+      button.addEventListener("click", function () { activeColor = button.dataset.color; stamp = null; if (window.DUFX && DUFX.sfx) DUFX.sfx.pop(); draw(); });
     });
+    context.stage.querySelectorAll("[data-sticker]").forEach(function (button) {
+      button.addEventListener("click", function () { stamp = stamp === button.dataset.sticker ? null : button.dataset.sticker; if (window.DUFX && DUFX.sfx) DUFX.sfx.tap(); draw(); });
+    });
+    const artWrap = context.stage.querySelector("#colorArtWrap");
+    artWrap.classList.toggle("stamping", !!stamp);
+    artWrap.addEventListener("click", function (event) {
+      if (!stamp) return;
+      event.stopPropagation();
+      const svg = artWrap.querySelector("svg"), box = svg.getBoundingClientRect();
+      const x = Math.round((event.clientX - box.left) / box.width * 420), y = Math.round((event.clientY - box.top) / box.height * 300) + 10;
+      if (!state.colorWork[pageIndex]) state.colorWork[pageIndex] = {};
+      (state.colorWork[pageIndex].__st = state.colorWork[pageIndex].__st || []).push({ e: stamp, x: x, y: y });
+      undo.push({ sticker: true });
+      saveState();
+      if (window.DUFX) { DUFX.sfx.pop(); DUFX.burst(event.clientX, event.clientY, { kind: "sparkle", n: 10 }); DUFX.floatText && DUFX.floatText(event.clientX, event.clientY - 10, "Nice!"); }
+      draw();
+    }, true);
     context.stage.querySelectorAll("[data-region]").forEach(function (part) {
-      part.addEventListener("click", function () {
+      part.addEventListener("click", function (event) {
         const old = (state.colorWork[pageIndex] || {})[part.dataset.region] || "";
         undo.push({ region: part.dataset.region, value: old });
         if (!state.colorWork[pageIndex]) state.colorWork[pageIndex] = {};
-        state.colorWork[pageIndex][part.dataset.region] = activeColor;
-        saveState(); context.sound("tap"); draw();
+        const paint = activeColor === "magic" ? RAINBOW[magicIdx++ % RAINBOW.length] : activeColor;
+        state.colorWork[pageIndex][part.dataset.region] = paint;
+        lastRegion = part.dataset.region;
+        saveState();
+        if (window.DUFX) { DUFX.sfx.pop(); DUFX.burst(event.clientX, event.clientY, { kind: activeColor === "magic" ? "confetti" : "sparkle", n: activeColor === "magic" ? 12 : 8 }); }
+        else context.sound("tap");
+        draw();
+        checkComplete();
       });
     });
     context.stage.querySelector("#undoColor").addEventListener("click", function () {
       const last = undo.pop();
       if (!last) { context.notify("Choose a coloured part first."); return; }
+      if (last.sticker) { (state.colorWork[pageIndex].__st || []).pop(); saveState(); draw(); return; }
       if (!last.value) delete state.colorWork[pageIndex][last.region];
       else state.colorWork[pageIndex][last.region] = last.value;
       saveState(); draw();
@@ -956,6 +748,20 @@ function mountColoring(context) {
     context.stage.querySelector("#galleryButton").addEventListener("click", showGallery);
     context.stage.querySelector("#saveColor").addEventListener("click", savePicture);
     context.stage.querySelector("#printColor").addEventListener("click", printPicture);
+    if (lastRegion) {
+      context.stage.querySelectorAll('#colorArtWrap [data-region="' + lastRegion + '"]').forEach(function (part) { part.classList.add("cw-flash"); });
+      lastRegion = null;
+    }
+  }
+  function checkComplete() {
+    const names = new Set(Array.prototype.map.call(context.stage.querySelectorAll("#colorArtWrap [data-region]"), function (e) { return e.dataset.region; }));
+    const done = Object.keys(state.colorWork[pageIndex] || {}).filter(function (k) { return names.has(k); }).length;
+    if (done < names.size || celebrated.has(pageIndex)) return;
+    celebrated.add(pageIndex);
+    const page = COLOR_PAGES[pageIndex];
+    if (window.DUFX) { DUFX.celebrate(); DUFX.sfx.win(); }
+    context.notify("Every part is painted! A beautiful " + page.name + " picture!");
+    window.setTimeout(function () { if (document.contains(context.stage) && currentActivity === "coloring") context.advance("You finished a beautiful " + page.name + " picture!"); }, 2600);
   }
   function savePicture() {
     const artwork = context.stage.querySelector("#colorArtWrap svg");
@@ -1069,5 +875,6 @@ else if (!state.seenIntro && !window.matchMedia("(prefers-reduced-motion: reduce
 else {
   state.seenIntro = true;
   renderHome();
-  if (!state.nameAsked) window.setTimeout(askName, 180);
+  if (REQUESTED_ACTIVITY && getModule(REQUESTED_ACTIVITY)) openActivity(REQUESTED_ACTIVITY);
+  else if (!state.nameAsked) window.setTimeout(askName, 180);
 }

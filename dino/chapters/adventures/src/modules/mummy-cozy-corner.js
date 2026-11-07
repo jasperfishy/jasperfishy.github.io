@@ -3,6 +3,7 @@
 // relax in the living room (a comfy chair, a cup of tea, some cake, a feather fan), then it is bedtime:
 // she is tucked in, her pillow is fluffed, a bedtime story is read, a lullaby is played, a goodnight
 // nuzzle is given and finally the light goes out. Wrong choices are funny, never punished.
+import { attachBonus } from "../adv-kit.js?v=du-04c80678fe526be4";
 const FX = window.DUFX;
 const W = 800, H = 500;
 const HELPERS = [
@@ -73,6 +74,7 @@ const BOOK = [
 ];
 
 export function mountMummyCozyCorner(context) {
+  attachBonus(context.stage);
   const level = context.level;
   const helperPool = HELPERS.slice(0, Math.min(HELPERS.length, 3 + Math.floor((level - 1) / 2)));
   const name = context.playerName || '';
@@ -159,7 +161,7 @@ export function mountMummyCozyCorner(context) {
   }
   async function wrongGag(o, from, dest) {
     const placed = await fetchTo(o, from, dest);
-    FX.personState(mum, 'tired'); tell(o.quip || 'Ha ha, no thank you, darling!', 'mum', 2200); FX.sfx.boing(); FX.dinoState(dino, 'sad', 1400);
+    if (mum.getAttribute('data-base') !== 'lie') FX.personState(mum, 'tired'); tell(o.quip || 'Ha ha, no thank you, darling!', 'mum', 2200); FX.sfx.boing(); FX.dinoState(dino, 'sad', 1400);
     await wait(2200); A(); placed.remove(); FX.dinoState(dino, 'walk');
     dinoWrap.style.transition = 'none'; putDino(dest.x, dest.y, 1, from === 'left'); void dinoWrap.offsetWidth; putDino(from === 'left' ? -170 : W + 170, 452, 1, from === 'left'); await glide(dinoWrap, 1000);
     dinoWrap.style.transition = 'none'; putDino(from === 'left' ? -170 : W + 170, 452, 1, false); void dinoWrap.offsetWidth; FX.dinoState(dino, 'walk'); putDino(150, 452, 1, false); await glide(dinoWrap, 1000); FX.dinoState(dino, 'idle');
@@ -171,7 +173,7 @@ export function mountMummyCozyCorner(context) {
       await wrongGag(o, t.from, t.dest);
     }
   }
-  const happy = async (line, ms = 2400, heart = 1) => { FX.personState(mum, 'happy', 1300); FX.sfx.good(); FX.burst(...mumHead(), { kind: 'hearts', n: 8 }); tell(line, 'mum', ms); say(line); mood(heart); await wait(ms); A(); };
+  const happy = async (line, ms = 2400, heart = 1) => { if (mum.getAttribute('data-base') !== 'lie') FX.personState(mum, 'happy', 1300); FX.sfx.good(); FX.burst(...mumHead(), { kind: 'hearts', n: 8 }); tell(line, 'mum', ms); say(line); mood(heart); await wait(ms); A(); };
   const mumHead = () => { const r = mum.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * .15]; };
 
   // ------------------------------------------------------------ living room

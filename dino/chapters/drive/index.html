@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0b6e5f" />
   <title>Dino Car Studio · Dinosaur Universe</title>
-  <link rel="stylesheet" href="../../fx/du-fx.css?v=du-0d928b5c7d8c29dc" />
-  <link rel="stylesheet" href="css/style.css?v=du-0d928b5c7d8c29dc" />
+  <link rel="stylesheet" href="../../fx/du-fx.css?v=du-04c80678fe526be4" />
+  <link rel="stylesheet" href="css/style.css?v=du-04c80678fe526be4" />
 </head>
 <body>
   <header class="topbar">
@@ -24,6 +23,7 @@
     <!-- Home -->
     <section id="screen-home" class="screen">
       <div class="home-card">
+        <div class="home-walker" id="homeWalker" aria-hidden="true"></div>
         <h2 class="home-title">Let's build your dream car!</h2>
         <div class="home-buttons">
           <button id="btnPaint" class="big-btn paint">
@@ -41,6 +41,10 @@
           <button id="btnRace" class="big-btn race">
             <span class="big-icon">🏁</span>
             <span>Dino Race</span>
+          </button>
+          <button id="btnRun" class="big-btn run">
+            <span class="big-icon">🏃</span>
+            <span>Dino Run</span>
           </button>
         </div>
         <div class="home-lower">
@@ -106,8 +110,10 @@
     </section>
   </main>
 
-  <script src="../../fx/du-fx.js?v=du-0d928b5c7d8c29dc"></script>
-  <script type="module" src="js/main.js?v=du-0d928b5c7d8c29dc"></script>
-<script src="../../update-manager.js?v=du-0d928b5c7d8c29dc"></script>
+  <script src="../../fx/du-dino.js?v=du-04c80678fe526be4"></script>
+  <script src="../../fx/du-fx.js?v=du-04c80678fe526be4"></script>
+  <script src="../../fx/du-ambient.js?v=du-04c80678fe526be4"></script>
+  <script type="module" src="js/main.js?v=du-04c80678fe526be4"></script>
+<script src="../../update-manager.js?v=du-04c80678fe526be4"></script>
 </body>
 </html>

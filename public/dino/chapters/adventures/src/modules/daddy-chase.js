@@ -56,8 +56,8 @@ export function mountDaddyChase(context) {
   function startChase(dino) {
     S.speed = dino.speed; S.tough = dino.tough;
     context.stage.innerHTML = '<div class="dc-wrap"><div class="dc-area"><canvas width="' + W + '" height="' + H + '" class="dc-cv"></canvas><div class="dc-layer"></div>' +
-      '<div class="dc-hud"><div class="dc-gap"><span class="dc-gap-d"></span><div class="dc-gap-bar"><i></i></div><span class="dc-gap-me">' + FX.dinoHTML(dino.id, { size: 40 }) + '</span></div><div class="dc-say" aria-live="polite"></div></div>' +
-      '<div class="dc-ctrls"><button class="dc-btn" data-a="l" aria-label="Move left">◀</button><button class="dc-btn dc-jump" data-a="j" aria-label="Jump">⤴ Jump</button><button class="dc-btn" data-a="r" aria-label="Move right">▶</button></div></div></div>';
+      '<div class="dc-hud"><div class="dc-gap"><span class="dc-gap-d"></span><div class="dc-gap-bar"><i></i></div><span class="dc-gap-me">' + FX.dinoHTML(dino.id, { size: 40 }) + '</span></div><div class="dc-say" aria-live="polite"></div></div></div>' + // buttons go below the play area (inside it the canvas covered them)
+      '<div class="dc-ctrls"><button class="dc-btn" data-a="l" aria-label="Move left">◀</button><button class="dc-btn dc-jump" data-a="j" aria-label="Jump">⤴ Jump</button><button class="dc-btn" data-a="r" aria-label="Move right">▶</button></div></div>';
     area = context.stage.querySelector('.dc-area'); cv = area.querySelector('canvas'); c = cv.getContext('2d'); layer = area.querySelector('.dc-layer');
     gapFill = area.querySelector('.dc-gap-bar i'); say = area.querySelector('.dc-say');
     layer.innerHTML = '<div class="dc-ride"></div><div class="dc-daddy">' + FX.personHTML('daddy', { state: 'run', size: 1 }) + '</div><div class="dc-dino-me">' + FX.dinoHTML(dino.id, { state: 'run', size: 190 }) + '</div>';

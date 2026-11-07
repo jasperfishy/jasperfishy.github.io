@@ -21,7 +21,6 @@ class FlightScene extends Phaser.Scene {
     const g = this.make.graphics({ add: false });
 
     // Dino hanging from a balloon.
-    if (!this.textures.exists("flyer")) {
     g.fillStyle(0xff6b6b, 1);
     g.fillEllipse(40, 30, 56, 66);
     g.fillStyle(0xffffff, 0.45);
@@ -39,28 +38,22 @@ class FlightScene extends Phaser.Scene {
     g.fillStyle(0x222222, 1);
     g.fillCircle(72, 90, 2);
     g.generateTexture("flyer", 86, 126);
-    }
 
     // Cloud pillar segment (tiled to build gates).
-    if (!this.textures.exists("cloudBlock")) {
     g.clear();
     g.fillStyle(0xffffff, 1);
     g.fillRoundedRect(0, 0, 90, 60, 28);
     g.fillStyle(0xdde9f5, 1);
     g.fillRoundedRect(8, 30, 74, 26, 14);
     g.generateTexture("cloudBlock", 90, 60);
-    }
 
-    if (!this.textures.exists("dot")) {
     g.clear();
     g.fillStyle(0xffffff, 1);
     g.fillCircle(8, 8, 8);
     g.generateTexture("dot", 16, 16);
-    }
     g.destroy();
 
     const mk = (key, emoji, size) => {
-      if (this.textures.exists(key)) return;
       const t = this.add.text(0, 0, emoji, { fontSize: size + "px", fontFamily: "sans-serif" });
       t.setPadding(4);
       const rt = this.make.renderTexture({ width: Math.ceil(t.width), height: Math.ceil(t.height), add: false });
@@ -129,9 +122,7 @@ class FlightScene extends Phaser.Scene {
 
     this.starIcon = this.add.image(36, 36, "kit-star").setScale(0.9).setDepth(60);
     this.input.keyboard.on("keydown-SPACE", () => this.flap());
-    const home = this.add.text(22, 24, "← Games", { fontSize: "16px", fontFamily: "system-ui,sans-serif", fontStyle: "bold", color: "#17403a", backgroundColor: "#ffffff", padding: { x: 10, y: 7 } }).setDepth(90).setInteractive({ useHandCursor: true });
-    home.on("pointerdown", (pointer, _lx, _ly, event) => { event?.stopPropagation(); this.scene.start("adventure-menu"); });
-    this.input.on("pointerdown", (pointer) => { if (pointer.x > 135 && pointer.y > 68) this.flap(); });
+    this.input.on("pointerdown", () => this.flap());
 
     DUKit.ready();
     if (skipTitle) this.ready = true;
@@ -237,5 +228,5 @@ window.game = new Phaser.Game({
   backgroundColor: "#69c8ff",
   physics: { default: "arcade", arcade: { debug: false } },
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  scene: [window.AdventuresPack.MenuScene, window.AdventuresPack.GameScene, FlightScene]
+  scene: [FlightScene]
 });

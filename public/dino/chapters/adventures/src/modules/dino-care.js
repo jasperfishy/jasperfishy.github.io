@@ -1,88 +1,145 @@
+/* Dino Care Clinic — a waiting room of dinosaur patients. Pick one, read its little health bars (clean, thirst, hunger,
+ * warmth, rest, joy) and give just the right care: brush off the dust, a drink, a snack, a cool cloth, a flower garland,
+ * a shady nap. Wrong tool? The dinosaur kindly says what it really needs. Every patient leaves with a health certificate. */
 import { PREHISTORIC_CREATURES } from "./dino-discoveries.js";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js";
 
-const DINOSAURS = PREHISTORIC_CREATURES.filter(function (creature) { return creature.kind === "Dinosaur"; });
-const CARE_TASKS = [
-  { id: "brush", icon: "🪥", name: "Soft brush", line: "Brush away the soft meadow dust." },
-  { id: "water", icon: "💧", name: "Fresh water", line: "Offer a cool drink of fresh water." },
-  { id: "fern", icon: "🌿", name: "Fern snack", line: "Find a crunchy fern snack." },
-  { id: "cloth", icon: "🧺", name: "Cool cloth", line: "Place a cool cloth nearby for a little rest." },
-  { id: "flowers", icon: "🌼", name: "Flower garland", line: "Make a flower garland for your new friend." },
-  { id: "shade", icon: "🌳", name: "Cosy shade", line: "Find a shady spot to relax together." }
+const PATIENTS = [
+  { sp: "trex", color: "green", name: "Rexy", fact: "T. rex had strong legs, tiny arms and a powerful bite." },
+  { sp: "tricera", color: "teal", name: "Trixie", fact: "Triceratops had three face horns and a big bony frill." },
+  { sp: "stego", color: "purple", name: "Spike", fact: "Stegosaurus had large plates on its back and spikes on its tail." },
+  { sp: "bronto", color: "orange", name: "Bronte", fact: "Long-necked dinosaurs could reach leaves high in the trees." },
+  { sp: "raptor", color: "red", name: "Zippy", fact: "Velociraptor was about the size of a turkey, and it had feathers." },
+  { sp: "ptero", color: "blue", name: "Skye", fact: "Pteranodon was a flying reptile, not a dinosaur." },
+  { sp: "tricera", color: "yellow", name: "Sunny", fact: "Triceratops probably lived in groups called herds." },
+  { sp: "stego", color: "pink", name: "Rosie", fact: "Stegosaurus had a very small brain compared to its big body." }
 ];
+const NEEDS = {
+  brush: { icon: "🪥", tool: "Soft brush", meter: "Clean", ask: "I'm all dusty! Could I have a brush?", ok: "Sparkly clean!", sound: "sparkle" },
+  water: { icon: "💧", tool: "Fresh water", meter: "Thirst", ask: "I'm so thirsty… a drink, please!", ok: "Gulp gulp, lovely!", sound: "splash" },
+  fern: { icon: "🌿", tool: "Fern snack", meter: "Hunger", ask: "My tummy is rumbling. Something to eat?", ok: "Yum, crunchy ferns!", sound: "chomp" },
+  cloth: { icon: "🧺", tool: "Cool cloth", meter: "Warmth", ask: "I feel a bit too warm. A cool cloth, please?", ok: "Ahh, so cool!", sound: "pop" },
+  flowers: { icon: "🌼", tool: "Flower garland", meter: "Joy", ask: "I'm feeling a bit blue. Something cheerful?", ok: "I love my garland!", sound: "good" },
+  shade: { icon: "🌳", tool: "Cosy shade", meter: "Rest", ask: "I'm sleepy… a shady place to rest?", ok: "Zzz… so cosy!", sound: "note" }
+};
+const ALL = Object.keys(NEEDS);
 
 export function mountDinoCare(context) {
-  const visibleCount = Math.min(DINOSAURS.length, 5 + Math.max(0, context.level - 1) * 2);
-  let dinosaur = null;
-  let tasks = [];
-  let completed = new Set();
-  let hint = "Choose a dinosaur friend who would like a little meadow care.";
+  const F = window.DUFX;
+  const visible = Math.min(PATIENTS.length, 4 + Math.max(0, context.level - 1));
+  const needCount = Math.min(6, 3 + Math.floor(Math.max(0, context.challenge) / 2));
+  const play = createPlay(context, {
+    emoji: "🧺", title: "Dino Care Clinic", theme: "meadow", buddy: false, wander: false,
+    instruction: "Pick a patient, look at the little health bars, and give just the care it needs.", hint: "More dinosaur friends join the clinic as levels grow. Everyone gets gentle care.", allowed: 3
+  });
+  const board = play.board;
+  let patient = null, meters = {}, busy = false, certs = collection("clinic").length;
 
-  function drawChoices() {
-    const available = DINOSAURS.slice(0, visibleCount);
-    context.stage.innerHTML = '<div class="stage-heading"><span class="stage-emoji" aria-hidden="true">🧺</span><h2>Dino Care Clinic</h2><p>' + escapeText(context.message(hint)) + '</p></div>' +
-      '<div class="care-choice-grid">' + available.map(function (creature, index) {
-        return '<button class="care-dino-choice" data-dino="' + index + '"><span>' + creature.icon + '</span><strong>' + escapeText(creature.short) + '</strong></button>';
-      }).join("") + '</div><p class="gentle-hint">More dinosaur friends join the clinic as levels grow. Everyone gets gentle care.</p>';
-    context.stage.querySelectorAll("[data-dino]").forEach(function (button) {
-      button.addEventListener("click", function () { beginCare(available[Number(button.dataset.dino)]); });
+  function waiting() {
+    const list = PATIENTS.slice(0, visible);
+    board.innerHTML = '<h3 class="cc-q">Who needs care today?</h3><div class="cc-room">' + list.map(function (p, i) {
+      const needs = shuffle(ALL.slice()).slice(0, 2);
+      p.preview = needs;
+      return '<button type="button" class="cc-bench" data-i="' + i + '"><span class="cc-bubble">' + needs.map(function (n) { return NEEDS[n].icon; }).join(" ") + '</span><span class="cc-pd">' + F.dinoHTML(p.sp, { color: p.color, state: i % 2 ? "sad" : "idle", size: "100%" }) + "</span><b>" + p.name + "</b></button>";
+    }).join("") + '</div><p class="cc-certs">📜 Health certificates earned: <b>' + certs + "</b></p>";
+    board.querySelectorAll(".cc-bench").forEach(function (b, i) {
+      if (F.anim) F.anim(b, [{ opacity: 0, transform: "translateY(20px) scale(.7)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: i * 60, fill: "backwards" });
+      b.addEventListener("click", function () { treat(list[Number(b.dataset.i)]); });
     });
+    play.hint("More dinosaur friends join the clinic as levels grow. Everyone gets gentle care.", true);
   }
 
-  function beginCare(creature) {
-    dinosaur = creature;
-    const count = Math.min(CARE_TASKS.length, 5 + Math.floor(Math.max(0, context.challenge) / 2));
-    const offset = (context.level - 1) % CARE_TASKS.length;
-    tasks = CARE_TASKS.slice(offset).concat(CARE_TASKS.slice(0, offset)).slice(0, count);
-    completed = new Set();
-    hint = creature.short + " would love a few gentle comforts.";
-    drawCare();
-  }
-
-  function drawCare() {
-    const finished = completed.size === tasks.length;
-    const current = tasks.find(function (task) { return !completed.has(task.id); });
-    const creatureFact = dinosaur.fact;
-    context.stage.innerHTML = '<div class="stage-heading"><span class="stage-emoji" aria-hidden="true">🧺</span><h2>Dino Care Clinic</h2><p>' + escapeText(context.message(finished ? "Your dinosaur friend feels cosy and cared for!" : current.line)) + '</p></div>' +
-      '<div class="care-scene' + (finished ? ' care-happy' : '') + '"><span class="care-spark care-spark-one">✦</span><span class="care-dino">' + dinosaur.icon + '</span><strong>' + escapeText(dinosaur.name) + '</strong>' +
-      '<small>' + escapeText(completed.size + " of " + tasks.length + " kind touches") + '</small></div>' +
-      '<div class="care-progress"><span style="width:' + (completed.size / tasks.length * 100) + '%"></span></div>' +
-      (finished ? '<aside class="care-fact"><strong>A little dinosaur fact</strong><br>' + escapeText(creatureFact) + '</aside><div class="care-actions"><button class="tiny-button" id="careSpeak">🔊 Hear the fact</button><button class="primary-button" id="careFinish">Finish this kind visit</button></div>' :
-        '<div class="care-task-grid">' + CARE_TASKS.map(function (task) {
-          const done = completed.has(task.id);
-          const expected = current && current.id === task.id;
-          return '<button class="care-task' + (done ? ' care-task-done' : '') + (expected ? ' care-task-next' : '') + '" data-task="' + task.id + '"' + (done ? ' disabled' : '') + '><span>' + task.icon + '</span><small>' + escapeText(task.name) + '</small></button>';
-        }).join("") + '</div><p class="gentle-hint" id="careHint">' + escapeText(context.message(hint)) + '</p>');
-
-    context.stage.querySelectorAll("[data-task]").forEach(function (button) {
-      button.addEventListener("click", function () { doCare(button.dataset.task); });
+  function treat(p) {
+    patient = p; busy = false;
+    const sick = shuffle(ALL.slice()).slice(0, needCount);
+    meters = {};
+    ALL.forEach(function (k) { meters[k] = sick.indexOf(k) >= 0 ? 15 + Math.floor(Math.random() * 30) : 100; });
+    board.innerHTML = '<div class="cc-bar" id="ccBars"></div><div class="cc-stage" id="ccStage"><div class="cc-pat" id="ccPat">' + F.dinoHTML(p.sp, { color: p.color, state: "sad", size: "100%" }) + '<div class="cc-dust"></div><span class="cc-garland" hidden>🌼🌸🌼🌸🌼</span><span class="cc-cool" hidden>🧺</span><span class="cc-zzz" hidden>💤</span></div><div class="cc-speech" id="ccSpeech"></div></div>' +
+      '<div class="cc-tools" id="ccTools"></div>';
+    const dust = board.querySelector(".cc-dust");
+    if (meters.brush < 100) dust.innerHTML = Array.from({ length: 7 }, function () { return '<i style="left:' + (10 + Math.random() * 78).toFixed(0) + '%;top:' + (22 + Math.random() * 58).toFixed(0) + '%;--s:' + (0.8 + Math.random() * 0.9).toFixed(2) + '"></i>'; }).join("");
+    const tools = board.querySelector("#ccTools");
+    shuffle(ALL.slice()).forEach(function (k, i) {
+      const n = NEEDS[k], b = document.createElement("button");
+      b.type = "button"; b.className = "cc-tool"; b.dataset.k = k; b.innerHTML = "<span>" + n.icon + "</span><small>" + n.tool + "</small>";
+      b.setAttribute("aria-label", n.tool);
+      tools.appendChild(b);
+      if (F.anim) F.anim(b, [{ opacity: 0, transform: "translateY(20px) scale(.6)" }, { opacity: 1, transform: "none" }], { duration: 400, delay: i * 50, fill: "backwards" });
+      b.addEventListener("click", function () { useTool(k, b); });
+      dragPiece(b, {
+        ghost: function () { const g = document.createElement("div"); g.className = "hb-ghost"; g.textContent = n.icon; g.style.fontSize = "46px"; return g; },
+        onDrop: function (x, y) { const r = board.querySelector("#ccPat").getBoundingClientRect(); if (x > r.left - 30 && x < r.right + 30 && y > r.top - 30 && y < r.bottom + 30) useTool(k, b); else play.hint("Drop it on the dinosaur, or just tap the tool!", true); }
+      });
     });
-    const finish = context.stage.querySelector("#careFinish");
-    if (finish) finish.addEventListener("click", function () { context.advance("You gave " + dinosaur.short + " a lovely caring visit!"); });
-    const speak = context.stage.querySelector("#careSpeak");
-    if (speak) speak.addEventListener("click", function () { context.speak(dinosaur.name + ". " + creatureFact); });
+    renderBars();
+    const first = sick[0];
+    say(p.name + ": \"" + NEEDS[first].ask + "\"");
+    play.hint("Look at the bars: the low ones need care. Tap or drag the matching tool to " + p.name + ".", true);
+    updateMood();
+  }
+  function say(t) { const s = board.querySelector("#ccSpeech"); if (s) { s.textContent = t; F.pop && F.pop(s); } }
+  function renderBars() {
+    board.querySelector("#ccBars").innerHTML = ALL.map(function (k) {
+      const v = meters[k];
+      return '<span class="cc-m' + (v >= 100 ? " full" : v < 50 ? " low" : "") + '"><i>' + NEEDS[k].icon + '</i><em><u style="width:' + v + '%"></u></em></span>';
+    }).join("");
+  }
+  function updateMood() {
+    const d = board.querySelector("#ccPat .du-dino");
+    if (!d) return;
+    const low = ALL.filter(function (k) { return meters[k] < 100; }).length;
+    d.setAttribute("data-base", low === 0 ? "happy" : low <= 2 ? "idle" : "sad");
+    F.dinoState(d, low === 0 ? "happy" : low <= 2 ? "idle" : "sad");
   }
 
-  function doCare(id) {
-    const task = CARE_TASKS.find(function (item) { return item.id === id; });
-    const current = tasks.find(function (item) { return !completed.has(item.id); });
-    if (!current || id !== current.id) {
-      context.sound("tap");
-      const message = task.name + " is a lovely idea. First, " + current.name.toLowerCase() + ".";
-      context.stage.querySelector("#careHint").textContent = context.message(message);
+  function useTool(k, btn) {
+    if (busy) return;
+    const n = NEEDS[k], pat = board.querySelector("#ccPat"), d = pat.querySelector(".du-dino");
+    const r = pat.getBoundingClientRect();
+    if (meters[k] >= 100) {
+      const lowest = ALL.filter(function (x) { return meters[x] < 100; })[0];
+      play.miss(btn, patient.name + " doesn't need the " + n.tool.toLowerCase() + " right now. " + (lowest ? "Look for a low bar: " + NEEDS[lowest].icon : ""));
+      say(patient.name + ": \"I'm fine for " + n.meter.toLowerCase() + "! " + (lowest ? NEEDS[lowest].ask : "") + "\"");
       return;
     }
-    completed.add(id);
-    context.sound("good");
-    if (completed.size === tasks.length) context.speak(context.message("Your dinosaur friend feels happy and cared for."));
-    else hint = task.line + " Lovely! Let's choose the next kind touch.";
-    drawCare();
+    busy = true;
+    const go = F.flyTo ? F.flyTo(btn, { x: r.left + r.width * 0.62, y: r.top + r.height * 0.35 }, { emoji: n.icon, size: 40, burst: false, duration: 450 }) : Promise.resolve();
+    go.then(function () {
+      // each kind of care has its own little show
+      if (k === "brush") { board.querySelectorAll(".cc-dust i").forEach(function (i, ix) { window.setTimeout(function () { i.classList.add("gone"); if (F.burst) { const rr = i.getBoundingClientRect(); F.burst(rr.left, rr.top, { kind: "sparkle", n: 4 }); } }, ix * 120); }); if (F.sfx) F.sfx.sparkle(); }
+      if (k === "water") { if (F.burst) F.burst(r.left + r.width * 0.68, r.top + r.height * 0.4, { kind: "drops", n: 10 }); F.dinoState(d, "eat", 1100); }
+      if (k === "fern") { F.dinoState(d, "eat", 1300); if (F.sfx) { F.sfx.chomp(); window.setTimeout(F.sfx.chomp, 300); } }
+      if (k === "cloth") { pat.querySelector(".cc-cool").hidden = false; window.setTimeout(function () { pat.querySelector(".cc-cool").hidden = true; }, 1600); }
+      if (k === "flowers") { pat.querySelector(".cc-garland").hidden = false; if (F.burst) F.burst(r.left + r.width * 0.6, r.top + r.height * 0.45, { kind: "hearts", n: 8 }); }
+      if (k === "shade") { board.querySelector("#ccStage").classList.add("cc-shady"); pat.querySelector(".cc-zzz").hidden = false; F.dinoState(d, "sleep", 1800); window.setTimeout(function () { pat.querySelector(".cc-zzz").hidden = true; board.querySelector("#ccStage").classList.remove("cc-shady"); }, 1900); }
+      if (F.sfx && !["brush", "fern"].includes(k)) F.sfx[n.sound](k === "shade" ? 4 : undefined);
+      meters[k] = 100; renderBars();
+      play.good({ x: r.left + r.width / 2, y: r.top + r.height * 0.3 }, { text: n.ok });
+      say(patient.name + ": \"" + n.ok + "\"");
+      window.setTimeout(function () {
+        updateMood(); busy = false;
+        const left = ALL.filter(function (x) { return meters[x] < 100; });
+        if (!left.length) healthy(); else say(patient.name + ": \"" + NEEDS[left[0]].ask + "\"");
+      }, 1400);
+    });
   }
 
-  drawChoices();
-}
+  function healthy() {
+    busy = true;
+    const d = board.querySelector("#ccPat .du-dino");
+    F.dinoState(d, "happy", 99999);
+    const stars = play.rating();
+    collect("clinic", { name: patient.name, sp: patient.sp, color: patient.color, stars: stars });
+    if (F.sfx) F.sfx.win();
+    const r = board.getBoundingClientRect();
+    if (F.burst) { F.burst(r.left + r.width / 2, r.top + 100, { kind: "hearts", n: 16 }); F.burst(r.left + r.width / 2, r.top + 100, { kind: "confetti", n: 30 }); }
+    const cert = document.createElement("div");
+    cert.className = "cc-cert";
+    cert.innerHTML = '<b>📜 Health certificate</b><span>' + patient.name + " is happy, clean, fed and cosy!</span><small>" + "⭐".repeat(stars) + "</small><em>Fun fact: " + patient.fact + "</em>";
+    board.appendChild(cert); F.pop && F.pop(cert);
+    play.say(patient.name + " feels wonderful! 💚", 3000);
+    window.setTimeout(function () { play.finish("You gave " + patient.name + " a lovely caring visit!", { stars: stars }); }, 3200);
+  }
 
-function escapeText(value) {
-  return String(value).replace(/[&<>"']/g, function (character) {
-    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character];
-  });
+  waiting();
 }

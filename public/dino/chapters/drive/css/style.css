@@ -108,6 +108,7 @@ main {
 .big-btn.garage { background: linear-gradient(135deg, #577ce7, #845be2); }
 .big-btn.drive { background: linear-gradient(135deg, #2ecc71, #16a085); }
 .big-btn.race { background: linear-gradient(135deg, #ed6388, #c5457c); }
+.big-btn.run { background: linear-gradient(135deg, #f6b73c, #e8772e); }
 .home-hint { margin-top: 22px; color: #6b7a99; font-size: 16px; }
 .home-lower { display: grid; gap: 18px; margin-top: 22px; text-align: left; }
 .home-car-summary { display: flex; align-items: center; gap: 18px; padding: 12px 16px; border-radius: 18px; background: #f2f8ff; }
@@ -292,4 +293,30 @@ main {
   .big-btn { min-width: min(100%, 145px); padding: 18px 14px; }
   .garage-stage { padding: 14px; }
   .garage-heading { flex-direction: column; }
+}
+
+/* Polish: living preview, strolling dino, new-car badge */
+.car-preview svg { animation: car-bob 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes car-bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-6px) rotate(-.6deg); } }
+.home-card { position: relative; overflow: hidden; }
+.home-walker { position: absolute; bottom: 4px; left: -160px; width: 130px; pointer-events: none; z-index: 0; animation: walk-across 30s linear infinite; opacity: .95; }
+@keyframes walk-across { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 340px)); } }
+.home-card > *:not(.home-walker) { position: relative; z-index: 1; }
+.garage-car { position: relative; }
+.garage-car.is-new { border-color: #ffb800; box-shadow: 0 0 0 3px rgba(255, 184, 0, .35); animation: new-glow 1.4s ease-in-out infinite; }
+.garage-car.is-new::after { content: "NEW!"; position: absolute; top: 6px; right: 8px; background: #ff7a29; color: #fff; font-weight: 900; font-size: 11px; padding: 3px 8px; border-radius: 999px; }
+@keyframes new-glow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+.big-btn { transition: transform .12s ease, filter .15s ease; }
+.big-btn:hover { filter: brightness(1.06); }
+@media (prefers-reduced-motion: reduce) { .car-preview svg, .home-walker, .garage-car.is-new { animation: none; } }
+
+/* Phones: let the road use the full width, and suggest turning sideways for a bigger view */
+@media (max-width: 520px) {
+  main { padding: 0 6px 16px; }
+  .drive-stage { padding: 6px; border-radius: 16px; }
+  #driveCanvas { border-radius: 12px; }
+  .hud-pill { font-size: 14px; padding: 6px 12px; }
+}
+@media (orientation: portrait) and (max-width: 700px) {
+  .drive-stage::after { content: "📱 Turn sideways for a bigger road!"; font-size: 14px; font-weight: bold; color: #6b7a99; }
 }

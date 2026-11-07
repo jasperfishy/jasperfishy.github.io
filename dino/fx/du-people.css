@@ -13,10 +13,10 @@
 .p-leg { top: 228px; width: 30px; height: 86px; border-radius: 12px 12px 8px 8px; background: var(--pants); transform-origin: 50% 8px; z-index: 2; }
 .p-l { left: 66px; } .p-r { left: 104px; }
 .p-foot { position: absolute; left: -4px; bottom: -8px; width: 42px; height: 18px; border-radius: 14px 18px 8px 8px; background: var(--shoe); }
-.p-head { left: 40px; z-index: 6; transform-origin: 50% 94%; }
+.p-head { left: 40px; z-index: 6; transform-origin: 50% 94%; rotate: var(--tilt, 0deg); }
 .p-head img { width: 100%; height: 100%; display: block; pointer-events: none; }
 .p-head img.p-round { border-radius: 50%; box-shadow: 0 0 0 4px #fff, 0 4px 8px rgba(0,0,0,.25); }
-.p-lid { height: 0; border-radius: 0 0 60% 60%; transform-origin: 50% 0; transition: height .2s; z-index: 2; box-shadow: 0 2px 0 rgba(60,30,10,.4); }
+.p-lid { height: 0; border-radius: 0 0 55% 55% / 0 0 90% 90%; transform-origin: 50% 0; transition: height .16s ease-out; z-index: 2; background: linear-gradient(to top, rgba(58,30,18,.85) 0 2px, rgba(58,30,18,0) 2px), radial-gradient(ellipse 95% 130% at 50% 45%, var(--lid, var(--skin)) 0 74%, rgba(0,0,0,0) 100%); }
 .p-mouth { height: 0; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 80%, #ff8a8a 0 28%, #5b1a24 30%); transform: translate(-50%, -50%) scale(0); transition: transform .15s; z-index: 2; }
 .p-blush { width: 20%; height: 8%; border-radius: 50%; background: #ff7e8e; opacity: 0; transition: opacity .3s; filter: blur(3px); z-index: 1; }
 .p-sweat, .p-stars, .p-zzz { opacity: 0; pointer-events: none; font-size: 22px; z-index: 5; }
@@ -28,7 +28,7 @@
 .du-person .p-lid { animation: pp-blink 4.8s infinite; animation-delay: var(--d); }
 @keyframes pp-breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.02, 1.03); } }
 @keyframes pp-headidle { 0%,100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.8deg) translateY(-1px); } }
-@keyframes pp-blink { 0%,92%,100% { height: 0; } 95% { height: 7%; } }
+@keyframes pp-blink { 0%,92%,100% { height: 0; } 95% { height: 9%; } }
 
 /* walk & run */
 .du-person[data-state="walk"] .p-l, .du-person[data-state="walk"] .p-ar { animation: pp-swing .9s ease-in-out infinite; }
@@ -60,7 +60,7 @@
 .du-person[data-state="caught"] .p-rig { transform: scale(var(--k, 1)) translate(-18px, 92px) scale(1.18, .72); }
 .du-person[data-state="caught"] .p-head { animation: pp-dizzy 1s ease-in-out infinite; }
 .du-person[data-state="caught"] .p-stars { opacity: 1; animation: pp-spin 1.2s linear infinite; }
-.du-person[data-state="caught"] .p-lid { height: 7%; animation: none; }
+.du-person[data-state="caught"] .p-lid { height: 9%; animation: none; }
 .du-person[data-state="caught"] .p-al { transform: rotate(40deg); } .du-person[data-state="caught"] .p-ar { transform: rotate(-40deg); }
 @keyframes pp-dizzy { 0%,100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
 @keyframes pp-spin { from { transform: translateX(-50%) rotate(0); } to { transform: translateX(-50%) rotate(360deg); } }
@@ -72,15 +72,15 @@
 .du-person[data-state="tired"] .p-al, .du-person[data-state="tired"] .p-ar { transform: rotate(4deg); }
 .du-person[data-state="yawn"] .p-head { animation: pp-yawn 2.4s ease-in-out infinite; }
 .du-person[data-state="yawn"] .p-mouth { animation: pp-mouth 2.4s ease-in-out infinite; }
-.du-person[data-state="yawn"] .p-lid { animation: none; height: 7%; }
+.du-person[data-state="yawn"] .p-lid { animation: none; height: 9%; }
 .du-person[data-state="yawn"] .p-ar { transform: rotate(150deg); }
-.du-person[data-state="sleep"] .p-lid { animation: none; height: 7%; }
+.du-person[data-state="sleep"] .p-lid { animation: none; height: 9%; }
 .du-person[data-state="sleep"] .p-head { animation: pp-droop 5s ease-in-out infinite; }
 .du-person[data-state="sleep"] .p-torso { animation: pp-breathe 4s ease-in-out infinite; }
 .du-person[data-state="sleep"] .p-zzz { opacity: 1; animation: pp-zzz 2.8s ease-in-out infinite; }
 @keyframes pp-droop { 0%,100% { transform: rotate(7deg) translateY(4px); } 50% { transform: rotate(11deg) translateY(7px); } }
 @keyframes pp-slump { 0%,100% { transform: scale(1, .97); } 50% { transform: scale(1.02, .94); } }
-@keyframes pp-sleepy { 0%,40%,100% { height: 3%; } 55%,75% { height: 7%; } }
+@keyframes pp-sleepy { 0%,40%,100% { height: 3%; } 55%,75% { height: 9%; } }
 @keyframes pp-yawn { 0%,100% { transform: rotate(0); } 30%,70% { transform: rotate(-8deg) translateY(-3px); } }
 @keyframes pp-mouth { 0%,100% { transform: translate(-50%,-50%) scale(0); } 30%,70% { transform: translate(-50%,-50%) scale(1.15); } }
 @keyframes pp-zzz { 0% { transform: translate(0,6px) scale(.6); opacity: 0; } 40% { opacity: 1; } 100% { transform: translate(10px,-22px) scale(1.2); opacity: 0; } }
@@ -103,6 +103,6 @@
 
 /* flags that layer on top of a pose (used by the lying-in-bed pose) */
 .du-person.drowsy .p-lid { animation: pp-sleepy 4s ease-in-out infinite; }
-.du-person.sleeping .p-lid { animation: none; height: 7%; }
+.du-person.sleeping .p-lid { animation: none; height: 9%; }
 .du-person.sleeping .p-zzz { opacity: 1; animation: pp-zzz 2.8s ease-in-out infinite; }
 .du-person.sleeping .p-head { animation: none; }

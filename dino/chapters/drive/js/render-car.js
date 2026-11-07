@@ -1,7 +1,7 @@
 // render/car.js — Draws the player's car from its config.
 // config = { body, paint, name, stickers: ["⭐", ...] }
 
-import { BODIES } from "./data-cars.js?v=du-0d928b5c7d8c29dc";
+import { BODIES } from "./data-cars.js?v=du-04c80678fe526be4";
 
 let svgUid = 0;
 
@@ -97,6 +97,72 @@ export function drawCarCanvas(ctx, config, x, y, scale = 1, tilt = 0) {
     ctx.fillText(s, -30 + i * 30, -2);
   });
   ctx.restore();
+}
+
+
+// Rear view for the perspective road: the car is seen from behind, driving away.
+// extra = { t, spin, brake, head, spike } (head/spike colour the dino driver)
+export function drawCarRear(ctx, config, x, y, scale = 1, tilt = 0, extra = {}) {
+  const t = extra.t || 0, spin = extra.spin || 0;
+  const c = config.paint || "#e74c3c";
+  const dark = shade(c, -0.35), light = shade(c, 0.25);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(tilt);
+  ctx.scale(scale, scale);
+  // shadow
+  ctx.fillStyle = "rgba(0,0,0,.25)";
+  ctx.beginPath(); ctx.ellipse(0, 46, 66, 10, 0, 0, Math.PI * 2); ctx.fill();
+  // rear wheels with scrolling tread
+  [-54, 54].forEach((wx) => {
+    ctx.save();
+    ctx.translate(wx, 22);
+    ctx.fillStyle = "#1d1d22"; roundRect(ctx, -12, -22, 24, 44, 7); ctx.fill();
+    ctx.strokeStyle = "#3b3b45"; ctx.lineWidth = 3;
+    for (let i = 0; i < 4; i++) { const ty = -18 + ((i * 11 + spin * 40) % 44); ctx.beginPath(); ctx.moveTo(-10, ty); ctx.lineTo(10, ty); ctx.stroke(); }
+    ctx.restore();
+  });
+  // spoiler posts and wing
+  ctx.fillStyle = dark;
+  ctx.fillRect(-34, -30, 7, 28); ctx.fillRect(27, -30, 7, 28);
+  roundRect(ctx, -52, -42, 104, 12, 5); ctx.fill();
+  ctx.fillStyle = c; roundRect(ctx, -52, -42, 104, 6, 4); ctx.fill();
+  // body
+  ctx.fillStyle = c; roundRect(ctx, -52, -6, 104, 50, 16); ctx.fill();
+  // roof / rear window
+  ctx.fillStyle = light;
+  ctx.beginPath(); ctx.moveTo(-38, -4); ctx.lineTo(-28, -30); ctx.lineTo(28, -30); ctx.lineTo(38, -4); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#bfe6ff";
+  ctx.beginPath(); ctx.moveTo(-30, -6); ctx.lineTo(-23, -26); ctx.lineTo(23, -26); ctx.lineTo(30, -6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.55)";
+  ctx.beginPath(); ctx.moveTo(-18, -8); ctx.lineTo(-12, -24); ctx.lineTo(-6, -24); ctx.lineTo(-12, -8); ctx.closePath(); ctx.fill();
+  // dino driver, seen from behind, peeking over the roof
+  const bob = Math.sin(t * 5) * 1.8;
+  const head = extra.head || "#58c26a";
+  ctx.fillStyle = extra.spike || "#439f54";
+  ctx.beginPath(); ctx.moveTo(-9, -36 + bob); ctx.lineTo(-5, -50 + bob); ctx.lineTo(-1, -36 + bob); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(1, -36 + bob); ctx.lineTo(5, -52 + bob); ctx.lineTo(9, -36 + bob); ctx.fill();
+  ctx.fillStyle = head;
+  ctx.beginPath(); ctx.arc(0, -22 + bob, 15, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shade(head, 0.35);
+  ctx.beginPath(); ctx.arc(-5, -26 + bob, 4, 0, Math.PI * 2); ctx.fill();
+  // tail lights (brighter when braking), number plate, bumper
+  ctx.fillStyle = extra.brake ? "#ff5a5a" : "#d82d2d";
+  roundRect(ctx, -47, 6, 20, 11, 4); ctx.fill(); roundRect(ctx, 27, 6, 20, 11, 4); ctx.fill();
+  ctx.fillStyle = "rgba(255,120,120,.5)"; roundRect(ctx, -45, 7, 8, 4, 2); ctx.fill(); roundRect(ctx, 29, 7, 8, 4, 2); ctx.fill();
+  ctx.fillStyle = dark; roundRect(ctx, -48, 32, 96, 12, 6); ctx.fill();
+  ctx.fillStyle = "#fff"; roundRect(ctx, -22, 20, 44, 16, 4); ctx.fill();
+  ctx.fillStyle = "#222"; ctx.textAlign = "center"; ctx.font = "bold 11px sans-serif";
+  ctx.fillText((config.name || "DINO").slice(0, 7).toUpperCase(), 0, 32);
+  (config.stickers || []).slice(0, 3).forEach((st, i) => { ctx.font = "13px sans-serif"; ctx.fillText(st, -14 + i * 14, 18 - 8 + (i === 1 ? -2 : 0)); });
+  ctx.restore();
+}
+
+function shade(hex, amt) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return hex;
+  const adj = (v) => { const n = parseInt(v, 16); const out = amt < 0 ? n * (1 + amt) : n + (255 - n) * amt; return Math.max(0, Math.min(255, Math.round(out))); };
+  return "#" + [m[1], m[2], m[3]].map((v) => adj(v).toString(16).padStart(2, "0")).join("");
 }
 
 function roundRect(ctx, x, y, w, h, r) {

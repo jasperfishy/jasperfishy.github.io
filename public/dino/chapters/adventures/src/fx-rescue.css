@@ -1,6 +1,6 @@
 /* The Great Dino Rescue */
 .rs { display: grid; place-items: center; padding: 4px; }
-.rs-area { position: relative; width: min(100%, calc((100dvh - 130px) * 1.6)); aspect-ratio: 8 / 5; border-radius: 26px; overflow: hidden; container-type: size; background: #223; box-shadow: 0 16px 38px rgba(6,38,35,.35), inset 0 0 0 4px rgba(255,255,255,.35); touch-action: none; user-select: none; }
+.rs-area { position: relative; width: min(100%, calc((100dvh - 300px) * 1.6)); aspect-ratio: 8 / 5; border-radius: 26px; overflow: hidden; container-type: size; background: #223; box-shadow: 0 16px 38px rgba(6,38,35,.35), inset 0 0 0 4px rgba(255,255,255,.35); touch-action: none; user-select: none; }
 .rs-world { position: absolute; inset: 0; overflow: hidden; }
 .rs-world > * { position: absolute; }
 .rs-sky { inset: 0; }

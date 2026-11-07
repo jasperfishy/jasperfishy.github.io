@@ -1,0 +1,112 @@
+/* Dino Adventures — shared play kit: layered living scene, HUD, buddy and wandering dinosaurs, rating banner, album. */
+
+.pk-head { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 8px; text-align: left; }
+.pk-emoji { font-size: 34px; animation: du-bob2 3s ease-in-out infinite; }
+.pk-headtext h2 { margin: 0; font-size: 21px; }
+.pk-headtext p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; max-width: 520px; }
+
+.pk-hud { display: flex; gap: 8px; justify-content: center; margin: 0 0 8px; flex-wrap: wrap; }
+.pk-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 99px; background: #fff; box-shadow: 0 3px 0 rgba(24,62,64,.1); font-weight: 800; font-size: 14px; color: var(--ink); }
+.pk-chip b { min-width: 1ch; display: inline-block; }
+.pk-chip-streak { background: #fff1de; }
+.pk-chip-bf { background: #efe8fb; }
+
+/* ---- the scene ---- */
+.pk-scene { position: relative; border-radius: 26px; overflow: hidden; isolation: isolate; padding: 14px 14px 84px; min-height: 340px;
+  background: linear-gradient(180deg, var(--sk1) 0, var(--sk2) 100%); box-shadow: inset 0 0 0 4px rgba(255,255,255,.55), 0 10px 26px rgba(24,62,64,.14);
+  --sk1: #a8def2; --sk2: #eaf8dc; --h1: #8fd09a; --h2: #62b57d; --h3: #3f9468; --cl: rgba(255,255,255,.9); --gr: #4c9e6a; }
+.pk-night { --sk1: #1d2459; --sk2: #5b4f98; --h1: #3f4f86; --h2: #31407a; --h3: #243268; --cl: rgba(190,200,255,.34); --gr: #2c3b73; }
+.pk-cave { --sk1: #3a2b3e; --sk2: #6d4d5a; --h1: #7a5a56; --h2: #5d4349; --h3: #46323a; --cl: rgba(255,226,170,.18); --gr: #3e2c33; }
+.pk-water { --sk1: #7fd0ef; --sk2: #c9f0f4; --h1: #5fb7d6; --h2: #3f98c0; --h3: #2d78a6; --cl: rgba(255,255,255,.7); --gr: #2f7fae; }
+.pk-sky { --sk1: #6cc3f5; --sk2: #e5f5ff; --h1: #fff; --h2: #f1f9ff; --h3: #dbeefb; --cl: rgba(255,255,255,.95); --gr: #bde0f3; }
+.pk-dig { --sk1: #f6d9a6; --sk2: #fbeed2; --h1: #e4b878; --h2: #cf9b5c; --h3: #b57f45; --cl: rgba(255,255,255,.55); --gr: #a9743d; }
+.pk-rain { --sk1: #8da7bd; --sk2: #cfdde2; --h1: #7fae96; --h2: #5c9580; --h3: #447a6a; --cl: rgba(90,110,130,.55); --gr: #3f7566; }
+.pk-party { --sk1: #ffd4e6; --sk2: #fff3c7; --h1: #ffc9a0; --h2: #f7a8b8; --h3: #d98aa8; --cl: rgba(255,255,255,.85); --gr: #d98aa8; }
+
+.pk-back { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.pk-sun { position: absolute; right: 8%; top: 5%; font-style: normal; font-size: 44px; filter: drop-shadow(0 0 14px rgba(255,220,120,.8)); animation: pk-sun 7s ease-in-out infinite; translate: var(--px, 0) 0; }
+.pk-cloud { position: absolute; height: 26px; border-radius: 99px; background: var(--cl); animation: pk-drift 70s linear infinite; }
+.pk-cloud::before { content: ""; position: absolute; left: 16%; top: -55%; width: 44%; height: 150%; border-radius: 50%; background: inherit; }
+.pk-cloud.pc1 { top: 9%; width: 120px; left: -20%; }
+.pk-cloud.pc2 { top: 24%; width: 90px; left: -40%; animation-duration: 95s; animation-delay: -30s; opacity: .8; }
+.pk-cloud.pc3 { top: 15%; width: 150px; left: -10%; animation-duration: 120s; animation-delay: -70s; opacity: .6; }
+.pk-hill { position: absolute; left: -8%; right: -8%; border-radius: 50% 50% 0 0 / 100% 100% 0 0; translate: var(--px, 0) 0; }
+.pk-hill.ph1 { bottom: 0; height: 52%; background: var(--h1); }
+.pk-hill.ph2 { bottom: -4%; height: 40%; background: var(--h2); left: 6%; right: -22%; animation: pk-sway 18s ease-in-out infinite alternate; }
+.pk-hill.ph3 { bottom: -8%; height: 28%; background: var(--h3); left: -24%; right: 8%; animation: pk-sway 26s ease-in-out infinite alternate-reverse; }
+.pk-twinkles b { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #fffbd0; box-shadow: 0 0 8px 2px rgba(255,248,180,.8); animation: pk-twinkle calc(2.2s / var(--s, 1)) ease-in-out infinite; animation-delay: var(--d, 0s); }
+.pk-meadow .pk-twinkles b, .pk-sky .pk-twinkles b, .pk-dig .pk-twinkles b, .pk-party .pk-twinkles b { background: #fff; box-shadow: 0 0 6px 2px rgba(255,255,255,.9); width: 4px; height: 4px; }
+.pk-water .pk-twinkles b { background: rgba(255,255,255,.6); width: 9px; height: 9px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.9); animation-name: pk-bubble; }
+.pk-night .pk-sun, .pk-cave .pk-sun { filter: drop-shadow(0 0 18px rgba(255,248,190,.9)); }
+.pk-rain .pk-sun { font-size: 38px; }
+@keyframes pk-sun { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(5px) rotate(6deg); } }
+@keyframes pk-drift { to { transform: translateX(1200%); } }
+@keyframes pk-sway { to { transform: translateX(7%); } }
+@keyframes pk-twinkle { 0%,100% { opacity: .15; transform: scale(.6); } 50% { opacity: 1; transform: scale(1.3); } }
+@keyframes pk-bubble { 0% { opacity: 0; transform: translateY(20px) scale(.5); } 40% { opacity: .9; } 100% { opacity: 0; transform: translateY(-40px) scale(1.1); } }
+
+.pk-board { position: relative; z-index: 1; }
+
+/* ---- ground strip: buddy, wanderers, speech ---- */
+.pk-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 80px; z-index: 2; pointer-events: none; overflow: hidden; }
+.pk-grass { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; background: var(--gr); border-radius: 18px 18px 0 0 / 10px 10px 0 0; opacity: .85; }
+.pk-buddy { position: absolute; right: 14px; bottom: 6px; width: 82px; pointer-events: auto; cursor: pointer; filter: drop-shadow(0 6px 4px rgba(0,0,0,.18)); }
+.pk-wanderer { position: absolute; left: 0; bottom: 8px; width: 64px; pointer-events: auto; cursor: pointer; will-change: transform; }
+.pk-say { position: absolute; right: 108px; bottom: 28px; max-width: min(60%, 340px); padding: 8px 14px; border-radius: 18px; background: #fff; color: var(--ink); font-weight: 800; font-size: 14px; line-height: 1.25; box-shadow: 0 4px 0 rgba(24,62,64,.14); opacity: 0; transform: translateY(8px) scale(.85); transform-origin: 100% 100%; transition: opacity .25s, transform .3s cubic-bezier(.2,.9,.3,1.4); }
+.pk-say::after { content: ""; position: absolute; right: -9px; bottom: 10px; border: 7px solid transparent; border-left: 10px solid #fff; border-right: 0; }
+.pk-say.on { opacity: 1; transform: none; }
+
+/* ---- bonus butterfly ---- */
+.pk-bonus { position: absolute; left: 0; z-index: 4; border: 0; background: none; font-size: 34px; cursor: pointer; padding: 6px; filter: drop-shadow(0 4px 3px rgba(0,0,0,.2)); animation: pk-flutter .35s ease-in-out infinite alternate; }
+@keyframes pk-flutter { from { rotate: -10deg; } to { rotate: 12deg; scale: 1.12 1; } }
+
+/* ---- finish banner ---- */
+.pk-banner { position: absolute; inset: 0; z-index: 6; display: grid; place-content: center; justify-items: center; gap: 4px; text-align: center; background: rgba(255,255,255,.55); backdrop-filter: blur(2px); animation: du-pop-in .45s cubic-bezier(.3,1.5,.5,1); }
+.pk-banner strong { font-size: 30px; color: var(--ink); text-shadow: 0 2px 0 #fff; }
+.pk-banner small { font-size: 15px; font-weight: 800; color: var(--forest); }
+.pk-banner-stars { display: flex; gap: 6px; font-size: 56px; line-height: 1; }
+.pk-banner-stars i { font-style: normal; opacity: .55; animation: pk-starin .6s cubic-bezier(.3,1.7,.5,1) both; animation-delay: calc(var(--i) * .22s); }
+.pk-banner-stars i.on { opacity: 1; filter: drop-shadow(0 4px 6px rgba(240,170,20,.5)); }
+@keyframes pk-starin { from { transform: scale(0) rotate(-120deg); } to { transform: scale(1) rotate(0); } }
+
+/* ---- shared buttons / cards for kit games ---- */
+.pk-btn { border: 0; border-radius: 20px; background: #fff; font: 800 1rem/1.2 inherit; padding: 10px 16px; box-shadow: 0 5px 0 rgba(24,62,64,.14); cursor: pointer; transition: transform .15s cubic-bezier(.3,1.5,.5,1), box-shadow .15s; touch-action: manipulation; }
+.pk-btn:hover { transform: translateY(-3px); }
+.pk-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(24,62,64,.14); }
+.pk-btn:disabled { opacity: .55; cursor: default; }
+
+/* ---- sticker album ---- */
+.pk-album-count { text-align: center; margin: 0 0 10px; }
+.pk-album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 8px; max-height: 46vh; overflow: auto; padding: 4px; }
+.pk-sticker { display: grid; place-items: center; aspect-ratio: 1; border-radius: 16px; font-size: 28px; background: #ece9de; color: #b9b5a4; font-weight: 900; }
+.pk-sticker.got { background: #fff; box-shadow: 0 3px 0 rgba(24,62,64,.12); animation: pk-sticker-in .5s cubic-bezier(.3,1.5,.5,1) both; }
+.pk-album-tip { text-align: center; font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+@keyframes pk-sticker-in { from { transform: scale(.4) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---- round interlude (replaces the plain round card) ---- */
+.ri-stars { display: flex; gap: 6px; justify-content: center; font-size: 42px; margin: 6px 0; }
+.ri-stars i { font-style: normal; animation: pk-starin .6s cubic-bezier(.3,1.7,.5,1) both; animation-delay: calc(var(--i) * .2s); }
+.ri-stars i.off { opacity: .35; }
+.ri-sticker { display: inline-flex; align-items: center; gap: 8px; margin: 6px 0; padding: 6px 14px; border-radius: 99px; background: #fff3c9; font-weight: 800; animation: du-pop-in .6s .5s cubic-bezier(.3,1.5,.5,1) both; }
+.ri-sticker span { font-size: 28px; }
+.ri-skip { margin-top: 12px; }
+
+@media (max-width: 560px) {
+  .pk-scene { padding: 10px 8px 74px; border-radius: 20px; }
+  .pk-ground { height: 70px; }
+  .pk-buddy { width: 66px; right: 8px; }
+  .pk-say { right: 82px; font-size: 12px; }
+  .pk-headtext h2 { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pk-cloud, .pk-hill, .pk-sun, .pk-twinkles b, .pk-bonus, .pk-emoji { animation: none !important; }
+}
+
+/* ---- final celebration extras ---- */
+.big-prize .cs-star { font-style: normal; display: inline-block; animation: pk-starin .6s cubic-bezier(.3,1.7,.5,1) both; animation-delay: calc(var(--i) * .25s); }
+.big-prize .cs-star.off { opacity: .35; }
+.cs-sticker { margin-top: 8px; background: #e8f0ff; }
+
+/* ---- dragging ---- */
+.pk-drag { position: fixed; z-index: 70; margin: 0; pointer-events: none; transform: translate(-50%, -55%) scale(1.12) rotate(-3deg); filter: drop-shadow(0 12px 10px rgba(0,0,0,.28)); opacity: .95; }
+button.dragging { opacity: .35; }

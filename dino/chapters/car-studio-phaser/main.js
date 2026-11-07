@@ -1,461 +1,321 @@
-import { CARS, PAINTS, STICKERS } from "../drive/js/data-cars.js?v=du-0d928b5c7d8c29dc";
-import { SCENE_LIST } from "../drive/js/data-scenes.js?v=du-0d928b5c7d8c29dc";
+// Dino Car Studio — Phaser 3 endless runner (arcade physics, parallax, particles, sound, stars).
+const W = 960, H = 540;
+const GROUND_Y = 420;
+const STORE_KEY = "dino-car-studio-phaser-v1";
+const HUB_KEY = "dino-car-studio-v1";
+const STAR_STEPS = [6, 15, 30];
+let skipTitle = false;
 
-const W = 960, H = 540, STORAGE_KEY = "dino-car-studio-v1";
-const ui = document.getElementById("game-ui");
-const sceneById = Object.fromEntries(SCENE_LIST.map((scene) => [scene.id, scene]));
-const icons = { island: "🌴", city: "🏙️", mountain: "⛰️", snow: "❄️", desert: "🌵", space: "🪐" };
-
-function defaultState() {
-  const car = CARS[0];
-  return { config: { carId: car.id, body: car.body, paint: car.paint, name: "", stickers: [] }, totalStars: 0, bestStars: 0, selectedScene: "island", selectedMode: "explore", sound: true };
-}
-function loadState() {
-  const base = defaultState();
+// The studio's saved choices: car colour, stickers, name and the world picked on its home screen.
+const SCENE_PALETTES = {
+  island:   { label: "Island Road",     skyA: 0x69c8ff, skyB: 0xd7f5ff, ground: 0x78c86b, road: 0x586879, line: 0xfff2a6, hill: 0x56b975, mount: 0xffffff, trees: 0xffffff, sun: 0xffe27a },
+  city:     { label: "Dino City",       skyA: 0x79bfff, skyB: 0xe6f2ff, ground: 0x74bd73, road: 0x546277, line: 0xffe081, hill: 0x8ea9c2, mount: 0xc4d6ea, trees: 0xb9c8d8, sun: 0xffe27a },
+  mountain: { label: "Mountain Pass",   skyA: 0x6fb9ed, skyB: 0xe8f6ff, ground: 0x6ba96d, road: 0x606b72, line: 0xfff6d0, hill: 0x397c62, mount: 0xffffff, trees: 0xa8d6bd, sun: 0xffe27a },
+  snow:     { label: "Snowy Valley",    skyA: 0x91ddff, skyB: 0xf7fdff, ground: 0xeaf8ff, road: 0x9cb9ca, line: 0xffffff, hill: 0xf8fdff, mount: 0xe8f4ff, trees: 0xbfe6df, sun: 0xfff6c8 },
+  desert:   { label: "Amber Desert",    skyA: 0x75d5eb, skyB: 0xffefc7, ground: 0xedc175, road: 0xbd966c, line: 0xfff1bb, hill: 0xf3bd71, mount: 0xe8a56a, trees: 0xe0a46a, sun: 0xffd35f },
+  space:    { label: "Moonbeam Circuit", skyA: 0x142652, skyB: 0x4d387b, ground: 0x43366e, road: 0x303b63, line: 0x91edff, hill: 0x5a4a95, mount: 0x7a68b4, trees: 0x6f5fb0, sun: 0xd68bff }
+};
+function readStudio() {
+  const out = { paint: "#2ecc71", name: "", stickers: [], scene: "island" };
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!saved || !saved.config) return base;
-    const legacyCar = CARS.find((car) => car.id === saved.config.carId) || CARS.find((car) => car.body === saved.config.body) || CARS[0];
-    const paint = /^#[0-9a-f]{6}$/i.test(saved.config.paint || "") ? saved.config.paint : legacyCar.paint;
-    return {
-      ...base, ...saved,
-      config: { ...base.config, ...saved.config, carId: saved.config.carId || legacyCar.id, body: saved.config.body || legacyCar.body, paint, name: String(saved.config.name || "").slice(0, 12), stickers: Array.isArray(saved.config.stickers) ? saved.config.stickers.slice(0, 4) : [] },
-      totalStars: Math.max(0, Number(saved.totalStars) || Number(saved.bestStars) || 0),
-      bestStars: Math.max(0, Number(saved.bestStars) || 0),
-      selectedScene: sceneById[saved.selectedScene] ? saved.selectedScene : "island",
-      selectedMode: saved.selectedMode === "race" ? "race" : "explore"
-    };
-  } catch { return base; }
+    const o = JSON.parse(localStorage.getItem(HUB_KEY)) || {};
+    const c = o.config || {};
+    if (/^#[0-9a-f]{6}$/i.test(c.paint || "")) out.paint = c.paint;
+    out.name = String(c.name || "").slice(0, 12);
+    if (Array.isArray(c.stickers)) out.stickers = c.stickers.slice(0, 4).map(String);
+    if (SCENE_PALETTES[o.selectedScene]) out.scene = o.selectedScene;
+  } catch (e) { /* use defaults */ }
+  return out;
 }
-const state = loadState();
-function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* local progress is optional */ }
-  if (window.self !== window.top) {
-    try { window.parent.postMessage({ type: "du-settings-update", name: state.config.name || "", sound: state.sound !== false }, location.origin); } catch { /* parent bridge is optional */ }
-  }
-}
-function sound(on) {
-  state.sound = !!on;
-  if (window.DUFX && window.DUFX.settings) window.DUFX.settings.sound = state.sound;
-  saveState();
-}
-function safeText(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-}
-function carAt(index) { return CARS[Math.max(0, Math.min(CARS.length - 1, index))]; }
-function carIndex() { return Math.max(0, CARS.findIndex((car) => car.id === state.config.carId)); }
-function carUnlockCost(index) { return index === 0 ? 0 : index * 3; }
-function unlockedCarCount() { return CARS.reduce((n, _car, i) => n + (state.totalStars >= carUnlockCost(i) ? 1 : 0), 0); }
-function worldUnlocked(world) { return state.totalStars >= world.unlockStars; }
-function worldTitle(id) { return sceneById[id] || sceneById.island; }
-function motionOK() { return !window.DUFX || !window.DUFX.settings || !window.DUFX.settings.reduce; }
+const STUDIO = readStudio();
+const PAL = SCENE_PALETTES[STUDIO.scene];
+const paintColor = (amt) => { const c = Phaser.Display.Color.HexStringToColor(STUDIO.paint); return amt < 0 ? c.darken(-amt).color : c.lighten(amt).color; };
 
-function createCanvasTexture(scene, key, draw) {
-  if (scene.textures.exists(key)) return;
-  const texture = scene.textures.createCanvas(key, W, H);
-  const ctx = texture.getContext();
-  ctx.clearRect(0, 0, W, H);
-  draw(ctx, W, H);
-  texture.refresh();
-}
-function addWorldBackdrop(scene, worldId, horizonMode) {
-  if (window.DUKit && DUKit.textures) DUKit.textures(scene);
-  const world = worldTitle(worldId);
-  const sky = scene.add.graphics().setDepth(-10);
-  const top = Phaser.Display.Color.HexStringToColor(world.sky[0]).color;
-  const bottom = Phaser.Display.Color.HexStringToColor(world.sky[1]).color;
-  sky.fillGradientStyle(top, top, bottom, bottom, 1);
-  sky.fillRect(0, 0, W, H);
-  const farKey = "car-far-" + world.id;
-  const midKey = "car-mid-" + world.id;
-  createCanvasTexture(scene, farKey, (ctx, w, h) => world.far(ctx, 0, w, h));
-  createCanvasTexture(scene, midKey, (ctx, w, h) => world.mid(ctx, 0, w, h));
-  const far = scene.add.tileSprite(W / 2, H / 2, W, H, farKey).setDepth(-8).setAlpha(0.95);
-  const cloudKey = "car-clouds";
-  if (!scene.textures.exists(cloudKey)) {
-    const g = scene.make.graphics({ add: false });
-    g.fillStyle(0xffffff, 0.8); g.fillEllipse(48, 28, 76, 32); g.fillEllipse(92, 20, 72, 38); g.fillEllipse(136, 30, 62, 28);
-    g.generateTexture(cloudKey, 184, 58); g.destroy();
-  }
-  const clouds = scene.add.tileSprite(W / 2, 86, W, 58, cloudKey).setDepth(-7).setAlpha(world.id === "space" ? 0 : 0.7);
-  const mid = scene.add.tileSprite(W / 2, H / 2 + 12, W, H, midKey).setDepth(-1).setAlpha(0.95);
-  if (world.id === "space") {
-    const planet = scene.add.circle(805, 94, 42, 0xd68bff, 0.95).setDepth(-5);
-    scene.add.ellipse(805, 94, 134, 30, 0x9ceaff, 0.75).setDepth(-4).setAngle(-16);
-    scene.add.circle(792, 81, 20, 0xf6caff, 0.65).setDepth(-3);
-    if (motionOK()) scene.tweens.add({ targets: planet, scale: 1.08, duration: 2200, yoyo: true, repeat: -1 });
-  } else {
-    if (window.DUKit && DUKit.sunRays) DUKit.sunRays(scene, 805, 90, 150, 0xfff0ad).setDepth(-5);
-    const sun = scene.add.circle(805, 90, 31, 0xffe27a, 1).setDepth(-4);
-    if (motionOK()) scene.tweens.add({ targets: sun, scale: 1.08, duration: 1800, yoyo: true, repeat: -1 });
-  }
-  if (window.DUKit && DUKit.sparkleField) DUKit.sparkleField(scene, world.id === "space" ? 32 : 10, 10, 28, 950, 210, 0xffffff);
-  scene.events.on("update", (_time, delta) => {
-    if (!motionOK() || scene.paused) return;
-    const factor = horizonMode ? 1.2 : 0.45;
-    clouds.tilePositionX += delta * 0.012 * factor;
-    far.tilePositionX += delta * 0.004 * factor;
-    mid.tilePositionX += delta * 0.009 * factor;
-  });
-  return world;
-}
-function drawRearCar(scene, x, y, config, scale, depth) {
-  const bodyType = config.body || "sport";
-  const width = bodyType === "monster" || bodyType === "truck" ? 94 : bodyType === "van" ? 84 : 76;
-  const color = Phaser.Display.Color.HexStringToColor(config.paint || "#2ecc71").color;
-  const lighter = Phaser.Display.Color.ValueToColor(color).lighten(28).color;
-  const darker = Phaser.Display.Color.ValueToColor(color).darken(28).color;
-  const car = scene.add.container(x, y).setScale(scale || 1).setDepth(depth || 10);
-  const g = scene.add.graphics();
-  g.fillStyle(0x101724, 0.28); g.fillEllipse(0, 47, width + 28, 18);
-  g.fillStyle(0x171c24, 1);
-  g.fillRoundedRect(-width / 2 - 7, -16, 14, 54, 6);
-  g.fillRoundedRect(width / 2 - 7, -16, 14, 54, 6);
-  g.fillStyle(0x8795a3, 1); g.fillCircle(-width / 2, 11, 5); g.fillCircle(width / 2, 11, 5);
-  g.fillStyle(darker, 1);
-  g.beginPath();
-  g.moveTo(0, -68); g.lineTo(width * 0.34, -46); g.lineTo(width * 0.43, -10);
-  g.lineTo(width * 0.5, 29); g.lineTo(width * 0.43, 50); g.lineTo(-width * 0.43, 50);
-  g.lineTo(-width * 0.5, 29); g.lineTo(-width * 0.43, -10); g.lineTo(-width * 0.34, -46); g.closePath(); g.fillPath();
-  g.fillStyle(color, 1);
-  g.beginPath();
-  g.moveTo(0, -65); g.lineTo(width * 0.32, -44); g.lineTo(width * 0.4, -8);
-  g.lineTo(width * 0.46, 28); g.lineTo(width * 0.39, 45); g.lineTo(-width * 0.39, 45);
-  g.lineTo(-width * 0.46, 28); g.lineTo(-width * 0.4, -8); g.lineTo(-width * 0.32, -44); g.closePath(); g.fillPath();
-  g.lineStyle(3, lighter, 0.9); g.strokePath();
-  g.fillStyle(0x162f47, 1);
-  g.beginPath(); g.moveTo(-width * 0.27, -36); g.lineTo(0, -54); g.lineTo(width * 0.27, -36); g.lineTo(width * 0.3, -9); g.lineTo(-width * 0.3, -9); g.closePath(); g.fillPath();
-  g.lineStyle(2, 0xffffff, 0.45); g.strokePath();
-  g.fillStyle(0xf6d96f, 1); g.fillRoundedRect(-width * 0.22, -40, width * 0.1, 5, 2); g.fillRoundedRect(width * 0.12, -40, width * 0.1, 5, 2);
-  g.fillStyle(0xff5b59, 1); g.fillRoundedRect(-width * 0.37, 31, 13, 11, 3); g.fillRoundedRect(width * 0.24, 31, 13, 11, 3);
-  g.fillStyle(0x242a33, 1); g.fillRoundedRect(-width * 0.34, 45, width * 0.68, 7, 3);
-  if (bodyType === "race") { g.fillStyle(0x20252c, 1); g.fillRoundedRect(-width * 0.42, -56, width * 0.84, 6, 2); }
-  if (bodyType === "pickup" || bodyType === "truck") { g.lineStyle(2, lighter, 0.8); g.lineBetween(-width * 0.31, 10, width * 0.31, 10); g.lineBetween(-width * 0.31, 20, width * 0.31, 20); }
-  if (bodyType === "van") { g.lineStyle(2, lighter, 0.8); g.lineBetween(0, -8, 0, 27); }
-  car.add(g);
-  if (config.stickers && config.stickers.length) {
-    config.stickers.slice(0, 4).forEach((sticker, i) => {
-      car.add(scene.add.text((i - (Math.min(4, config.stickers.length) - 1) / 2) * 18, 25, sticker, { fontSize: "13px" }).setOrigin(0.5));
-    });
-  }
-  if (config.name) car.add(scene.add.text(0, 10, String(config.name).slice(0, 12), { fontSize: "8px", fontFamily: "system-ui,sans-serif", fontStyle: "bold", color: "#ffffff", stroke: "#162331", strokeThickness: 2 }).setOrigin(0.5));
-  const dino = scene.add.container(0, -17);
-  const dg = scene.add.graphics();
-  dg.fillStyle(0x2f9f62, 1); dg.fillCircle(0, 0, 14); dg.fillTriangle(-11, -9, -7, -23, -2, -10); dg.fillTriangle(1, -10, 7, -25, 10, -7);
-  dg.fillStyle(0xffffff, 1); dg.fillCircle(-5, -3, 4); dg.fillCircle(6, -3, 4);
-  dg.fillStyle(0x173523, 1); dg.fillCircle(-4, -2, 1.8); dg.fillCircle(7, -2, 1.8);
-  dg.fillStyle(0xfff5cf, 1); dg.fillEllipse(1, 6, 13, 6);
-  dino.add(dg); car.add(dino);
-  return car;
-}
-function bindClick(root, selector, handler) {
-  root.querySelectorAll(selector).forEach((element) => element.addEventListener("click", handler));
-}
-function setUI(markup) { ui.innerHTML = markup; }
+class PlayScene extends Phaser.Scene {
+  constructor() { super("play"); }
 
-class HomeScene extends Phaser.Scene {
-  constructor() { super("home"); }
+  preload() {
+    DUKit.textures(this);
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+
+    // Kart body (wheels and driver are separate so they can animate).
+    g.fillStyle(paintColor(-30), 1); g.fillRoundedRect(0, 12, 14, 6, 2); g.fillRoundedRect(2, 14, 5, 18, 2);
+    g.fillStyle(Phaser.Display.Color.HexStringToColor(STUDIO.paint).color, 1); g.fillRoundedRect(6, 22, 78, 22, 9);
+    g.fillStyle(paintColor(30), 1); g.fillRoundedRect(10, 24, 66, 5, 3);
+    g.fillStyle(0xbfe6ff, 1); g.fillRoundedRect(32, 6, 34, 18, 7);
+    g.fillStyle(0xffe27a, 1); g.fillCircle(82, 32, 4);
+    g.generateTexture("carBody", 90, 46);
+
+    g.clear();
+    g.fillStyle(0x222222, 1); g.fillCircle(13, 13, 13);
+    g.lineStyle(3, 0x666666, 1);
+    for (let i = 0; i < 5; i++) { const a = (Math.PI * 2 / 5) * i; g.lineBetween(13, 13, 13 + Math.cos(a) * 10, 13 + Math.sin(a) * 10); }
+    g.fillStyle(0xcfd8e3, 1); g.fillCircle(13, 13, 5);
+    g.generateTexture("wheel", 26, 26);
+
+    g.clear();
+    g.fillStyle(0x439f54, 1); g.fillTriangle(4, 8, 8, 0, 12, 8); g.fillTriangle(12, 6, 17, 0, 21, 8);
+    g.fillStyle(0x58c26a, 1); g.fillCircle(15, 17, 12);
+    g.fillStyle(0xffffff, 1); g.fillCircle(20, 14, 5);
+    g.fillStyle(0x222222, 1); g.fillCircle(22, 14, 2.4);
+    g.generateTexture("dinoHead", 32, 32);
+
+    // Rock, log, star, egg (outlined and high-contrast).
+    g.clear();
+    g.fillStyle(0x6b7079, 1); g.lineStyle(5, 0x23262c, 1);
+    g.fillRoundedRect(4, 14, 68, 56, 18); g.strokeRoundedRect(4, 14, 68, 56, 18);
+    g.fillStyle(0x8b919b, 1); g.fillRoundedRect(16, 4, 40, 36, 14); g.strokeRoundedRect(16, 4, 40, 36, 14);
+    g.fillStyle(0xffffff, 0.35); g.fillRoundedRect(24, 12, 14, 8, 4);
+    g.generateTexture("rock", 76, 74);
+
+    g.clear();
+    g.fillStyle(0x7a4a24, 1); g.lineStyle(5, 0x2b1708, 1);
+    g.fillRoundedRect(6, 12, 130, 44, 18); g.strokeRoundedRect(6, 12, 130, 44, 18);
+    g.lineStyle(3, 0x4a2a10, 1); g.lineBetween(30, 22, 112, 22); g.lineBetween(24, 34, 118, 34); g.lineBetween(30, 46, 112, 46);
+    g.fillStyle(0xd9a064, 1); g.lineStyle(5, 0x2b1708, 1); g.fillCircle(130, 34, 22); g.strokeCircle(130, 34, 22);
+    g.lineStyle(3, 0x9a6431, 1); g.strokeCircle(130, 34, 13); g.strokeCircle(130, 34, 5);
+    g.generateTexture("log", 156, 70);
+
+    g.clear();
+    g.fillStyle(0xffffff, 0.5); g.fillCircle(44, 44, 42);
+    g.fillStyle(0xffd23f, 1); g.lineStyle(5, 0xc2610a, 1);
+    const star = [];
+    for (let i = 0; i < 10; i++) { const r = i % 2 === 0 ? 32 : 14, an = (Math.PI / 5) * i - Math.PI / 2; star.push({ x: 44 + Math.cos(an) * r, y: 46 + Math.sin(an) * r }); }
+    g.fillPoints(star, true); g.strokePoints(star, true);
+    g.fillStyle(0xfff6b0, 1); g.fillCircle(44, 44, 6);
+    g.generateTexture("star", 88, 88);
+
+    g.clear();
+    g.fillStyle(0xffffff, 0.5); g.fillCircle(44, 44, 42);
+    g.fillStyle(0xfff0c8, 1); g.lineStyle(5, 0x8a5a2b, 1);
+    g.fillEllipse(44, 48, 44, 56); g.strokeEllipse(44, 48, 44, 56);
+    g.fillStyle(0xc9854a, 1); g.fillCircle(36, 40, 5); g.fillCircle(52, 54, 6); g.fillCircle(40, 60, 4);
+    g.generateTexture("egg", 88, 88);
+
+    // Parallax layers.
+    g.clear();
+    g.fillStyle(0x9ec7df, 1); g.fillTriangle(0, 140, 110, 30, 220, 140); g.fillTriangle(150, 140, 280, 10, 410, 140);
+    g.fillStyle(0xffffff, 0.9); g.fillTriangle(95, 50, 110, 30, 125, 52); g.fillTriangle(262, 30, 280, 10, 298, 32);
+    g.generateTexture("mountains", 410, 140);
+
+    g.clear();
+    g.fillStyle(PAL.hill, 1); g.fillEllipse(80, 80, 160, 90);
+    g.generateTexture("hill", 160, 90);
+
+    g.clear();
+    g.fillStyle(0x7a5a3a, 1); g.fillRect(34, 74, 10, 40); g.fillRect(154, 82, 9, 32);
+    g.fillStyle(0x2f8f57, 1); g.fillCircle(40, 56, 30); g.fillStyle(0x3fae6c, 1); g.fillCircle(160, 60, 26);
+    g.generateTexture("trees", 200, 116);
+
+    g.clear();
+    g.fillStyle(0xffffff, 0.92); g.fillEllipse(30, 22, 60, 26); g.fillEllipse(62, 16, 44, 22);
+    g.generateTexture("cloud", 94, 40);
+
+    g.clear();
+    g.fillStyle(PAL.road, 1); g.fillRect(0, 0, 120, 16);
+    g.fillStyle(PAL.line, 1); g.fillRect(0, 6, 60, 4);
+    g.generateTexture("track", 120, 16);
+    g.destroy();
+  }
+
   create() {
-    addWorldBackdrop(this, state.selectedScene, false);
-    const car = drawRearCar(this, 692, 394, state.config, 1.25, 4);
-    if (motionOK()) this.tweens.add({ targets: car, y: 388, duration: 800, yoyo: true, repeat: -1, ease: "sine.inOut" });
-    const available = unlockedCarCount();
-    setUI(
-      '<section class="panel home-panel" aria-label="Dino Car Studio">' +
-      '<header class="panel-heading"><div><p class="eyebrow">DINOSAUR UNIVERSE</p><h1>Dino Car Studio</h1><p class="subline">Build a car, pick a world, then hit the road.</p></div><button id="sound-toggle" class="sound-button" type="button" aria-label="Toggle sound">' + (state.sound === false ? "🔇" : "🔊") + '</button></header>' +
-      '<h2 class="section-title">Choose your world</h2><div class="world-grid">' +
-      SCENE_LIST.map((world) => {
-        const open = worldUnlocked(world), selected = state.selectedScene === world.id;
-        return '<button type="button" class="world-choice' + (selected ? " selected" : "") + (open ? "" : " locked") + '" data-world="' + world.id + '" aria-label="' + safeText(world.label) + (open ? (selected ? ", selected" : "") : ", unlock at " + world.unlockStars + " stars") + '">' +
-          '<span class="world-icon">' + icons[world.id] + '</span><span><strong>' + safeText(world.label) + '</strong><small>' + (open ? (selected ? "Ready to explore" : "Choose this world") : "🔒 " + world.unlockStars + " stars") + '</small></span></button>';
-      }).join("") +
-      '</div><div class="action-grid"><button class="action-button paint-action" data-action="paint">🎨 Paint My Car</button><button class="action-button garage-action" data-action="garage">🚗 Dino Garage</button><button class="action-button drive-action" data-action="explore">🦖 Explore &amp; Collect</button><button class="action-button race-action" data-action="race">🏁 Dino Race</button></div>' +
-      '<footer class="progress-line"><span>' + available + ' / ' + CARS.length + ' cars unlocked</span><span>⭐ ' + state.totalStars + ' stars</span><span>🏆 Best ' + state.bestStars + '</span></footer><p id="home-hint" class="hint">Your dino driver is ready for ' + safeText(worldTitle(state.selectedScene).label) + '.</p></section>'
-    );
-    bindClick(ui, "[data-world]", (event) => {
-      const world = sceneById[event.currentTarget.dataset.world];
-      if (!world) return;
-      if (!worldUnlocked(world)) {
-        const hint = ui.querySelector("#home-hint");
-        hint.textContent = "Collect " + (world.unlockStars - state.totalStars) + " more stars to unlock " + world.label + ".";
-        return;
-      }
-      state.selectedScene = world.id; saveState(); this.scene.restart();
-    });
-    bindClick(ui, "[data-action]", (event) => {
-      const action = event.currentTarget.dataset.action;
-      if (action === "paint") this.scene.start("customize");
-      else if (action === "garage") this.scene.start("garage");
-      else { state.selectedMode = action; saveState(); this.scene.start("drive", { mode: action, world: state.selectedScene }); }
-    });
-    const soundButton = ui.querySelector("#sound-toggle");
-    soundButton.addEventListener("click", () => { sound(state.sound === false); soundButton.textContent = state.sound ? "🔊" : "🔇"; });
-    this.events.once("shutdown", () => setUI(""));
-    if (window.DUFX && window.DUFX.settings) window.DUFX.settings.sound = state.sound !== false;
-  }
-}
+    this.speed = 320;
+    this.score = 0;
+    this.chain = 0;
+    this.best = DUKit.getBest(STORE_KEY);
+    this.gameOver = false;
+    this.ready = false;
+    this.wasGrounded = true;
 
-class CustomizeScene extends Phaser.Scene {
-  constructor() { super("customize"); }
-  create() {
-    addWorldBackdrop(this, state.selectedScene, false);
-    this.showCar = drawRearCar(this, 700, 390, state.config, 1.55, 4);
-    if (motionOK()) this.tweens.add({ targets: this.showCar, y: 384, duration: 900, yoyo: true, repeat: -1, ease: "sine.inOut" });
-    this.renderControls();
-    this.events.once("shutdown", () => setUI(""));
-  }
-  redrawCar() {
-    if (this.showCar) this.showCar.destroy();
-    this.showCar = drawRearCar(this, 700, 390, state.config, 1.55, 4);
-  }
-  renderControls() {
-    setUI(
-      '<section class="panel customize-panel"><header class="panel-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h1>Paint My Car</h1><p class="subline">Your car faces into the road ahead.</p></div><button class="small-button" id="custom-home">← Home</button></header>' +
-      '<label class="section-title" for="paint-options">Pick a colour</label><div id="paint-options" class="paint-grid">' +
-      PAINTS.map((paint) => '<button type="button" class="paint-chip' + (state.config.paint === paint ? " selected" : "") + '" data-paint="' + paint + '" style="--paint:' + paint + '" aria-label="Paint ' + paint + '"' + (state.config.paint === paint ? ' aria-pressed="true"' : "") + '></button>').join("") +
-      '</div><h2 class="section-title">Add stickers <small>(up to 4)</small></h2><div class="sticker-grid">' +
-      STICKERS.map((sticker) => '<button type="button" class="sticker-choice' + (state.config.stickers.includes(sticker) ? " selected" : "") + '" data-sticker="' + safeText(sticker) + '" aria-pressed="' + state.config.stickers.includes(sticker) + '">' + sticker + '</button>').join("") +
-      '</div><label class="name-label" for="driver-name">Your name on the car</label><input id="driver-name" class="name-input" maxlength="12" autocomplete="off" value="' + safeText(state.config.name) + '" placeholder="Type your name">' +
-      '<div class="action-row"><button class="small-button" id="shuffle-car">🎲 Surprise me!</button><button class="action-button drive-action" id="custom-drive">Drive now →</button></div></section>'
-    );
-    bindClick(ui, "[data-paint]", (event) => {
-      state.config.paint = event.currentTarget.dataset.paint; saveState(); this.renderControls(); this.redrawCar();
-    });
-    bindClick(ui, "[data-sticker]", (event) => {
-      const sticker = event.currentTarget.dataset.sticker;
-      const index = state.config.stickers.indexOf(sticker);
-      if (index >= 0) state.config.stickers.splice(index, 1);
-      else if (state.config.stickers.length < 4) state.config.stickers.push(sticker);
-      saveState(); this.renderControls(); this.redrawCar();
-    });
-    ui.querySelector("#driver-name").addEventListener("input", (event) => {
-      state.config.name = event.currentTarget.value.trim().slice(0, 12); saveState(); this.redrawCar();
-    });
-    ui.querySelector("#custom-home").addEventListener("click", () => this.scene.start("home"));
-    ui.querySelector("#shuffle-car").addEventListener("click", () => {
-      const available = CARS.filter((_car, index) => state.totalStars >= carUnlockCost(index));
-      const car = available[Math.floor(Math.random() * available.length)] || CARS[0];
-      state.config = { carId: car.id, body: car.body, paint: PAINTS[Math.floor(Math.random() * PAINTS.length)], name: state.config.name, stickers: STICKERS.slice().sort(() => Math.random() - 0.5).slice(0, 2) };
-      saveState(); this.renderControls(); this.redrawCar();
-    });
-    ui.querySelector("#custom-drive").addEventListener("click", () => { state.selectedMode = "explore"; saveState(); this.scene.start("drive", { mode: "explore", world: state.selectedScene }); });
-  }
-}
+    // Sky, sun, rays, sparkles.
+    const sky = this.add.graphics();
+    sky.fillGradientStyle(PAL.skyA, PAL.skyA, PAL.skyB, PAL.skyB, 1);
+    sky.fillRect(0, 0, W, H);
+    DUKit.sunRays(this, 820, 96, 200, PAL.sun);
+    const sun = this.add.circle(820, 96, 42, PAL.sun, 1).setDepth(0);
+    this.tweens.add({ targets: sun, scale: 1.08, duration: 1800, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    DUKit.sparkleField(this, STUDIO.scene === "space" ? 40 : 10, STUDIO.scene === "space" ? 0 : 600, 20, 940, STUDIO.scene === "space" ? 300 : 170, 0xffffff);
 
-class GarageScene extends Phaser.Scene {
-  constructor() { super("garage"); }
-  create() {
-    addWorldBackdrop(this, state.selectedScene, false);
-    setUI(
-      '<section class="panel garage-panel"><header class="panel-heading"><div><p class="eyebrow">YOUR COLLECTION</p><h1>Dino Garage</h1><p class="subline">' + unlockedCarCount() + ' of ' + CARS.length + ' cars ready · ' + state.totalStars + ' stars collected</p></div><button class="small-button" id="garage-home">← Home</button></header>' +
-      '<div class="garage-grid">' + CARS.map((car, index) => {
-        const unlocked = state.totalStars >= carUnlockCost(index), selected = state.config.carId === car.id;
-        const color = selected ? state.config.paint : car.paint;
-        return '<button type="button" class="garage-car' + (selected ? " selected" : "") + (unlocked ? "" : " locked") + '" data-car-index="' + index + '" aria-label="' + safeText(car.name) + (unlocked ? (selected ? ", your current car" : ", unlocked") : ", unlock at " + carUnlockCost(index) + " stars") + '">' +
-          '<span class="garage-car-art" style="--car-colour:' + color + '">🚙</span><strong>' + safeText(car.name) + '</strong><small>' + (unlocked ? (selected ? "Your current car" : "Tap to choose") : "🔒 " + carUnlockCost(index) + " stars") + '</small></button>';
-      }).join("") + '</div></section>'
-    );
-    ui.querySelector("#garage-home").addEventListener("click", () => this.scene.start("home"));
-    bindClick(ui, "[data-car-index]", (event) => {
-      const index = Number(event.currentTarget.dataset.carIndex), car = carAt(index);
-      if (state.totalStars < carUnlockCost(index)) {
-        event.currentTarget.querySelector("small").textContent = "Collect " + (carUnlockCost(index) - state.totalStars) + " more stars";
-        return;
-      }
-      state.config = { ...state.config, carId: car.id, body: car.body, paint: car.paint };
-      saveState(); this.scene.start("home");
-    });
-    this.events.once("shutdown", () => setUI(""));
-  }
-}
+    this.mountains = this.add.tileSprite(W / 2, GROUND_Y - 112, W, 140, "mountains").setAlpha(0.9).setTint(PAL.mount);
+    this.clouds = this.add.tileSprite(W / 2, 70, W, 40, "cloud").setAlpha(0.9);
+    this.clouds2 = this.add.tileSprite(W / 2, 140, W, 40, "cloud").setAlpha(0.6);
+    this.clouds2.tilePositionX = 40;
+    this.hills = this.add.tileSprite(W / 2, GROUND_Y - 50, W, 90, "hill");
+    this.trees = this.add.tileSprite(W / 2, GROUND_Y - 56, W, 116, "trees").setAlpha(0.95).setTint(PAL.trees);
 
-class DriveScene extends Phaser.Scene {
-  constructor() { super("drive"); }
-  init(options) { this.mode = options.mode === "race" ? "race" : "explore"; this.worldId = sceneById[options.world] ? options.world : state.selectedScene; }
-  create() {
-    this.world = addWorldBackdrop(this, this.worldId, true);
-    this.roadTop = 274; this.roadStart = this.time.now; this.roadScroll = 0;
-    this.items = []; this.rivals = []; this.collected = 0; this.distance = 0; this.speed = this.mode === "race" ? 168 : 174;
-    this.boost = 0; this.slow = 0; this.spawnClock = 0; this.countdown = 3.1; this.lastCount = 4; this.paused = false; this.ended = false; this.steer = 0;
-    this.playerU = 0.5; this.playerX = W / 2; this.playerCar = drawRearCar(this, this.playerX, 466, state.config, 1.04, 20);
-    this.buildRoad();
-    if (this.mode === "race") this.buildRivals();
-    this.bindControls();
-    if (motionOK()) this.tweens.add({ targets: this.playerCar, y: 462, duration: 180, yoyo: true, repeat: -1, ease: "sine.inOut" });
-    this.events.once("shutdown", () => setUI(""));
+    this.add.rectangle(W / 2, (GROUND_Y + H) / 2, W, H - GROUND_Y, PAL.ground);
+    this.track = this.add.tileSprite(W / 2, GROUND_Y + 8, W, 16, "track");
+
+    // Physics: an invisible hitbox; the pretty kart follows it.
+    this.physics.world.gravity.y = 2200;
+    this.groundBody = this.physics.add.staticGroup();
+    this.groundBody.add(this.add.rectangle(W / 2, GROUND_Y, W, 80, 0x000000, 0).setOrigin(0.5, 0));
+    this.hit = this.physics.add.sprite(150, GROUND_Y - 20, "kit-dot").setVisible(false);
+    this.hit.body.setSize(66, 40);
+    this.physics.add.collider(this.hit, this.groundBody);
+
+    // Visual kart.
+    this.shadow = this.add.ellipse(150, GROUND_Y + 4, 84, 12, 0x0a121e, 0.28).setDepth(4);
+    this.car = this.add.container(150, GROUND_Y).setDepth(5);
+    this.wheelB = this.add.image(-28, -13, "wheel");
+    this.wheelF = this.add.image(30, -13, "wheel");
+    this.carBody = this.add.image(0, -10, "carBody").setOrigin(0.5, 1);
+    this.driver = this.add.image(4, -50, "dinoHead").setOrigin(0.5, 0.7);
+    this.car.add([this.wheelB, this.wheelF, this.carBody, this.driver]);
+    STUDIO.stickers.forEach((e, i) => this.car.add(this.add.text(-33 + i * 22, -23, e, { fontSize: "15px" }).setOrigin(0.5)));
+    if (STUDIO.name) this.car.add(this.add.text(0, -86, STUDIO.name, { fontSize: "14px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", stroke: "#17403a", strokeThickness: 4 }).setOrigin(0.5));
+    this.tweens.add({ targets: this.driver, angle: { from: -6, to: 6 }, y: -53, duration: 420, yoyo: true, repeat: -1, ease: "sine.inOut" });
+
+    // Dust behind the wheels, wind streaks at speed.
+    this.dust = this.add.particles(0, 0, "kit-dot", {
+      speed: { min: 20, max: 70 }, angle: { min: 150, max: 210 }, scale: { start: 0.5, end: 0 },
+      alpha: { start: 0.55, end: 0 }, lifespan: 320, frequency: 55, tint: 0xd9c49a
+    }).setDepth(4);
+    this.dust.startFollow(this.car, -44, -4);
+    this.wind = this.add.particles(W + 20, 0, "kit-dot", {
+      y: { min: 60, max: GROUND_Y - 30 }, speedX: { min: -1100, max: -800 }, lifespan: 600, scaleX: { start: 5, end: 3 }, scaleY: 0.12,
+      alpha: { start: 0.45, end: 0 }, frequency: 40, tint: 0xffffff, emitting: false
+    }).setDepth(2);
+
+    // Gameplay groups.
+    this.obstacles = this.physics.add.group();
+    this.collectibles = this.physics.add.group();
+    this.physics.add.collider(this.hit, this.obstacles, () => this.crash(), null, this);
+    this.physics.add.overlap(this.hit, this.collectibles, (p, item) => this.collect(item), null, this);
+    this.spawnTimer = this.time.addEvent({ delay: 1500, callback: () => this.spawnObstacle(), loop: true, paused: true });
+    this.itemTimer = this.time.addEvent({ delay: 800, callback: () => this.spawnItem(), loop: true, paused: true });
+
+    // HUD
+    this.starIcon = this.add.image(36, 36, "kit-star").setScale(0.9).setDepth(60);
+    this.scoreText = this.add.text(66, 16, "0", { fontSize: "34px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", stroke: "#17403a", strokeThickness: 6 }).setDepth(60);
+    this.bestText = this.add.text(66, 58, this.best ? "Best " + this.best : "", { fontSize: "16px", fontFamily: DUKit.FONT, color: "#fff", stroke: "#17403a", strokeThickness: 4 }).setDepth(60);
+
+    // Input (registered before the title so the title's tap never also jumps).
+    this.input.keyboard.on("keydown-SPACE", () => this.jump());
+    this.input.keyboard.on("keydown-UP", () => this.jump());
+    this.input.on("pointerdown", () => this.jump());
+
+    DUKit.ready();
+    if (skipTitle) this.begin();
+    else DUKit.title(this, { title: "Dino Run", emoji: "🏎️", hint: PAL.label + " — tap or press Space to jump over rocks and logs. Catch the stars!" }, () => this.begin());
   }
-  buildRoad() {
-    const horizon = this.roadTop, halfNear = 372, halfFar = 82;
-    const ground = this.add.rectangle(W / 2, (horizon + H) / 2, W, H - horizon, Phaser.Display.Color.HexStringToColor(this.world.ground).color).setDepth(-2);
-    const road = this.add.graphics().setDepth(2);
-    const roadColor = Phaser.Display.Color.HexStringToColor(this.world.road).color;
-    const lineColor = Phaser.Display.Color.HexStringToColor(this.world.roadLine).color;
-    road.fillStyle(roadColor, 1);
-    road.beginPath(); road.moveTo(W / 2 - halfFar, horizon); road.lineTo(W / 2 + halfFar, horizon); road.lineTo(W / 2 + halfNear, H); road.lineTo(W / 2 - halfNear, H); road.closePath(); road.fillPath();
-    road.lineStyle(9, lineColor, 0.92);
-    road.beginPath(); road.moveTo(W / 2 - halfFar, horizon); road.lineTo(W / 2 - halfNear, H); road.moveTo(W / 2 + halfFar, horizon); road.lineTo(W / 2 + halfNear, H); road.strokePath();
-    road.fillStyle(0xffffff, 0.14); road.fillRect(0, horizon, 960, 5);
-    this.roadShape = road;
-    this.dashes = [];
-    for (let i = 0; i < 12; i++) {
-      for (let lane = 1; lane <= 2; lane++) {
-        this.dashes.push({ sprite: this.add.rectangle(0, 0, 8, 22, lineColor, 0.9).setDepth(3), phase: i / 12, lane });
-      }
+
+  begin() {
+    this.ready = true;
+    this.spawnTimer.paused = false;
+    this.itemTimer.paused = false;
+    this.spawnObstacle();
+  }
+
+  jump() {
+    if (!this.ready || this.gameOver) return;
+    if (this.hit.body.touching.down || this.hit.body.blocked.down) {
+      this.hit.setVelocityY(-760);
+      DUKit.sfx("boing");
+      this.tweens.add({ targets: this.car, scaleY: 1.15, scaleX: 0.92, duration: 120, yoyo: true });
+      DUKit.burst(this, this.car.x - 20, GROUND_Y, { tint: 0xd9c49a, n: 8, min: 40, max: 140, scale: 0.7, life: 380 });
     }
-    this.roadDims = { halfNear, halfFar, horizon, ground };
   }
-  buildRivals() {
-    const paints = ["#ff704d", "#8b74e8", "#ffca52"];
-    this.rivals = paints.map((paint, index) => ({
-      name: ["Pip", "Rexy", "Zoom"][index],
-      u: [0.28, 0.72, 0.48][index],
-      progress: 250 + Math.random() * 260,
-      speed: 154 + Math.random() * 28,
-      car: drawRearCar(this, W / 2, 338, { body: CARS[(index * 9 + 6) % CARS.length].body, paint, stickers: ["⭐"] }, 0.56, 10)
-    }));
+
+  spawnObstacle() {
+    if (this.gameOver) return;
+    const kind = Math.random() < 0.55 ? "rock" : "log";
+    const ob = this.obstacles.create(W + 80, GROUND_Y + 6, kind);
+    ob.setOrigin(0.5, 1).setScale(kind === "rock" ? 0.72 : 0.66);
+    ob.body.setAllowGravity(false);
+    ob.setVelocityX(-this.speed);
+    ob.body.setSize(kind === "rock" ? 52 : 120, kind === "rock" ? 52 : 36, true);
+    this.spawnTimer.delay = Math.max(650, 1500 - this.score * 6);
   }
-  bindControls() {
-    const world = this.world;
-    setUI(
-      '<div class="drive-hud"><button class="small-button" id="drive-home">← Home</button><div class="hud-pill" id="hud-stars">⭐ 0</div><div class="hud-pill" id="hud-progress"></div><div class="hud-pill" id="hud-message"></div><button class="small-button" id="drive-pause">Ⅱ Pause</button></div>' +
-      '<div id="countdown" class="countdown" aria-live="polite">3</div><div class="drive-controls"><button type="button" class="steer-button" data-steer="-1" aria-label="Steer left">◀</button><button type="button" class="steer-button" data-steer="1" aria-label="Steer right">▶</button></div>'
-    );
-    const hudProgress = ui.querySelector("#hud-progress"), hudMessage = ui.querySelector("#hud-message"), countdown = ui.querySelector("#countdown");
-    hudMessage.textContent = this.mode === "race" ? "Race 3 laps! Stars give you a boost." : "Collect 20 " + world.collectible + " on the road!";
-    this.updateHud = () => {
-      ui.querySelector("#hud-stars").textContent = world.collectible + " " + this.collected;
-      hudProgress.textContent = this.mode === "race" ? "Lap " + Math.min(3, Math.floor(this.distance / 2300) + 1) + "/3 · " + this.placeText() : world.label + " · " + Math.min(20, this.collected) + "/20";
-      countdown.textContent = this.paused ? "PAUSED" : (this.countdown > 0 ? (Math.ceil(this.countdown) > 0 ? String(Math.ceil(this.countdown)) : "GO!") : "");
-      countdown.classList.toggle("hidden", !this.paused && this.countdown <= 0);
-    };
-    ui.querySelector("#drive-home").addEventListener("click", () => this.scene.start("home"));
-    ui.querySelector("#drive-pause").addEventListener("click", (event) => {
-      this.paused = !this.paused;
-      event.currentTarget.textContent = this.paused ? "▶ Resume" : "Ⅱ Pause";
-      this.updateHud();
-    });
-    this.pointerHandlers = new AbortController();
-    ui.querySelectorAll("[data-steer]").forEach((button) => {
-      const direction = Number(button.dataset.steer);
-      button.addEventListener("pointerdown", (event) => { event.preventDefault(); this.steer = direction; button.setPointerCapture(event.pointerId); }, { signal: this.pointerHandlers.signal });
-      const stop = () => { if (this.steer === direction) this.steer = 0; };
-      button.addEventListener("pointerup", stop, { signal: this.pointerHandlers.signal });
-      button.addEventListener("pointercancel", stop, { signal: this.pointerHandlers.signal });
-      button.addEventListener("lostpointercapture", stop, { signal: this.pointerHandlers.signal });
-    });
-    this.events.once("shutdown", () => this.pointerHandlers.abort());
-    this.keys = this.input.keyboard.addKeys("LEFT,RIGHT,A,D");
-    this.updateHud();
-  }
-  roadX(y, u) {
-    const p = Phaser.Math.Clamp((y - this.roadTop) / (H - this.roadTop), 0, 1);
-    const width = 164 + p * 582;
-    return W / 2 + (u - 0.5) * width;
-  }
-  placeText() {
-    if (!this.rivals.length) return "1st";
-    const place = 1 + this.rivals.filter((rival) => rival.progress > this.distance).length;
-    return ["1st", "2nd", "3rd", "4th"][place - 1];
-  }
+
   spawnItem() {
-    const collectible = Math.random() < 0.76;
-    const u = Phaser.Math.FloatBetween(0.14, 0.86);
-    const label = collectible ? this.world.collectible : this.world.obstacle;
-    const object = this.add.text(this.roadX(this.roadTop + 4, u), this.roadTop + 5, label, { fontSize: "36px" }).setOrigin(0.5).setDepth(8).setScale(0.38);
-    this.items.push({ object, u, y: this.roadTop + 4, collectible, hit: false, velocity: Phaser.Math.Between(118, 148) });
+    if (this.gameOver) return;
+    const high = Math.random() < 0.5;
+    const tex = Math.random() < 0.7 ? "star" : "egg";
+    const y = high ? GROUND_Y - 150 : GROUND_Y - 60;
+    const item = this.collectibles.create(W + 80, y, tex);
+    item.setScale(0.62);
+    item.body.setAllowGravity(false);
+    item.setVelocityX(-this.speed);
+    item.value = tex === "egg" ? 3 : 1;
+    this.tweens.add({ targets: item, y: y - 10, duration: 500, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    if (tex === "star") this.tweens.add({ targets: item, angle: 360, duration: 2400, repeat: -1 });
   }
-  collectItem(item) {
-    item.hit = true;
-    item.object.destroy();
-    if (item.collectible) {
-      this.collected += 1;
-      this.boost = this.mode === "race" ? 2.5 : 0;
-      if (window.DUKit) {
-        DUKit.burst(this, item.x, item.y, { texture: "kit-spark", tint: 0xffdf58, n: 18, scale: 1.15, life: 700 });
-        DUKit.floatText(this, item.x, item.y - 14, "+1 " + this.world.collectible);
-        DUKit.sfx("sparkle");
-      }
-      const label = ui.querySelector("#hud-message");
-      if (label) label.textContent = this.mode === "race" ? "Dino boost! Zoom ahead!" : "Lovely find! " + this.collected + " of 20";
-    } else {
-      this.slow = this.mode === "race" ? 1.2 : 0.4;
-      if (window.DUKit) { DUKit.burst(this, item.x, item.y, { tint: 0xffffff, n: 10, scale: 0.8 }); DUKit.sfx("boing"); }
-      const label = ui.querySelector("#hud-message");
-      if (label) label.textContent = "Bumpy! Steer around the next one.";
-    }
-    this.updateHud();
-  }
-  finish() {
-    if (this.ended) return;
-    this.ended = true; this.paused = true;
-    const place = this.mode === "race" ? 1 + this.rivals.filter((rival) => rival.progress > this.distance).length : 1;
-    const bonus = this.mode === "race" ? Math.max(3, 15 - (place - 1) * 4) : 5;
-    const earned = this.collected + bonus;
-    state.totalStars += earned; state.bestStars = Math.max(state.bestStars, earned); saveState();
-    if (window.DUKit) {
-      DUKit.sfx("win");
-      DUKit.burst(this, W / 2, H * 0.35, { texture: "kit-spark", tint: 0xffe14d, n: 28, gravity: 450, life: 1000, depth: 50, scale: 1.2 });
-      DUKit.banner(this, this.mode === "race" ? this.placeText() + " place!" : "Treasure trail complete!");
-    }
-    const label = this.mode === "race" ? this.placeText() + " place! Three laps complete." : "Amazing exploring! You found every treasure.";
-    setUI('<section class="panel finish-panel"><p class="eyebrow">RACE COMPLETE</p><h1>' + safeText(label) + '</h1><p>You earned <strong>⭐ ' + earned + '</strong> stars. Your garage now has ' + unlockedCarCount() + ' of ' + CARS.length + ' cars ready.</p><div class="action-grid"><button class="action-button drive-action" id="finish-again">Play again</button><button class="action-button garage-action" id="finish-home">Back to studio</button></div></section>');
-    ui.querySelector("#finish-again").addEventListener("click", () => this.scene.restart({ mode: this.mode, world: this.worldId }));
-    ui.querySelector("#finish-home").addEventListener("click", () => this.scene.start("home"));
-  }
-  update(_time, delta) {
-    if (this.paused || this.ended) return;
-    const dt = Math.min(0.05, delta / 1000);
-    if (this.countdown > 0) {
-      this.countdown = Math.max(0, this.countdown - dt);
-      this.updateHud();
-      return;
-    }
-    this.distance += (this.speed + (this.boost > 0 ? 58 : 0) - (this.slow > 0 ? 45 : 0)) * dt;
-    this.boost = Math.max(0, this.boost - dt); this.slow = Math.max(0, this.slow - dt);
-    if (this.mode === "race") this.rivals.forEach((rival) => { rival.progress += rival.speed * dt; });
-    const direction = (this.keys.RIGHT.isDown || this.keys.D.isDown ? 1 : 0) - (this.keys.LEFT.isDown || this.keys.A.isDown ? 1 : 0) || this.steer;
-    const maxX = this.roadX(H - 55, 0.94), minX = this.roadX(H - 55, 0.06);
-    this.playerX = Phaser.Math.Clamp(this.playerX + direction * 285 * dt, minX, maxX);
-    this.playerCar.x = this.playerX; this.playerCar.angle = Phaser.Math.Clamp(direction * 4, -6, 6);
-    this.roadScroll += dt * (this.speed + 130);
-    this.dashes.forEach((dash) => {
-      const phase = (dash.phase + (this.roadScroll / 760)) % 1;
-      const y = this.roadTop + phase * (H - this.roadTop);
-      const p = phase, laneU = dash.lane / 3;
-      const x = this.roadX(y, laneU), width = 3 + p * 9, height = 8 + p * 25;
-      dash.sprite.setPosition(x, y).setDisplaySize(width, height).setAlpha(0.35 + p * 0.6);
-    });
-    this.spawnClock += dt;
-    if (this.spawnClock >= (this.mode === "race" ? 0.8 : 0.72)) { this.spawnClock = 0; this.spawnItem(); }
-    this.items.forEach((item) => {
-      item.y += item.velocity * dt * (0.58 + Phaser.Math.Clamp((item.y - this.roadTop) / (H - this.roadTop), 0, 1) * 1.55);
-      const depth = Phaser.Math.Clamp((item.y - this.roadTop) / (H - this.roadTop), 0, 1);
-      item.x = this.roadX(item.y, item.u);
-      item.object.setPosition(item.x, item.y).setScale(0.35 + depth * 0.68);
-      if (!item.hit && item.y > H - 112 && item.y < H - 42 && Math.abs(item.x - this.playerX) < 48) this.collectItem(item);
-    });
-    this.items = this.items.filter((item) => { if (item.y > H + 30) { if (!item.hit && item.collectible) this.collected = Math.max(0, this.collected); item.object.destroy(); return false; } return !item.hit; });
-    this.rivals.forEach((rival) => {
-      const gap = rival.progress - this.distance;
-      const depth = Phaser.Math.Clamp(1 - Math.max(0, gap) / 950, 0.08, 0.8);
-      const y = this.roadTop + 28 + depth * 98;
-      rival.car.setPosition(this.roadX(y, rival.u), y).setScale(0.4 + depth * 0.34);
-    });
-    if (this.collected >= 20 && this.mode === "explore") this.finish();
-    if (this.distance >= 6900 && this.mode === "race") this.finish();
-    if (Math.floor(this.distance / 900) !== this.lastHudDistance || this.collected !== this.lastHudStars) {
-      this.lastHudDistance = Math.floor(this.distance / 900); this.lastHudStars = this.collected; this.updateHud();
-    }
-  }
-}
 
-class ClassicScene extends Phaser.Scene {
-  constructor() { super("classic"); }
-  create() {
-    addWorldBackdrop(this, "island", false);
-    setUI('<section class="panel finish-panel"><p class="eyebrow">CLASSIC DINO CAR</p><h1>Classic studio</h1><p>Open the original car studio with its established controls and collection.</p><button class="action-button drive-action" id="classic-open">Open classic studio</button></section>');
-    ui.querySelector("#classic-open").addEventListener("click", () => { window.location.href = "../drive/index.html"; });
-    this.events.once("shutdown", () => setUI(""));
+  collect(item) {
+    this.score += item.value;
+    this.chain += 1;
+    this.scoreText.setText(String(this.score));
+    this.tweens.add({ targets: this.scoreText, scale: 1.35, duration: 120, yoyo: true });
+    this.tweens.add({ targets: this.starIcon, angle: 360, scale: 1.3, duration: 320, onComplete: () => this.starIcon.setAngle(0).setScale(0.9) });
+    DUKit.burst(this, item.x, item.y, { texture: "kit-spark", tint: 0xffe14d, n: 12, scale: 1.1 });
+    DUKit.floatText(this, item.x, item.y - 20, "+" + item.value);
+    DUKit.sfx(item.value > 1 ? "chirp" : "star");
+    if (this.chain % 5 === 0) { DUKit.banner(this, this.chain + " in a row!"); DUKit.sfx("sparkle"); }
+    item.destroy();
+  }
+
+  crash() {
+    if (this.gameOver) return;
+    this.gameOver = true;
+    this.physics.pause();
+    this.spawnTimer.paused = true;
+    this.itemTimer.paused = true;
+    this.dust.emitting = false;
+    this.wind.emitting = false;
+    DUKit.sfx("thud"); DUKit.sfx("bad");
+    DUKit.shake(this, 280, 0.016);
+    this.carBody.setTint(0xff7777);
+    this.tweens.add({ targets: this.car, angle: -18, y: this.car.y - 30, duration: 260, yoyo: true });
+    DUKit.burst(this, this.car.x + 10, this.car.y - 20, { tint: 0x8a5a33, n: 26, gravity: 600, life: 700, scale: 1.1 });
+    DUKit.burst(this, this.car.x + 10, this.car.y - 24, { texture: "kit-spark", tint: 0xffffff, n: 10, scale: 1.4 });
+
+    const stars = DUKit.rating(this.score, STAR_STEPS);
+    const isBest = this.score > this.best;
+    this.best = Math.max(this.best, this.score);
+    DUKit.setKey(STORE_KEY, { best: this.best });
+    DUKit.mergeJSON(HUB_KEY, o => { o.totalStars = (Number(o.totalStars) || 0) + stars; o.bestStars = Math.max(Number(o.bestStars) || 0, stars); });
+    this.time.delayedCall(650, () => {
+      DUKit.endPanel(this, { title: "GAME OVER", line: "Score " + this.score + (isBest && this.score > 0 ? "  ·  New best!" : ""), best: "Best " + this.best, stars, again: "TAP TO RETRY" }, () => { skipTitle = true; this.scene.restart(); });
+    });
+  }
+
+  update(time, delta) {
+    const dt = delta / 1000;
+    const k = this.ready && !this.gameOver ? 1 : (this.gameOver ? 0 : 0.25);
+    this.mountains.tilePositionX += this.speed * 0.05 * dt * k;
+    this.clouds.tilePositionX += this.speed * 0.08 * dt * (this.gameOver ? 0 : 1);
+    this.clouds2.tilePositionX += this.speed * 0.04 * dt * (this.gameOver ? 0 : 1);
+    this.hills.tilePositionX += this.speed * 0.2 * dt * k;
+    this.trees.tilePositionX += this.speed * 0.45 * dt * k;
+    this.track.tilePositionX += this.speed * dt * k;
+
+    const grounded = this.hit.body.touching.down || this.hit.body.blocked.down;
+    if (!this.gameOver) {
+      this.car.x = this.hit.x;
+      this.car.y = this.hit.y + 20;
+    }
+    const lift = Phaser.Math.Clamp((GROUND_Y - (this.hit.y + 20)) / 180, 0, 1);
+    this.shadow.setPosition(this.hit.x + 4, GROUND_Y + 4).setScale(1 - lift * 0.5).setAlpha(0.28 * (1 - lift * 0.6));
+    if (!this.gameOver) {
+      const spin = (grounded ? 1 : 0.35) * this.speed * dt * 0.09 * k;
+      this.wheelB.rotation += spin; this.wheelF.rotation += spin;
+      this.car.angle = grounded ? 0 : Phaser.Math.Clamp(this.hit.body.velocity.y / 90, -10, 10);
+    }
+    if (grounded && !this.wasGrounded && this.ready && !this.gameOver) {
+      this.tweens.add({ targets: this.car, scaleY: 0.84, scaleX: 1.1, duration: 90, yoyo: true, ease: "sine.out" });
+      DUKit.burst(this, this.car.x, GROUND_Y, { tint: 0xd9c49a, n: 10, min: 50, max: 160, scale: 0.8, life: 400 });
+    }
+    this.wasGrounded = grounded;
+    this.dust.emitting = grounded && this.ready && !this.gameOver;
+    this.wind.emitting = this.ready && !this.gameOver && this.speed > 430;
+
+    if (!this.ready || this.gameOver) return;
+    this.obstacles.getChildren().slice().forEach(o => { if (o.x < -120) o.destroy(); });
+    this.collectibles.getChildren().slice().forEach(o => { if (o.x < -80) { this.chain = 0; o.destroy(); } });
+    this.speed = Math.min(620, 320 + this.score * 2.4);
+    this.obstacles.getChildren().forEach(o => o.setVelocityX(-this.speed));
+    this.collectibles.getChildren().forEach(o => o.setVelocityX(-this.speed));
   }
 }
 
@@ -465,7 +325,7 @@ window.game = new Phaser.Game({
   height: H,
   parent: "game-root",
   backgroundColor: "#69c8ff",
+  physics: { default: "arcade", arcade: { gravity: { y: 2200 }, debug: false } },
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  scene: [HomeScene, CustomizeScene, GarageScene, DriveScene, ClassicScene],
-  render: { antialias: true, pixelArt: false, roundPixels: false }
+  scene: [PlayScene]
 });

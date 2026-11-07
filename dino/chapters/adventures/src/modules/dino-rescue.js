@@ -1,9 +1,9 @@
 // The Great Dino Rescue: a seven-chapter story quest. Mummy and Daddy are trapped at the Sky Nest by
 // Grumblecloud the storm, and Grayson rides a dinosaur through forest, bridge, cave, lava and sky to save them.
 // Progress is saved after every chapter, so the quest can be played across many days and replayed.
-import { createEngine, writeSave, wait, MOUNTS } from './rescue/engine.js?v=du-0d928b5c7d8c29dc';
-import { chapter1, chapter2, chapter3 } from './rescue/chapters-a.js?v=du-0d928b5c7d8c29dc';
-import { chapter4, chapter5, chapter6, chapter7 } from './rescue/chapters-b.js?v=du-0d928b5c7d8c29dc';
+import { createEngine, writeSave, wait, MOUNTS } from './rescue/engine.js?v=du-04c80678fe526be4';
+import { chapter1, chapter2, chapter3 } from './rescue/chapters-a.js?v=du-04c80678fe526be4';
+import { chapter4, chapter5, chapter6, chapter7 } from './rescue/chapters-b.js?v=du-04c80678fe526be4';
 const FX = window.DUFX;
 const CHAPTERS = [
   { name: 'The Call', icon: '🏡', fn: chapter1, x: 9, y: 76, blurb: 'A storm! Pip brings terrible news.' },

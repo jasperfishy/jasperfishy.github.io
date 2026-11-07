@@ -1,8 +1,18 @@
 // screens/customize.js — Car customization screen logic.
 
-import { PAINTS, STICKERS, CARS } from "../data-cars.js?v=du-0d928b5c7d8c29dc";
-import { renderCarSVG } from "../render-car.js?v=du-0d928b5c7d8c29dc";
-import { isCarUnlocked } from "./garage.js?v=du-0d928b5c7d8c29dc";
+import { PAINTS, STICKERS, CARS } from "../data-cars.js?v=du-04c80678fe526be4";
+import { renderCarSVG } from "../render-car.js?v=du-04c80678fe526be4";
+import { isCarUnlocked } from "./garage.js?v=du-04c80678fe526be4";
+
+const FX = () => window.DUFX;
+const fx = (name) => { try { const f = FX(); f && f.sfx && f.sfx[name] && f.sfx[name](); } catch (e) { /* sound is optional */ } };
+function celebrate(el, kind, n) {
+  try {
+    const f = FX(); if (!f || !el) return;
+    const r = el.getBoundingClientRect();
+    f.burst(r.left + r.width / 2, r.top + r.height / 2, { kind, n: n || 14 });
+  } catch (e) { /* effects are optional */ }
+}
 
 export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
   const preview = root.querySelector("#carPreview");
@@ -20,6 +30,8 @@ export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
       state.config.paint = color;
       markSelected(swatches, b);
       refresh();
+      fx("pop"); try { FX().bounce(preview.firstElementChild); } catch (e) { /* ok */ }
+      celebrate(preview, "sparkle", 16);
     });
     swatches.appendChild(b);
   });
@@ -35,6 +47,8 @@ export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
       else if (state.config.stickers.length < 4) state.config.stickers.push(s);
       markSelected(tray, b);
       refresh();
+      fx("pop"); try { FX().pop(b); } catch (e) { /* ok */ }
+      celebrate(preview, "stars", 8);
     });
     tray.appendChild(b);
   });
@@ -57,6 +71,8 @@ export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
     };
     syncControls();
     refresh();
+    fx("boing"); try { FX().bounce(preview.firstElementChild); } catch (e) { /* ok */ }
+    celebrate(preview, "confetti", 30);
   });
 
   root.querySelector("#btnDriveFromCustomize").addEventListener("click", goDrive);

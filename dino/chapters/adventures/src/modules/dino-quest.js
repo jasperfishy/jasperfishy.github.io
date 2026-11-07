@@ -2,6 +2,7 @@
 // A little story journey: a dinosaur friend finds a lost egg, walks through a meadow, climbs a mountain,
 // spots a cave across the valley, explores it with a torch, and takes the egg home to its mother.
 // Optional real photos/videos for the "real dinosaur moment" cards come from assets/real/manifest.json.
+import { attachBonus } from "../adv-kit.js?v=du-04c80678fe526be4";
 const FX = window.DUFX;
 const DINOS = [
   { id: 'raptor', name: 'Velociraptor' }, { id: 'trex', name: 'T-rex' }, { id: 'tricera', name: 'Triceratops' },
@@ -13,6 +14,7 @@ const TREES = tile('<g fill="#3f9a62"><circle cx="40" cy="60" r="26"/><circle cx
 const GRASS = tile('<rect y="30" width="400" height="70" fill="#6fc36f"/><g fill="#52a857"><path d="M20 30 l4 -16 l4 16Z M120 30 l4 -20 l4 20Z M230 30 l4 -14 l4 14Z M330 30 l4 -18 l4 18Z"/></g><g><circle cx="70" cy="48" r="4" fill="#ffd23f"/><circle cx="190" cy="52" r="4" fill="#ff7aa8"/><circle cx="300" cy="46" r="4" fill="#fff"/></g>', 400, 100);
 
 export function mountDinoQuest(context) {
+  attachBonus(context.stage); // a calm butterfly to catch for the shared sticker collection
   const level = context.level || 1;
   const name = context.playerName || '';
   let alive = true, pickedDino = null;

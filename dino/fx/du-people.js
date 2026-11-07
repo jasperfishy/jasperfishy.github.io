@@ -13,9 +13,9 @@
     return s ? s.replace(/fx\/du-people\.js.*$/, '') : '';
   })();
   const WHO = {
-    daddy: { img: BASE + 'chapters/adventures/assets/daddy-head.webp', w: 120, h: 146, top: 0, sweater: '#13607a', sleeve: '#0f4e65', pants: '#3f5d8a', shoe: '#6b4a2b', skin: '#efb88c',
+    daddy: { img: BASE + 'chapters/adventures/assets/daddy-head.webp', w: 120, h: 146, top: 0, sweater: '#13607a', sleeve: '#0f4e65', pants: '#3f5d8a', shoe: '#6b4a2b', skin: '#efb88c', lid: '#f9ab78',
       eyes: [[.307, .478], [.62, .516]], eyeW: .17, mouth: [.4, .735], mouthW: .2, name: 'Daddy Ellis' },
-    courtney: { img: BASE + 'chapters/adventures/assets/courtney-head.webp', w: 124, h: 124, top: 18, sweater: '#a9b99a', sleeve: '#97a888', pants: '#6c628f', shoe: '#e8dccb', skin: '#efb48b', round: true,
+    courtney: { img: BASE + 'chapters/adventures/assets/courtney-head.webp', w: 124, h: 124, top: 18, sweater: '#a9b99a', sleeve: '#97a888', pants: '#6c628f', shoe: '#e8dccb', skin: '#efb48b', lid: '#dc9468', tilt: -18, round: true,
       eyes: [[.515, .52], [.706, .37]], eyeW: .15, mouth: [.74, .63], mouthW: .17, name: 'Mummy Courtney' },
   };
   DUFX.personWho = WHO;
@@ -23,8 +23,8 @@
   DUFX.personHTML = function (who, opts) {
     opts = opts || {};
     const W = WHO[who] || WHO.daddy, k = opts.size || 1, state = opts.state || 'idle';
-    const lids = W.eyes.map(([x, y]) => `<i class="p-lid" style="left:${(x - W.eyeW / 2) * 100}%;top:${(y - .05) * 100}%;width:${W.eyeW * 100}%;background:${W.skin}"></i>`).join('');
-    return `<div class="du-person" data-who="${who}" data-state="${state}" style="--k:${k};--sweater:${W.sweater};--sleeve:${W.sleeve};--pants:${W.pants};--shoe:${W.shoe};--skin:${W.skin};--d:${(-Math.random() * 3).toFixed(2)}s">
+    const lids = W.eyes.map(([x, y]) => `<i class="p-lid" style="left:${(x - W.eyeW / 2) * 100}%;top:${(y - .05) * 100}%;width:${W.eyeW * 100}%"></i>`).join('');
+    return `<div class="du-person" data-who="${who}" data-state="${state}" style="--k:${k};--sweater:${W.sweater};--sleeve:${W.sleeve};--pants:${W.pants};--shoe:${W.shoe};--skin:${W.skin};--lid:${W.lid || W.skin};--tilt:${W.tilt || 0}deg;--d:${(-Math.random() * 3).toFixed(2)}s">
       <div class="p-rig">
         <div class="p-shadow"></div>
         <div class="p-leg p-l"><i class="p-foot"></i></div><div class="p-leg p-r"><i class="p-foot"></i></div>

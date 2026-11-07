@@ -32,6 +32,16 @@
     $('#denCount').textContent = all.length ? `(${all.length} friend${all.length === 1 ? '' : 's'})` : '';
     if (!all.length) box.append(el('div', 'den-empty', `<span class="nest">🪺</span><p>Your den is empty. Win three games to hatch your first dinosaur!</p>`));
     else all.slice(-12).forEach((d, i) => box.append(denDino(d, i)));
+    // Museum: every dinosaur built in Build-a-Dino, with its stars
+    const mus = window.Park.museum.all(), ms = $('#musShelf'); ms.innerHTML = '';
+    $('#musSection').classList.toggle('hidden', !mus.length);
+    $('#musCount').textContent = mus.length ? `(${mus.length} built)` : '';
+    mus.slice(-12).reverse().forEach((d) => {
+      const b = el('button', 'mus-card');
+      b.innerHTML = `<span class="mc-art">${FX.dinoHTML(d.s, { color: d.c, state: 'idle' })}</span><b>${d.n}</b><span class="mc-stars">${[1, 2, 3].map((n) => `<i class="${n <= d.st ? 'on' : ''}">★</i>`).join('')}</span><small>${window.Park.SPEC_NAME ? window.Park.SPEC_NAME[d.s] : d.s} · ${d.p || '?'} bones</small>`;
+      b.onclick = () => { FX.dinoState($('.du-dino', b), d.s === 'trex' ? 'roar' : 'happy', 1200); (d.s === 'trex' ? FX.sfx.roar : FX.sfx.chirp)(); const r = b.getBoundingClientRect(); FX.burst(r.left + r.width / 2, r.top + 20, { kind: 'stars', n: 8 }); };
+      ms.append(b);
+    });
     // Games
     const grid = $('#gameGrid'); grid.innerHTML = '';
     let total = 0;
@@ -44,7 +54,8 @@
       b.addEventListener('pointerenter', () => FX.dinoState($('.du-dino', b), 'happy', 900));
       grid.append(b);
     });
-    $('#heroSub').textContent = `${window.Park.games.length} games · ${total} of ${window.Park.games.length * 3} stars${childName ? ' · ' + childName + '’s park' : ''}`;
+    const sp = window.Park.sparkles.get();
+    $('#heroSub').textContent = `${window.Park.games.length} games · ${total} of ${window.Park.games.length * 3} stars${sp ? ' · ⭐ ' + sp + ' sparkles' : ''}${childName ? ' · ' + childName + '’s park' : ''}`;
   }
   window.Park.renderMenu = renderMenu;
 

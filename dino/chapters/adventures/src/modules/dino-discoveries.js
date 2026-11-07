@@ -1,3 +1,5 @@
+import { createPlay, collect, collection } from "../adv-kit.js?v=du-04c80678fe526be4";
+
 export const PREHISTORIC_CREATURES = [
   { name: "Tyrannosaurus rex", short: "T. rex", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "T. rex had strong legs, tiny arms and a powerful bite." , cheer: "stomps a happy dance" },
   { name: "Velociraptor", short: "Velociraptor", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "Velociraptor was much smaller than movie versions and had feathers." , cheer: "does a speedy spin" },
@@ -31,58 +33,116 @@ export const PREHISTORIC_CREATURES = [
   { name: "Dimetrodon", short: "Dimetrodon", icon: "🦎", kind: "Other ancient animal", diet: "Meat eater", fact: "Dimetrodon had a large back sail and lived long before the dinosaurs." , cheer: "gives a sunny sail wiggle" }
 ];
 
+/* Prehistoric Discoveries — a field guide of 30 ancient animals. Meet new friends (animated where we have a model),
+ * answer a friendly Fact Finder question for a bonus, and collect a stamp for every animal (saved on this device). */
+export function speciesFor(creature) {
+  const n = creature.name;
+  if (creature.kind !== "Dinosaur" && creature.kind !== "Flying reptile") return null;
+  if (creature.kind === "Flying reptile" || n === "Archaeopteryx") return "ptero";
+  if (/Tyrannosaurus/.test(n)) return "trex";
+  if (/Triceratops|Styracosaurus|Carnotaurus/.test(n)) return "tricera";
+  if (/Stegosaurus|Ankylosaurus|Amargasaurus|Pachycephalosaurus/.test(n)) return "stego";
+  if (/Velociraptor|Deinonychus|Coelophysis|Oviraptor|Allosaurus|Spinosaurus|Baryonyx/.test(n)) return "raptor";
+  return "bronto";
+}
+const TINTS = ["green", "teal", "purple", "orange", "pink", "blue", "yellow", "red"];
+function tintFor(name) { let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997; return TINTS[h % TINTS.length]; }
+function dietClass(d) { return /Plant/i.test(d) ? "Plant eater" : /Fish/i.test(d) ? "Fish eater" : /Meat/i.test(d) ? "Meat eater" : null; }
+const KINDS = ["Dinosaur", "Flying reptile", "Marine reptile", "Other ancient animal"];
+
 export function mountDinoDiscoveries(context) {
+  const F = window.DUFX;
   let selected = null;
   const visited = new Set();
   const required = Math.min(5, 2 + Math.floor(Math.max(0, context.challenge) / 3));
-  let filter = "All";
+  let filter = "All", asked = 0, right = 0, wrongTotal = 0;
+  const play = createPlay(context, {
+    emoji: "🦴", title: "Prehistoric Discoveries", theme: "dig", buddy: false, wander: true,
+    instruction: "Meet " + required + " new friends from long ago, then answer a Fact Finder question about each!", hint: "Discoveries stay here to explore. There are no quiz scores to worry about.", allowed: 99
+  });
+  const board = play.board;
+  const stamps = function () { return new Set(collection("guide").map(function (g) { return g.name; })); };
 
-  function draw() {
-    const creatures = PREHISTORIC_CREATURES.filter(function (creature) { return filter === "All" || creature.kind === filter; });
-    const categories = ["All", "Dinosaur", "Flying reptile", "Marine reptile", "Other ancient animal"];
-    context.stage.innerHTML = '<div class="stage-heading"><span class="stage-emoji" aria-hidden="true">🦴</span><h2>Prehistoric Discoveries</h2><p>' + escapeText(context.message("Meet dinosaurs and other amazing creatures from long ago.")) + '</p></div>' +
-      '<div class="discovery-filters">' + categories.map(function (category) {
-        return '<button class="discovery-filter' + (filter === category ? ' selected' : '') + '" data-filter="' + category + '">' + escapeText(category === "All" ? "All friends" : category + "s") + '</button>';
-      }).join("") + '</div>' +
-      (selected ? cardMarkup(selected) : '<div class="discovery-grid">' + creatures.map(function (creature) {
-        return '<button class="discovery-card' + (visited.has(creature.name) ? ' discovered' : '') + '" data-creature="' + escapeText(creature.name) + '"><span class="discovery-icon">' + creature.icon + '</span><strong>' + escapeText(creature.short) + '</strong><small>' + escapeText(creature.kind) + '</small></button>';
-      }).join("") + '</div><p class="discovery-progress">' + visited.size + ' of ' + required + ' new friends met on this trip</p>') +
-      (visited.size >= required && !selected ? '<button class="primary-button discovery-finish" id="finishDiscovery">Finish this discovery trip</button>' : '') +
-      '<p class="gentle-hint">Discoveries stay here to explore. There are no quiz scores or wrong answers.</p>';
-    context.stage.querySelectorAll("[data-filter]").forEach(function (button) {
-      button.addEventListener("click", function () { filter = button.dataset.filter; selected = null; context.sound("tap"); draw(); });
+  function drawGuide() {
+    selected = null;
+    const have = stamps();
+    const creatures = PREHISTORIC_CREATURES.filter(function (c) { return filter === "All" || c.kind === filter; });
+    board.innerHTML = '<div class="ds-bar"><span class="ds-prog">Friends met this trip: <b>' + visited.size + "</b> of " + required + '</span><span class="ds-stamps">📒 Stamps <b>' + have.size + "</b>/" + PREHISTORIC_CREATURES.length + '</span></div>' +
+      '<div class="discovery-filters">' + ["All"].concat(KINDS).map(function (category) {
+        return '<button type="button" class="discovery-filter' + (filter === category ? ' selected' : '') + '" data-filter="' + category + '">' + escapeText(category === "All" ? "All friends" : category + "s") + '</button>';
+      }).join("") + '</div><div class="ds-grid">' + creatures.map(function (c) {
+        const done = visited.has(c.name), stamp = have.has(c.name);
+        return '<button type="button" class="ds-card' + (done ? " met" : "") + (stamp ? " stamped" : "") + '" data-creature="' + escapeText(c.name) + '"><span class="ds-ico">' + c.icon + '</span><strong>' + escapeText(c.short) + '</strong><small>' + escapeText(c.kind) + '</small>' + (stamp ? '<i class="ds-stamp" aria-label="Stamped">✔</i>' : "") + "</button>";
+      }).join("") + "</div>" +
+      (visited.size >= required ? '<button type="button" class="pk-btn sb-next ds-finish" id="finishDiscovery">Finish this discovery trip ✨</button>' : "");
+    board.querySelectorAll("[data-filter]").forEach(function (b) { b.addEventListener("click", function () { filter = b.dataset.filter; if (F.sfx) F.sfx.tap(); drawGuide(); }); });
+    board.querySelectorAll(".ds-card").forEach(function (b, i) {
+      if (F.anim) F.anim(b, [{ opacity: 0, transform: "translateY(16px) scale(.8)" }, { opacity: 1, transform: "none" }], { duration: 380, delay: Math.min(i, 14) * 30, fill: "backwards" });
+      b.addEventListener("click", function () { meet(PREHISTORIC_CREATURES.find(function (c) { return c.name === b.dataset.creature; })); });
     });
-    context.stage.querySelectorAll("[data-creature]").forEach(function (button) {
-      button.addEventListener("click", function () {
-        selected = PREHISTORIC_CREATURES.find(function (creature) { return creature.name === button.dataset.creature; });
-        visited.add(selected.name);
-        context.sound("tap");
-        draw();
-        context.speak(selected.name + ". " + selected.kind + ". " + selected.diet + ". " + selected.fact);
+    const fin = board.querySelector("#finishDiscovery");
+    if (fin) fin.addEventListener("click", function () {
+      const stars = asked ? (wrongTotal === 0 ? 3 : wrongTotal <= 2 ? 2 : 1) : 2;
+      play.finish("You met " + visited.size + " prehistoric friends!", { stars: stars });
+    });
+  }
+
+  function question(c) {
+    const diet = dietClass(c.diet);
+    const useDiet = diet && context.challenge >= 4 && Math.random() < 0.6;
+    if (useDiet) {
+      const all = ["Plant eater", "Meat eater", "Fish eater"];
+      return { text: "What does " + c.short + " like to eat?", right: diet, options: all };
+    }
+    const wrong = shuffle(KINDS.filter(function (k) { return k !== c.kind; })).slice(0, context.challenge >= 3 ? 3 : 2);
+    return { text: "What kind of animal is " + c.short + "?", right: c.kind, options: wrong.concat([c.kind]) };
+  }
+
+  function meet(c) {
+    selected = c; visited.add(c.name);
+    const isNew = !stamps().has(c.name);
+    if (isNew) collect("guide", { name: c.name });
+    const sp = speciesFor(c);
+    const q = question(c);
+    if (F.sfx) F.sfx.sparkle();
+    board.innerHTML = '<article class="ds-detail"><button type="button" class="pk-btn" id="dsBack">← Field guide</button>' +
+      '<div class="ds-stage">' + (sp ? '<div class="ds-dino">' + F.dinoHTML(sp, { color: tintFor(c.name), state: "idle", size: "100%" }) + "</div>" : '<div class="ds-emoji">' + c.icon + "</div>") + (isNew ? '<span class="ds-new">NEW! Stamp collected 📒</span>' : "") + '</div>' +
+      '<h3>' + escapeText(c.name) + '</h3><div class="ds-chips"><span>' + escapeText(c.kind) + "</span><span>🍽️ " + escapeText(c.diet) + "</span></div><p class=\"ds-fact\">" + escapeText(c.fact) + '</p>' +
+      '<div class="ds-actions"><button type="button" class="pk-btn" id="dsSpeak">🔊 Hear about ' + escapeText(c.short) + "</button>" + (sp ? '<button type="button" class="pk-btn" id="dsRoar">' + (sp === "ptero" ? "🪽 Flap" : "🦖 Say hello") + "</button>" : "") + '</div>' +
+      '<div class="ds-quiz"><p class="ds-qtext">🔎 Fact Finder: ' + escapeText(q.text) + '</p><div class="ds-opts"></div></div></article>';
+    if (isNew) { const r = board.getBoundingClientRect(); if (F.burst) F.burst(r.left + r.width / 2, r.top + 100, { kind: "stars", n: 16 }); play.say("A new stamp for your field guide! 📒", 2600); }
+    const d = board.querySelector(".du-dino");
+    if (d) { F.dinoTrack && F.dinoTrack(d); d.setAttribute("data-base", "idle"); d.addEventListener("pointerdown", function () { F.dinoState(d, sp === "trex" ? "roar" : "happy", 1000); if (F.sfx) (sp === "trex" ? F.sfx.roar : F.sfx.chirp)(); }); }
+    board.querySelector("#dsBack").addEventListener("click", function () { if (F.sfx) F.sfx.tap(); drawGuide(); });
+    board.querySelector("#dsSpeak").addEventListener("click", function () { context.speak(c.name + ". " + c.kind + ". " + c.diet + ". " + c.fact); if (!context.speechEnabled) play.say(c.short + ": " + c.fact, 4000); });
+    const roar = board.querySelector("#dsRoar");
+    if (roar && d) roar.addEventListener("click", function () { F.dinoState(d, sp === "trex" ? "roar" : "happy", 1000); if (F.sfx) (sp === "trex" ? F.sfx.roar : F.sfx.chirp)(); });
+    context.speak(c.name + ". " + c.fact);
+    const opts = board.querySelector(".ds-opts");
+    let answered = false;
+    shuffle(q.options.slice()).forEach(function (o) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "pk-btn ds-opt"; b.textContent = o;
+      opts.appendChild(b);
+      b.addEventListener("click", function () {
+        if (answered) return;
+        if (o === q.right) {
+          answered = true; asked += 1; right += 1;
+          opts.querySelectorAll("button").forEach(function (x) { x.disabled = true; });
+          b.classList.add("ds-right");
+          play.good(b, { text: "Yes!" });
+          if (right % 3 === 0) window.setTimeout(function () { play.bonus(); }, 400);
+        } else {
+          wrongTotal += 1; b.disabled = true; b.classList.add("ds-wrong");
+          play.miss(b, "Good guess! Look at the fact again and try another. 🔎");
+        }
       });
     });
-    const back = context.stage.querySelector("#discoveryBack");
-    if (back) back.addEventListener("click", function () { selected = null; draw(); });
-    const finish = context.stage.querySelector("#finishDiscovery");
-    if (finish) finish.addEventListener("click", function () { context.advance("You met " + visited.size + " prehistoric friends!"); });
   }
-
-  function cardMarkup(creature) {
-    return '<article class="discovery-detail"><button class="tiny-button discovery-back" id="discoveryBack">← Field guide</button>' +
-      '<div class="discovery-creature" aria-hidden="true">' + creature.icon + '</div><span class="discovery-kind">' + escapeText(creature.kind) + '</span>' +
-      '<h3>' + escapeText(creature.name) + '</h3><div class="discovery-fact-row"><span>🍽️</span><span>' + escapeText(creature.diet) + '</span></div>' +
-      '<p>' + escapeText(creature.fact) + '</p><button class="tiny-button" id="speakCreature">🔊 Hear about ' + escapeText(creature.short) + '</button></article>';
-  }
-
-  draw();
-  context.stage.addEventListener("click", function (event) {
-    if (event.target.closest && event.target.closest("#speakCreature")) {
-      const creature = selected;
-      if (creature) context.speak(creature.name + ". " + creature.kind + ". " + creature.diet + ". " + creature.fact);
-    }
-  });
+  drawGuide();
 }
 
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function escapeText(value) {
   return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];

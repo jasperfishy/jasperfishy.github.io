@@ -1,5 +1,5 @@
-import { CARS } from "../data-cars.js?v=du-0d928b5c7d8c29dc";
-import { renderCarSVG } from "../render-car.js?v=du-0d928b5c7d8c29dc";
+import { CARS } from "../data-cars.js?v=du-04c80678fe526be4";
+import { renderCarSVG } from "../render-car.js?v=du-04c80678fe526be4";
 
 export function carUnlockCost(index) {
   return index === 0 ? 0 : index * 3;
@@ -13,6 +13,8 @@ export function unlockedCarCount(state) {
   return CARS.reduce((count, _car, index) => count + (isCarUnlocked(index, state) ? 1 : 0), 0);
 }
 
+const gfx = (name) => { try { const f = window.DUFX; f && f.sfx && f.sfx[name] && f.sfx[name](); } catch (e) { /* sound is optional */ } };
+
 export function initGarage(root, state, onSelect, onBack) {
   const grid = root.querySelector("#garageGrid");
   const progress = root.querySelector("#garageProgress");
@@ -25,11 +27,13 @@ export function initGarage(root, state, onSelect, onBack) {
     progress.textContent = `${count} of ${CARS.length} cars ready · ${Number(state.totalStars) || 0} stars collected`;
     stats.innerHTML = `<div class="garage-stat"><strong>${count}</strong><span>cars ready</span></div><div class="garage-stat"><strong>${Number(state.totalStars) || 0}</strong><span>stars collected</span></div><div class="garage-stat"><strong>${Math.max(0, CARS.length - count)}</strong><span>cars to discover</span></div>`;
 
+    const seen = Number.isFinite(state.seenCars) ? state.seenCars : count;
     grid.innerHTML = CARS.map((car, index) => {
       const unlocked = isCarUnlocked(index, state);
       const selected = state.config.carId === car.id;
+      const isNew = unlocked && index >= seen;
       const preview = renderCarSVG({ ...state.config, body: car.body, paint: selected ? state.config.paint : car.paint, stickers: selected ? state.config.stickers : [] });
-      return `<button class="garage-car${unlocked ? "" : " locked"}${selected ? " selected" : ""}" data-car-index="${index}" ${unlocked ? "" : "aria-disabled=\"true\""} aria-label="${car.name}${unlocked ? (selected ? ", selected" : ", unlocked") : `, unlock at ${carUnlockCost(index)} stars`}">
+      return `<button class="garage-car${unlocked ? "" : " locked"}${selected ? " selected" : ""}${isNew ? " is-new" : ""}" data-car-index="${index}" ${unlocked ? "" : "aria-disabled=\"true\""} aria-label="${car.name}${unlocked ? (selected ? ", selected" : ", unlocked") : `, unlock at ${carUnlockCost(index)} stars`}">
         <span class="garage-car-art">${preview}</span><strong>${car.name}</strong>
         <span class="garage-car-meta">${unlocked ? (selected ? "🚙 Your current car" : "Tap to choose") : `🔒 ${carUnlockCost(index)} stars to unlock`}</span>
       </button>`;
@@ -40,14 +44,18 @@ export function initGarage(root, state, onSelect, onBack) {
         const index = Number(button.dataset.carIndex);
         if (!isCarUnlocked(index, state)) {
           progress.textContent = `Collect ${Math.max(0, carUnlockCost(index) - (Number(state.totalStars) || 0))} more stars to unlock ${CARS[index].name}.`;
+          gfx("bad"); try { window.DUFX.shake(button); } catch (e) { /* ok */ }
           return;
         }
+        gfx("good");
+        try { const r = button.getBoundingClientRect(); window.DUFX.burst(r.left + r.width / 2, r.top + r.height / 3, { kind: "stars", n: 12 }); } catch (e) { /* ok */ }
         onSelect(CARS[index]);
         render();
       });
     });
   }
 
+  function markSeen() { state.seenCars = unlockedCarCount(state); }
   render();
-  return { refresh: render };
+  return { refresh: () => { render(); setTimeout(markSeen, 3000); } };
 }

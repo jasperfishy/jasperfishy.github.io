@@ -1,143 +1,133 @@
-import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-0d928b5c7d8c29dc";
+/* Moonbeam Rescue — a little baby dinosaur must cross a moonlit river on glowing stepping stones to reach its family.
+ * Watch the moonbeams light the stones, then tap the same symbols in order: each right symbol makes the baby hop to the
+ * next stone. Longer trails grow with the levels, and from level 4 there is a return trip where you tap the trail
+ * BACKWARDS to bring a sleepy sibling home. A wrong symbol only makes the baby wobble: the trail is shown again. */
+import { createPlay, shuffle } from "../adv-kit.js?v=du-04c80678fe526be4";
 
-const DINOSAURS = PREHISTORIC_CREATURES.filter(function (creature) { return creature.kind === "Dinosaur"; });
-const STARS = [
-  { name: "moon", icon: "🌙" },
-  { name: "fern", icon: "🌿" },
-  { name: "pawprint", icon: "🐾" },
-  { name: "flower", icon: "🌼" },
-  { name: "crystal", icon: "💎" },
-  { name: "star", icon: "⭐" }
-];
-const PATTERNS = {
-  2: [0, 2],
-  3: [1, 3, 0],
-  4: [2, 0, 3, 1],
-  5: [0, 3, 1, 4, 2],
-  6: [4, 1, 5, 0, 3, 2]
-};
+const STARS = [["moon", "🌙"], ["fern", "🌿"], ["pawprint", "🐾"], ["flower", "🌼"], ["crystal", "💎"], ["star", "⭐"]];
+const HELPERS = [["tricera", "teal", "Trixie"], ["stego", "purple", "Spike"], ["bronto", "orange", "Bronte"], ["raptor", "red", "Zippy"], ["trex", "green", "Rexy"]];
 
 export function mountMoonbeamRescue(context) {
+  const F = window.DUFX;
   const level = Math.max(1, Number(context.level) || 1);
-  const pathLength = Math.min(6, 5 + Math.floor((level - 1) / 2));
-  const choiceCount = Math.min(6, Math.max(pathLength, 4 + Math.floor((level - 1) / 2)));
-  const visibleDinos = Math.min(DINOSAURS.length, 5 + (level - 1) * 2);
-  const dinosaur = DINOSAURS[(level * 3) % visibleDinos];
-  const starOffset = (level - 1) % STARS.length;
-  const choices = STARS.slice(starOffset).concat(STARS.slice(0, starOffset)).slice(0, choiceCount);
-  const sequence = PATTERNS[pathLength].map(function (index) { return choices[index]; });
-  let mode = "ready";
-  let position = 0;
-  let shown = [];
-  let hint = "First, watch the moonbeam trail. Then tap the same glowing symbols in order.";
-  let previewTimers = [];
-  let previewId = 0;
+  const pathLength = Math.min(7, 3 + Math.floor(context.challenge / 1.5));
+  const choiceCount = Math.min(6, Math.max(4, Math.min(6, pathLength)));
+  const roundTrip = context.challenge >= 4;
+  const helper = HELPERS[level % HELPERS.length];
+  const symbols = shuffle(STARS.slice()).slice(0, choiceCount);
+  const sequence = Array.from({ length: pathLength }, function (_, i) { return symbols[(i * 2 + Math.floor(Math.random() * 2)) % symbols.length]; });
+  for (let i = 1; i < sequence.length; i++) if (sequence[i] === sequence[i - 1]) sequence[i] = symbols[(symbols.indexOf(sequence[i]) + 1) % symbols.length];
+  const play = createPlay(context, {
+    emoji: "🌙", title: "Moonbeam Rescue", theme: "night", buddy: false, wander: false,
+    instruction: "Watch the moonbeams light the stones, then tap the same symbols in order to help the baby cross!", hint: "First watch the moonbeam trail. Then tap the same glowing symbols in order.", allowed: 3
+  });
+  const board = play.board;
+  board.innerHTML = '<div class="mb-scene" id="mbScene"><span class="mb-moon">🌙</span><div class="mb-river"></div>' +
+    '<div class="mb-island left"><div class="mb-helper">' + F.dinoHTML(helper[0], { color: helper[1], state: "idle", size: "100%" }) + '<small>' + helper[2] + '</small></div></div>' +
+    '<div class="mb-stones" id="mbStones"></div><div class="mb-island right"><div class="mb-family" id="mbFamily"></div></div>' +
+    '<div class="mb-baby" id="mbBaby">' + F.dinoHTML("tricera", { color: "yellow", state: "idle", size: "100%" }) + '</div></div>' +
+    '<div class="mb-info" id="mbInfo"></div><div class="mb-choices" id="mbChoices"></div><div class="bt-controls"><button type="button" class="pk-btn" id="mbWatch">✨ Watch the trail</button></div>';
+  const scene = board.querySelector("#mbScene"), stonesEl = board.querySelector("#mbStones"), baby = board.querySelector("#mbBaby"), info = board.querySelector("#mbInfo"), choicesEl = board.querySelector("#mbChoices"), watchBtn = board.querySelector("#mbWatch");
+  let leg = 0, pos = -1, busy = true, lights = [];
 
-  function clearPreview() {
-    previewId += 1;
-    previewTimers.forEach(window.clearTimeout);
-    previewTimers = [];
+  const stones = sequence.map(function (s, i) {
+    const el = document.createElement("div");
+    el.className = "mb-stone"; el.innerHTML = "<span>✧</span>";
+    el.style.left = (22 + i * (56 / Math.max(1, pathLength - 1))) + "%";
+    el.style.top = (52 + Math.sin(i * 1.3) * 7) + "%";
+    stonesEl.appendChild(el); return el;
+  });
+  symbols.forEach(function (s, i) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "mb-choice"; b.innerHTML = "<span>" + s[1] + "</span>"; b.setAttribute("aria-label", s[0]);
+    choicesEl.appendChild(b);
+    b.addEventListener("click", function () { choose(s, b); });
+  });
+  function order() { return leg === 0 ? sequence.map(function (s, i) { return i; }) : sequence.map(function (s, i) { return pathLength - 1 - i; }); }
+  function babyTo(i, hop) {
+    // i = stone index, -1 = left island, pathLength = right island
+    const left = i < 0 ? 12 : i >= pathLength ? 86 : parseFloat(stones[i].style.left);
+    const top = i < 0 || i >= pathLength ? 62 : parseFloat(stones[i].style.top) - 3;
+    baby.style.left = left + "%"; baby.style.top = top + "%";
+    if (hop && F.sfx) F.sfx.boing();
   }
+  babyTo(-1, false);
+  function renderFamily(arrived) {
+    board.querySelector("#mbFamily").innerHTML = (arrived ? F.dinoHTML("bronto", { color: "orange", state: "happy", size: "100%" }) + F.dinoHTML("stego", { color: "purple", state: "happy", size: "100%" }) : F.dinoHTML("bronto", { color: "orange", state: "idle", size: "100%" })) + '<small>Family</small>';
+  }
+  renderFamily(false);
 
-  function draw() {
-    const rescued = mode === "rescued";
-    const actionsDisabled = mode === "showing" || mode === "rescued";
-    const helpers = rescued ? '<div class="moon-reunion" aria-label="The baby dinosaur is reunited with its family"><span class="moon-baby">🦖</span><span class="moon-hearts">♥　✦　♥</span></div>' : '<div class="moon-nest"><span class="moon-egg">🥚</span><small>Someone is waiting</small></div>';
-    context.stage.innerHTML = '<div class="stage-heading moon-heading"><span class="stage-emoji" aria-hidden="true">🌙</span><h2>Moonbeam Rescue</h2><p>' + escapeMoon(context.message(rescued ? "You found the right trail! The little dinosaur is safe with its family." : "A baby dinosaur is waiting on the far side of the moonlit meadow. Can you light the way?")) + '</p></div>' +
-      '<section class="moon-scene' + (rescued ? ' moon-scene-reunion' : '') + '" aria-label="A magical moonlit meadow with a dinosaur family across a star path">' +
-        '<span class="moon-moon" aria-hidden="true">☾</span><span class="moon-scene-star star-a" aria-hidden="true">✦</span><span class="moon-scene-star star-b" aria-hidden="true">✧</span><span class="moon-scene-star star-c" aria-hidden="true">✦</span>' +
-        '<div class="moon-island moon-island-home"><span class="moon-adult-dino" aria-hidden="true">' + dinosaur.icon + '</span><strong>' + escapeMoon(dinosaur.short) + '</strong><small>ready to help</small></div>' +
-        '<div class="moon-bridge" aria-label="Moonbeam stepping-stone trail">' + sequence.map(function (star, index) {
-          const lit = shown.indexOf(index) !== -1 || (rescued && index < sequence.length);
-          return '<span class="moon-step' + (lit ? ' moon-step-lit' : '') + '" data-path-step="' + index + '">' + (lit ? star.icon : '✧') + '</span>';
-        }).join('') + '</div>' +
-        '<div class="moon-island moon-island-far">' + helpers + (rescued ? '<strong>Safe at home!</strong>' : '') + '</div>' +
-      '</section>' +
-      '<div class="moon-level-line"><span>Moon trail ' + level + '</span><span>' + (rescued ? 'family reunited ✨' : 'step ' + Math.min(position + 1, pathLength) + ' of ' + pathLength) + '</span></div>' +
-      '<div class="moon-progress" role="progressbar" aria-label="Moonbeam trail progress" aria-valuemin="0" aria-valuemax="' + pathLength + '" aria-valuenow="' + (rescued ? pathLength : position) + '"><span style="width:' + ((rescued ? pathLength : position) / pathLength * 100) + '%"></span></div>' +
-      (rescued ? '<p class="moon-hint">' + escapeMoon(context.message(dinosaur.short + ' guided the little one safely home. Listen to their happy reunion!')) + '</p><div class="moon-actions"><button class="tiny-button" id="moonReplay">Hear a happy dino sound 🔊</button><button class="primary-button" id="moonFinish">Celebrate and earn a star ✨</button></div>' :
-        '<p class="moon-hint" id="moonHint" aria-live="polite">' + escapeMoon(context.message(hint)) + '</p>' +
-        '<div class="moon-choices" aria-label="Moonbeam symbols">' + choices.map(function (star, index) {
-          return '<button class="moon-choice" data-star-choice="' + index + '" aria-label="Choose ' + escapeMoon(star.name) + '"' + (actionsDisabled ? ' disabled' : '') + '><span>' + star.icon + '</span></button>';
-        }).join('') + '</div>' +
-        '<div class="moon-actions"><button class="soft-button" id="moonShow"' + (actionsDisabled ? ' disabled' : '') + '>✨ Watch the trail</button>' + (mode === 'playing' ? '<button class="tiny-button" id="moonStartOver">Start the trail again</button>' : '') + '</div>');
-
-    context.stage.querySelectorAll('[data-star-choice]').forEach(function (button) {
-      button.addEventListener('click', function () { chooseStar(Number(button.dataset.starChoice)); });
+  function showTrail(done) {
+    busy = true; watchBtn.disabled = true;
+    stones.forEach(function (s) { s.classList.remove("lit", "now"); s.firstChild.textContent = "✧"; });
+    play.say("Watch the moonbeams… 👀", 2200);
+    const seq = order();
+    seq.forEach(function (idx, step) {
+      window.setTimeout(function () {
+        if (!board.isConnected) return;
+        const st = stones[idx], sym = sequence[idx];
+        st.classList.add("now"); st.firstChild.textContent = sym[1];
+        if (F.sfx) F.sfx.note(step, .4);
+        const r = st.getBoundingClientRect(); if (F.burst) F.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: "sparkle", n: 6 });
+        window.setTimeout(function () { st.classList.remove("now"); st.firstChild.textContent = "✧"; }, 520);
+      }, 700 + step * 750);
     });
-    const show = context.stage.querySelector('#moonShow');
-    if (show) show.addEventListener('click', playTrail);
-    const startOver = context.stage.querySelector('#moonStartOver');
-    if (startOver) startOver.addEventListener('click', function () { position = 0; shown = []; mode = 'ready'; hint = 'Let’s watch again, then follow the same stars.'; draw(); playTrail(); });
-    const replay = context.stage.querySelector('#moonReplay');
-    if (replay) replay.addEventListener('click', function () { context.sound('good'); context.speak(context.message('The little dinosaur is safe and happy with its family.')); });
-    const finish = context.stage.querySelector('#moonFinish');
-    if (finish) finish.addEventListener('click', function () { context.advance('A moonbeam trail brought the baby dinosaur safely home!'); });
+    window.setTimeout(function () {
+      if (!board.isConnected) return;
+      busy = false; watchBtn.disabled = false; pos = -1;
+      babyTo(leg === 0 ? -1 : pathLength, false);
+      info.textContent = leg === 0 ? "Your turn! Tap the symbols in the same order." : "Return trip! Tap the symbols BACKWARDS this time. 🔄";
+      play.say(leg === 0 ? "Your turn! 🌟" : "Now backwards! 🔄", 2400);
+      if (done) done();
+    }, 700 + seq.length * 750 + 200);
   }
+  watchBtn.addEventListener("click", function () { if (!busy) { clearStones(); showTrail(); } });
+  function clearStones() { stones.forEach(function (s) { s.classList.remove("lit"); s.firstChild.textContent = "✧"; }); pos = -1; babyTo(leg === 0 ? -1 : pathLength, false); }
 
-  function playTrail() {
-    clearPreview();
-    mode = 'showing';
-    position = 0;
-    shown = [];
-    hint = 'Watch each moonbeam glow, one at a time.';
-    draw();
-    const thisPreview = previewId;
-    sequence.forEach(function (star, index) {
-      previewTimers.push(window.setTimeout(function () {
-        if (thisPreview !== previewId || !context.stage.isConnected) return;
-        shown = [index];
-        context.sound('tap');
-        context.stage.querySelectorAll('.moon-step-flash').forEach(function (activeStep) { activeStep.classList.remove('moon-step-flash'); });
-        const step = context.stage.querySelector('[data-path-step="' + index + '"]');
-        if (step) { step.textContent = star.icon; step.classList.add('moon-step-flash'); }
-        const hintElement = context.stage.querySelector('#moonHint');
-        if (hintElement) hintElement.textContent = context.message('Remember the ' + star.name + ' moonbeam.');
-      }, index * 720));
-    });
-    previewTimers.push(window.setTimeout(function () {
-      if (thisPreview !== previewId || !context.stage.isConnected) return;
-      mode = 'playing';
-      shown = [];
-      hint = context.playerName ? context.playerName + ', tap the same symbols in the same order.' : 'Now tap the same symbols in the same order.';
-      draw();
-      context.speak(context.message('Now follow the same moonbeam symbols in order.'));
-    }, sequence.length * 720 + 160));
-  }
-
-  function chooseStar(index) {
-    if (mode !== 'playing') { context.sound('tap'); hint = 'Watch the trail first, then try those symbols.'; draw(); return; }
-    const button = context.stage.querySelector('[data-star-choice="' + index + '"]');
-    if (button) button.classList.add('moon-choice-picked');
-    if (choices[index].name !== sequence[position].name) {
-      context.sound('tap');
-      position = 0;
-      shown = [];
-      hint = 'That’s okay. Let’s watch the glowing trail again and try together.';
-      draw();
+  function choose(sym, btn) {
+    if (busy) return;
+    const seq = order(), nextIdx = seq[pos + 1];
+    if (nextIdx === undefined) return;
+    if (sequence[nextIdx] !== sym) {
+      busy = true;
+      const d = baby.querySelector(".du-dino"); F.dinoState(d, "sad", 900);
+      if (F.shake) F.shake(baby);
+      play.miss(btn, "Oops, the baby wobbled! Let's watch the moonbeams again. 💛");
+      window.setTimeout(function () { clearStones(); showTrail(); }, 1400);
       return;
     }
-    shown.push(position);
-    position += 1;
-    context.sound('good');
-    if (position === sequence.length) {
-      clearPreview();
-      mode = 'rescued';
-      shown = sequence.map(function (_, step) { return step; });
-      context.speak(context.message('The baby dinosaur found its family! What a lovely moonbeam rescue.'));
-      draw();
-    } else {
-      hint = 'Lovely! One more moonbeam to follow.';
-      draw();
+    pos += 1;
+    const st = stones[nextIdx];
+    st.classList.add("lit"); st.firstChild.textContent = sym[1];
+    babyTo(nextIdx, true);
+    if (F.sfx) F.sfx.note(pos, .45);
+    const r = st.getBoundingClientRect();
+    play.good({ x: r.left + r.width / 2, y: r.top }, { text: pos + 1 === seq.length ? "Across!" : null });
+    if (F.burst) F.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: "stars", n: 8 });
+    F.dinoState(baby.querySelector(".du-dino"), "happy", 500);
+    if (pos + 1 === seq.length) {
+      busy = true;
+      window.setTimeout(function () {
+        babyTo(leg === 0 ? pathLength : -1, true);
+        if (leg === 0 && roundTrip) {
+          info.textContent = "Made it! A sleepy sibling is waiting back home…";
+          play.say("Now bring the sleepy sibling back! 💤", 3000);
+          leg = 1; window.setTimeout(function () { clearStones(); showTrail(); }, 2200);
+        } else reunion();
+      }, 700);
     }
   }
-
-  context.speak(context.message('A little dinosaur is waiting across the moonlit meadow. Let’s help it find its family.'));
-  draw();
-}
-
-function escapeMoon(value) {
-  return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
-  });
+  function reunion() {
+    busy = true; watchBtn.hidden = true; choicesEl.hidden = true;
+    renderFamily(true);
+    scene.classList.add("mb-happy");
+    info.textContent = helper[2] + " guided the little one safely home!";
+    const r = scene.getBoundingClientRect();
+    if (F.sfx) F.sfx.win();
+    if (F.burst) { F.burst(r.left + r.width * 0.85, r.top + r.height * 0.6, { kind: "hearts", n: 18 }); F.burst(r.left + r.width / 2, r.top + 30, { kind: "confetti", n: 40 }); }
+    F.dinoState(baby.querySelector(".du-dino"), "happy", 99999);
+    play.say("The family is together again! 💚", 3500);
+    window.setTimeout(function () { play.finish("A moonbeam trail brought the baby dinosaur safely home!"); }, 2800);
+  }
+  window.setTimeout(function () { showTrail(); }, 800);
 }

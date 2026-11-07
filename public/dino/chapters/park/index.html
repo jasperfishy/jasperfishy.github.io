@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#4a8f3c">
@@ -9,6 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%A6%96%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="../../fx/du-fx.css">
 <link rel="stylesheet" href="css/park.css">
+<link rel="stylesheet" href="css/bones.css">
 </head>
 <body>
 <header id="topbar">
@@ -28,6 +28,10 @@
     <h3>🏡 Your Dino Den <small id="denCount"></small></h3>
     <div class="den" id="den"></div>
   </section>
+  <section class="mus-section hidden" id="musSection">
+    <h3>🏛️ Dino Museum <small id="musCount"></small></h3>
+    <div class="mus-shelf" id="musShelf"></div>
+  </section>
   <h3 class="games-h">🎮 Pick a game</h3>
   <div id="gameGrid" class="grid"></div>
 </main>
@@ -36,10 +40,12 @@
   <div id="gameHeader">
     <button id="backBtn" class="icon-btn" aria-label="Back to the games">←</button>
     <div class="gh-mid"><h2 id="gameTitle"></h2><div id="pips" aria-label="Round"></div></div>
+    <span id="sparkChip" class="spark-chip" aria-label="Bonus stars">⭐ 0</span>
     <div id="helper" aria-hidden="true"></div>
   </div>
   <div id="say" class="say" role="status" aria-live="polite"></div>
   <div id="gameArea" class="game-area"></div>
+  <div id="parkPath" class="park-path" aria-hidden="true"></div>
 </main>
 
 <div id="winOverlay" class="overlay hidden">
@@ -47,6 +53,8 @@
     <div id="winDino" class="win-dino"></div>
     <h3 id="winText">Great job!</h3>
     <div id="winStars" class="win-stars"></div>
+    <p id="winStats" class="win-stats"></p>
+    <div class="jar"><i id="jarFill"></i><b id="jarTxt"></b></div>
     <div class="egg-meter-wrap"><div id="eggMeter" class="egg-meter"></div><p id="winNext" class="win-next"></p></div>
     <div class="win-btns">
       <button id="againBtn" class="btn">Play again</button>
@@ -61,6 +69,7 @@
 <script src="../../fx/du-fx.js"></script>
 <script src="../../fx/du-ambient.js"></script>
 <script src="js/core.js"></script>
+<script src="js/bones.js"></script>
 <script src="js/games1.js"></script>
 <script src="js/games2.js"></script>
 <script src="js/games3.js"></script>

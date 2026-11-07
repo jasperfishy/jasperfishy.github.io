@@ -44,7 +44,7 @@
 .mc-item.tap-me { animation: du-wobble .9s ease-in-out infinite; cursor: pointer; filter: drop-shadow(0 0 12px #ffe066); }
 .mc-hotspot { position: absolute; z-index: 7; border: 3px dashed rgba(255,230,120,.95); border-radius: 18px; background: rgba(255,255,255,.14); cursor: pointer; animation: du-glow 1.6s ease-in-out infinite; padding: 0; }
 .mc-switch { border-radius: 12px; }
-.mc-bedblanket { position: absolute; z-index: 4; left: 452px; top: 306px; width: 190px; height: 118px; border-radius: 22px 12px 14px 22px; background: repeating-linear-gradient(90deg, #7fb8ff 0 26px, #a7d0ff 26px 52px); box-shadow: inset 0 -8px 0 rgba(0,0,0,.14), 0 4px 6px rgba(0,0,0,.22); animation: mc-breathe 4s ease-in-out infinite; transform-origin: 50% 100%; }
+.mc-bedblanket { position: absolute; z-index: 4; left: 452px; top: 306px; width: 140px; height: 118px; border-radius: 22px 12px 14px 22px; background: repeating-linear-gradient(90deg, #7fb8ff 0 26px, #a7d0ff 26px 52px); box-shadow: inset 0 -8px 0 rgba(0,0,0,.14), 0 4px 6px rgba(0,0,0,.22); animation: mc-breathe 4s ease-in-out infinite; transform-origin: 50% 100%; }
 @keyframes mc-breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.01, 1.05); } }
 .du-person.breeze .p-head { animation: pp-shake .3s linear 1; }
 .mc-curtainwipe { position: absolute; inset: 0; z-index: 20; background: #2b2d5e; transform: translateX(-100%); animation: mc-wipe .45s ease-in forwards; } .mc-curtainwipe.out { animation: mc-wipe-out .5s ease-out forwards; }
