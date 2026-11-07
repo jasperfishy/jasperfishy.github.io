@@ -47,8 +47,8 @@
 .rs-cap.pop { animation: rs-capin .35s cubic-bezier(.3,1.4,.5,1); }
 @keyframes rs-capin { from { transform: translateX(-50%) scale(.88); opacity: 0; } }
 .rs-face { flex: none; width: clamp(34px, 7cqw, 58px); height: clamp(34px, 7cqw, 58px); display: grid; place-items: center; font-size: clamp(1.6rem, 5cqw, 2.8rem); border-radius: 50%; background: #fff6d6; overflow: hidden; }
-.rs-head { width: 100%; height: 100%; background-size: cover; background-position: center 20%; border-radius: 50%; display: block; }
-.rs-head.m { background-image: url('../assets/courtney-head.webp'); } .rs-head.d { background-image: url('../assets/daddy-head.webp'); }
+.rs-head { width: 100%; height: 100%; background: #fff3e4 no-repeat center 30% / 92%; border-radius: 50%; display: block; }
+.rs-head.m { background-image: url('../assets/mummy-face.svg'); } .rs-head.d { background-image: url('../assets/daddy-face.svg'); }
 .rs-txt { flex: 1; }
 .rs-choice { position: absolute; z-index: 13; left: 50%; top: 12%; transform: translateX(-50%); width: min(94%, 560px); background: rgba(255,255,255,.97); border-radius: 24px; padding: 12px 16px; text-align: center; box-shadow: 0 12px 28px rgba(0,0,0,.35); animation: rs-capin .35s cubic-bezier(.3,1.4,.5,1); }
 .rs-choice p { margin: 0 0 8px; font-weight: 800; font-size: clamp(1rem, 3cqw, 1.5rem); color: #17403a; }

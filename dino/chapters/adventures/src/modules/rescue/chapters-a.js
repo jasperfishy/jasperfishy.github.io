@@ -1,5 +1,5 @@
 // Chapters 1–3 of The Great Dino Rescue: The Call, the Whispering Forest, the Rickety Bridge.
-import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js?v=du-5ee3d40e60884152';
+import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js?v=du-2b5bf1340085b709';
 const FX = window.DUFX;
 
 const HILLS = tile('<path d="M0 100 L0 60 Q50 10 100 55 T200 50 T300 58 T400 60 L400 100Z" fill="#9ed7a6"/>', 400, 100);
@@ -39,7 +39,7 @@ export async function chapter1(E) {
     par(GRASS, 'near') + '<div class="rs-storm"><i></i><i></i><i></i></div><div class="rs-flash"></div>', { ambient: 'meadow', music: 'home', cls: 'dusk' });
   E.hush();
   await E.titleCard(0, 'The Great Dino Rescue', kidName(E) ? 'A quest for ' + kidName(E) : 'A quest for you');
-  const mum = E.person('courtney', 38, 34, .72, 'idle'), dad = E.person('daddy', 50, 32, .72, 'idle');
+  const mum = E.person('mummy', 38, 34, .72, 'idle'), dad = E.person('daddy', 50, 32, .72, 'idle');
   await E.say('One golden evening, Mummy and Daddy packed a picnic basket to take up to the Sky Nest, high on Mount Roar.');
   FX.personState(mum.el, 'wave'); FX.personState(dad.el, 'wave');
   await E.say(kidName(E) ? 'Bye bye, ' + kidName(E) + '! We will be back before bedtime!' : 'Bye bye, little one! We will be back before bedtime!', 'mummy');

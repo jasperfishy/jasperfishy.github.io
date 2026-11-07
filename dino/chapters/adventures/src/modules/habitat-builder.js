@@ -2,7 +2,7 @@
  * Drag things from the toolbox onto the landscape (drag them again to move them, drag them out to put them away).
  * Needs tick off when you place the right thing; extra decorations are welcome and earn bonus stars. When the home is
  * ready the dinosaur moves in, sunset turns to starry night, and it falls asleep. */
-import { createPlay, shuffle, dragPiece } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { createPlay, shuffle, dragPiece } from "../adv-kit.js?v=du-2b5bf1340085b709";
 
 const HABITATS = [
   { dino: "Brachiosaurus", sp: "bronto", color: "orange", place: "Fern Forest", cls: "hb-forest", base: ["water", "ferns", "tallTrees"], extras: ["sunnyRocks", "flowers"] },

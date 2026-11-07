@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 146">
+  <!-- Generic drawn Daddy for Dinosaur Universe. Eyes at (43,76) and (77,76); mouth centre (60,106). -->
+  <circle cx="15" cy="82" r="9.5" fill="#f3c19b" stroke="#3a2a22" stroke-width="3"/>
+  <circle cx="105" cy="82" r="9.5" fill="#f3c19b" stroke="#3a2a22" stroke-width="3"/>
+  <ellipse cx="60" cy="82" rx="44" ry="51" fill="#f3c19b" stroke="#3a2a22" stroke-width="3.2"/>
+  <path d="M15 76 C11 40 34 22 60 22 C88 22 110 40 105 76 C99 62 92 54 84 51 C80 60 62 62 52 54 C42 60 28 64 15 76Z" fill="#6a4329" stroke="#3a2a22" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M38 64 Q45 59 53 62 M67 62 Q75 59 82 64" stroke="#5a3824" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+  <ellipse cx="43" cy="76" rx="7.5" ry="8.5" fill="#fff" stroke="#3a2a22" stroke-width="2.2"/><circle cx="43.6" cy="77" r="4.4" fill="#2b1d16"/><circle cx="45" cy="75" r="1.6" fill="#fff"/>
+  <ellipse cx="77" cy="76" rx="7.5" ry="8.5" fill="#fff" stroke="#3a2a22" stroke-width="2.2"/><circle cx="77.6" cy="77" r="4.4" fill="#2b1d16"/><circle cx="79" cy="75" r="1.6" fill="#fff"/>
+  <path d="M57 86 Q60 94 64 89" stroke="#3a2a22" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <circle cx="33" cy="98" r="7" fill="#ff8f8f" opacity=".35"/><circle cx="87" cy="98" r="7" fill="#ff8f8f" opacity=".35"/>
+  <path d="M45 101 Q60 117 75 101 Q60 107 45 101Z" fill="#8a3b36" stroke="#3a2a22" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M50 106 Q60 112 70 106" stroke="#ff9a9a" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

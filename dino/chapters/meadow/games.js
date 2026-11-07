@@ -1,8 +1,8 @@
 // The Dino Meadow game types. Each takes a round context `g` from engine.js (see beginRound).
 // Five rounds per play-through; round index drives a gentle difficulty ramp and a change of mechanic.
-import {tokens,colours,shuffle} from './catalog.js?v=du-5ee3d40e60884152';
-import {dinoSVG} from './art.js?v=du-5ee3d40e60884152';
-import * as E from './engine.js?v=du-5ee3d40e60884152';
+import {tokens,colours,shuffle} from './catalog.js?v=du-2b5bf1340085b709';
+import {dinoSVG} from './art.js?v=du-2b5bf1340085b709';
+import * as E from './engine.js?v=du-2b5bf1340085b709';
 
 export const games={};
 const el=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};

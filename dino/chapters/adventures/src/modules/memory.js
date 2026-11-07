@@ -1,6 +1,6 @@
 /* Memory Eggs — flip two wobbly eggs and find the matching baby dinosaurs. A golden pair hides a surprise, a quick
  * peek helps little explorers, and in bigger games the eggs shuffle after a few misses. */
-import { createPlay, shuffle, enter } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { createPlay, shuffle, enter } from "../adv-kit.js?v=du-2b5bf1340085b709";
 
 const FRIENDS = [
   ["trex", "green", "Rexy the T. rex"], ["tricera", "teal", "Trixie the Triceratops"], ["stego", "purple", "Spike the Stegosaurus"], ["bronto", "orange", "Bronte the Brontosaurus"],

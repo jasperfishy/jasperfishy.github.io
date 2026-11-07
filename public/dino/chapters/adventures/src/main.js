@@ -36,8 +36,7 @@ const defaultState = {
   stars: 0,
   levels: {},
   completed: [],
-  colorWork: {},
-  daddyAvatar: null
+  colorWork: {}
 };
 
 function loadState() {
@@ -193,7 +192,7 @@ function heroDinoSvg() {
     '<i class="ah-hill h1"></i><i class="ah-hill h2"></i>' +
     '<span class="ah-rex" data-pet>' + F.dinoHTML('trex', { state: 'idle' }) + '</span>' +
     '<span class="ah-tricera">' + F.dinoHTML('tricera', { state: 'walk' }) + '</span>' +
-    '<span class="ah-mum">' + F.personHTML('courtney', { state: 'wave', size: .34 }) + '</span>' +
+    '<span class="ah-mum">' + F.personHTML('mummy', { state: 'wave', size: .34 }) + '</span>' +
     '<span class="ah-dad">' + F.personHTML('daddy', { state: 'wave', size: .34 }) + '</span>' +
     '<i class="ah-fl" style="left:8%"></i><i class="ah-fl" style="left:44%;--d:-1s"></i><i class="ah-fl" style="left:92%;--d:-2s"></i></div>';
 }

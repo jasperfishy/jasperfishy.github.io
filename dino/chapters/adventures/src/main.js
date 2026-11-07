@@ -1,26 +1,26 @@
-import { registerModule, getModule } from "./module-registry.js?v=du-5ee3d40e60884152";
-import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-5ee3d40e60884152";
-import { mountBuilder } from "./modules/builder.js?v=du-5ee3d40e60884152";
-import { mountJigsaw } from "./modules/jigsaw.js?v=du-5ee3d40e60884152";
-import { mountFossil } from "./modules/fossil.js?v=du-5ee3d40e60884152";
-import { mountMemory } from "./modules/memory.js?v=du-5ee3d40e60884152";
-import { mountPicnic } from "./modules/picnic.js?v=du-5ee3d40e60884152";
-import { mountTrail } from "./modules/trail.js?v=du-5ee3d40e60884152";
-import { mountHatchling } from "./modules/hatchling.js?v=du-5ee3d40e60884152";
-import { mountShapeSafari } from "./modules/shape-safari.js?v=du-5ee3d40e60884152";
-import { mountDinoBeat } from "./modules/dino-beat.js?v=du-5ee3d40e60884152";
-import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-5ee3d40e60884152";
-import { mountStorybook } from "./modules/storybook.js?v=du-5ee3d40e60884152";
-import { mountDinoDiscoveries, PREHISTORIC_CREATURES } from "./modules/dino-discoveries.js?v=du-5ee3d40e60884152";
-import { mountDinoCare } from "./modules/dino-care.js?v=du-5ee3d40e60884152";
-import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-5ee3d40e60884152";
-import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-5ee3d40e60884152";
-import { mountDinoParade } from "./modules/dino-parade.js?v=du-5ee3d40e60884152";
-import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-5ee3d40e60884152";
-import { mountDinoQuest } from "./modules/dino-quest.js?v=du-5ee3d40e60884152";
-import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-5ee3d40e60884152";
-import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-5ee3d40e60884152";
-import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-5ee3d40e60884152";
+import { registerModule, getModule } from "./module-registry.js?v=du-2b5bf1340085b709";
+import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-2b5bf1340085b709";
+import { mountBuilder } from "./modules/builder.js?v=du-2b5bf1340085b709";
+import { mountJigsaw } from "./modules/jigsaw.js?v=du-2b5bf1340085b709";
+import { mountFossil } from "./modules/fossil.js?v=du-2b5bf1340085b709";
+import { mountMemory } from "./modules/memory.js?v=du-2b5bf1340085b709";
+import { mountPicnic } from "./modules/picnic.js?v=du-2b5bf1340085b709";
+import { mountTrail } from "./modules/trail.js?v=du-2b5bf1340085b709";
+import { mountHatchling } from "./modules/hatchling.js?v=du-2b5bf1340085b709";
+import { mountShapeSafari } from "./modules/shape-safari.js?v=du-2b5bf1340085b709";
+import { mountDinoBeat } from "./modules/dino-beat.js?v=du-2b5bf1340085b709";
+import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-2b5bf1340085b709";
+import { mountStorybook } from "./modules/storybook.js?v=du-2b5bf1340085b709";
+import { mountDinoDiscoveries, PREHISTORIC_CREATURES } from "./modules/dino-discoveries.js?v=du-2b5bf1340085b709";
+import { mountDinoCare } from "./modules/dino-care.js?v=du-2b5bf1340085b709";
+import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-2b5bf1340085b709";
+import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-2b5bf1340085b709";
+import { mountDinoParade } from "./modules/dino-parade.js?v=du-2b5bf1340085b709";
+import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-2b5bf1340085b709";
+import { mountDinoQuest } from "./modules/dino-quest.js?v=du-2b5bf1340085b709";
+import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-2b5bf1340085b709";
+import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-2b5bf1340085b709";
+import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-2b5bf1340085b709";
 
 const STORAGE_KEY = "dinosaur-universe-player-v1";
 const EMBEDDED = window.self !== window.top;
@@ -36,8 +36,7 @@ const defaultState = {
   stars: 0,
   levels: {},
   completed: [],
-  colorWork: {},
-  daddyAvatar: null
+  colorWork: {}
 };
 
 function loadState() {
@@ -193,7 +192,7 @@ function heroDinoSvg() {
     '<i class="ah-hill h1"></i><i class="ah-hill h2"></i>' +
     '<span class="ah-rex" data-pet>' + F.dinoHTML('trex', { state: 'idle' }) + '</span>' +
     '<span class="ah-tricera">' + F.dinoHTML('tricera', { state: 'walk' }) + '</span>' +
-    '<span class="ah-mum">' + F.personHTML('courtney', { state: 'wave', size: .34 }) + '</span>' +
+    '<span class="ah-mum">' + F.personHTML('mummy', { state: 'wave', size: .34 }) + '</span>' +
     '<span class="ah-dad">' + F.personHTML('daddy', { state: 'wave', size: .34 }) + '</span>' +
     '<i class="ah-fl" style="left:8%"></i><i class="ah-fl" style="left:44%;--d:-1s"></i><i class="ah-fl" style="left:92%;--d:-2s"></i></div>';
 }

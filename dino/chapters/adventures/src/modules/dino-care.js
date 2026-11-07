@@ -1,8 +1,8 @@
 /* Dino Care Clinic — a waiting room of dinosaur patients. Pick one, read its little health bars (clean, thirst, hunger,
  * warmth, rest, joy) and give just the right care: brush off the dust, a drink, a snack, a cool cloth, a flower garland,
  * a shady nap. Wrong tool? The dinosaur kindly says what it really needs. Every patient leaves with a health certificate. */
-import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-5ee3d40e60884152";
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-2b5bf1340085b709";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-2b5bf1340085b709";
 
 const PATIENTS = [
   { sp: "trex", color: "green", name: "Rexy", fact: "T. rex had strong legs, tiny arms and a powerful bite." },

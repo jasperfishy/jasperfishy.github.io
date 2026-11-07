@@ -194,7 +194,7 @@ export function mountDaddyChase(context) {
     daddyEl.style.transform = `translate(${mp.x - 20}px,${mp.y - 190}px) scale(.12) rotate(540deg)`; daddyEl.style.opacity = .9;
     await wait(720); FX.sfx.chomp(); daddyEl.style.opacity = 0;
     me.classList.add('dc-belly'); speech('Mmmphf!', 44, 40, 1400);
-    const bump = document.createElement('div'); bump.className = 'dc-bump'; bump.innerHTML = '<img src="./assets/daddy-head.webp" alt="">'; dinoEl.append(bump);
+    const bump = document.createElement('div'); bump.className = 'dc-bump'; bump.innerHTML = '<img src="./assets/daddy-face.svg" alt="">'; dinoEl.append(bump);
     FX.floatText(innerWidth / 2, innerHeight / 2, 'gulp!');
     await wait(1700);
     // BURP — he comes flying out, dizzy and sorry

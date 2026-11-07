@@ -1,6 +1,6 @@
 // Dino Meadow play engine: layered scenery, wandering friends, streaks, star ratings and the growing meadow.
 // Every game in games.js receives a context `g` from beginRound() and talks to the child through it.
-import {shuffle} from './catalog.js?v=du-5ee3d40e60884152';
+import {shuffle} from './catalog.js?v=du-2b5bf1340085b709';
 
 const D=()=>window.DUFX||{};
 const safe=fn=>{try{return fn();}catch{}};

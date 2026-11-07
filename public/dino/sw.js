@@ -2,14 +2,14 @@
 // The ONLY service worker in the combined app; update-manager.js registers it.
 // New releases wait until the player applies them (DU_SKIP_WAITING). The
 // jasperfish.com release build stamps VERSION with a content hash.
-const VERSION = "du-v24";
+const VERSION = "du-v25";
 const ASSETS = [
   './',
   './version.json',
   './update-manager.js',
   './lib/phaser.min.js',
-  './chapters/adventures/assets/courtney-head.webp',
-  './chapters/adventures/assets/daddy-head.webp',
+  './chapters/adventures/assets/daddy-face.svg',
+  './chapters/adventures/assets/mummy-face.svg',
   './chapters/adventures/assets/real/manifest.json',
   './chapters/adventures/icon.svg',
   './chapters/adventures/index.html',

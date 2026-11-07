@@ -1,5 +1,5 @@
 /* Dinosaur Universe — animated people (Daddy and Mummy). Keep them generic: other children play too.
- * A paper-doll style rig: the real cartoon face sits on a vector body whose arms, legs and head are
+ * A paper-doll style rig: a drawn cartoon face sits on a vector body whose arms, legs and head are
  * animated with CSS. States: idle, walk, run, panic, caught, yawn, tired, sleep, happy, sit, lie, wave.
  *     el.innerHTML = DUFX.personHTML('daddy', { state: 'run', size: .8 });
  *     DUFX.personState(el.querySelector('.du-person'), 'panic', 1500);
@@ -13,11 +13,13 @@
     return s ? s.replace(/fx\/du-people\.js.*$/, '') : '';
   })();
   const WHO = {
-    daddy: { img: BASE + 'chapters/adventures/assets/daddy-head.webp', w: 120, h: 146, top: 0, sweater: '#13607a', sleeve: '#0f4e65', pants: '#3f5d8a', shoe: '#6b4a2b', skin: '#efb88c', lid: '#f9ab78',
-      eyes: [[.307, .478], [.62, .516]], eyeW: .17, mouth: [.4, .735], mouthW: .2, name: 'Daddy' },
-    courtney: { img: BASE + 'chapters/adventures/assets/courtney-head.webp', w: 124, h: 124, top: 18, sweater: '#a9b99a', sleeve: '#97a888', pants: '#6c628f', shoe: '#e8dccb', skin: '#efb48b', lid: '#dc9468', tilt: -18, round: true,
-      eyes: [[.515, .52], [.706, .37]], eyeW: .15, mouth: [.74, .63], mouthW: .17, name: 'Mummy' },
+    // Drawn, generic heads (no photos): eye and mouth spots line up with the blink and gasp overlays.
+    daddy: { img: BASE + 'chapters/adventures/assets/daddy-face.svg', w: 120, h: 146, top: 0, sweater: '#13607a', sleeve: '#0f4e65', pants: '#3f5d8a', shoe: '#6b4a2b', skin: '#f3c19b', lid: '#f3c19b',
+      eyes: [[43 / 120, 76 / 146], [77 / 120, 76 / 146]], eyeW: .16, mouth: [.5, 106 / 146], mouthW: .2, name: 'Daddy' },
+    mummy: { img: BASE + 'chapters/adventures/assets/mummy-face.svg', w: 124, h: 146, top: 0, sweater: '#a9b99a', sleeve: '#97a888', pants: '#6c628f', shoe: '#e8dccb', skin: '#f3c19b', lid: '#f3c19b',
+      eyes: [[47 / 124, 80 / 146], [77 / 124, 80 / 146]], eyeW: .16, mouth: [.5, 109 / 146], mouthW: .19, name: 'Mummy' },
   };
+  WHO.courtney = WHO.mummy; // older calls used this key
   DUFX.personWho = WHO;
 
   DUFX.personHTML = function (who, opts) {

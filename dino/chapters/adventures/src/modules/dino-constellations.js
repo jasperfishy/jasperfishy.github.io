@@ -1,7 +1,7 @@
 /* Starry Dino Constellations — a night-sky dot-to-dot. Connect the stars in order (finger or mouse: a glowing thread
  * follows you) and every star chimes a higher note. Early skies show numbers; later skies glow once and you remember
  * the path. When the last star is joined the constellation lights up and a real dinosaur appears in the sky. */
-import { createPlay, shuffle } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { createPlay, shuffle } from "../adv-kit.js?v=du-2b5bf1340085b709";
 
 const SKIES = [
   { sp: "bronto", color: "orange", name: "The Great Long-neck", fact: "Long-necked dinosaurs could reach leaves high in the treetops.",

@@ -1,7 +1,7 @@
 /* Footprint Trail — follow a winding line of giant footprints in order (counting by ones, then twos), and a little
  * tracker dinosaur trots along behind you. At the end of the trail a shadowy mystery dinosaur is hiding in the bush:
  * who made these tracks? Big feet, small feet, three toes, round toes — look closely! */
-import { createPlay, shuffle } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { createPlay, shuffle } from "../adv-kit.js?v=du-2b5bf1340085b709";
 
 const MAKERS = [
   { sp: "trex", color: "green", name: "Tyrannosaurus", print: "toes", size: 64, fact: "Three big toes, just like a giant bird!" },

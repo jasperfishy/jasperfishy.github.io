@@ -164,7 +164,7 @@ export async function chapter7(E) {
     '<div class="rs-nest"><span class="rs-cage"></span></div>', { ambient: 'storm', music: 'storm' });
   await E.titleCard(6, 'Grumblecloud’s Peak', 'The final rescue');
   const me = E.mount(12, 56, 20, 'idle'); me.style.zIndex = 4;
-  const mum = E.person('courtney', 70, 30, .66, 'panic'), dad = E.person('daddy', 81, 28, .66, 'panic'); mum.style.zIndex = 3; dad.style.zIndex = 3;
+  const mum = E.person('mummy', 70, 30, .66, 'panic'), dad = E.person('daddy', 81, 28, .66, 'panic'); mum.style.zIndex = 3; dad.style.zIndex = 3;
   const grumble = E.world.querySelector('.rs-grumble'), flash = E.world.querySelector('.rs-flash');
   await E.say('Mummy and Daddy are in the Sky Nest, trapped behind a cage of thorny vines!', 'narrator', 600);
   await E.say(kidName(E) ? kidName(E).toUpperCase() + '! Be careful! The storm is angry!' : 'Be careful, little one! The storm is angry!', 'mummy');

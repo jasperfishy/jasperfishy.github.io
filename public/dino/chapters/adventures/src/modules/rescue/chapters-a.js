@@ -39,7 +39,7 @@ export async function chapter1(E) {
     par(GRASS, 'near') + '<div class="rs-storm"><i></i><i></i><i></i></div><div class="rs-flash"></div>', { ambient: 'meadow', music: 'home', cls: 'dusk' });
   E.hush();
   await E.titleCard(0, 'The Great Dino Rescue', kidName(E) ? 'A quest for ' + kidName(E) : 'A quest for you');
-  const mum = E.person('courtney', 38, 34, .72, 'idle'), dad = E.person('daddy', 50, 32, .72, 'idle');
+  const mum = E.person('mummy', 38, 34, .72, 'idle'), dad = E.person('daddy', 50, 32, .72, 'idle');
   await E.say('One golden evening, Mummy and Daddy packed a picnic basket to take up to the Sky Nest, high on Mount Roar.');
   FX.personState(mum.el, 'wave'); FX.personState(dad.el, 'wave');
   await E.say(kidName(E) ? 'Bye bye, ' + kidName(E) + '! We will be back before bedtime!' : 'Bye bye, little one! We will be back before bedtime!', 'mummy');

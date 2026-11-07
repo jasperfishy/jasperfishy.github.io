@@ -88,7 +88,7 @@ export function mountMummyCozyCorner(context) {
   FX.ambient(null);
 
   // ------------------------------------------------------------ choose a helper
-  root.innerHTML = `<div class="mc-pick"><div class="mc-pick-mum">${FX.personHTML('courtney', { state: 'tired', size: .55 })}</div>
+  root.innerHTML = `<div class="mc-pick"><div class="mc-pick-mum">${FX.personHTML('mummy', { state: 'tired', size: .55 })}</div>
     <div><h2>Mummy’s Cozy Corner</h2><p>Mummy has had a very long day and she is <b>so</b> tired. Pick a dinosaur helper to bring her everything she needs to relax, and then tuck her in for the night.</p></div></div>
     <div class="mc-helpers">${helperPool.map((h, i) => `<button class="mc-helper" data-i="${i}"><span class="mc-helper-art">${FX.dinoHTML(h.id, { color: h.color })}</span><b>${h.name}</b></button>`).join('')}</div>`;
   root.querySelectorAll('.mc-helper').forEach((b) => {
@@ -118,7 +118,7 @@ export function mountMummyCozyCorner(context) {
     area = root.querySelector('.mc-area'); layer = area.querySelector('.mc-layer'); bg = layer.querySelector('.mc-bgbox'); items = layer.querySelector('.mc-items');
     mumWrap = layer.querySelector('.mc-mum'); dinoWrap = layer.querySelector('.mc-dino'); dark = layer.querySelector('.mc-dark'); hearts = area.querySelector('.mc-hearts'); bubble = area.querySelector('.mc-bubble'); panel = root.querySelector('.mc-panel');
     bg.innerHTML = livingRoom();
-    mumWrap.innerHTML = FX.personHTML('courtney', { state: 'walk', size: 1 }); mum = mumWrap.firstElementChild;
+    mumWrap.innerHTML = FX.personHTML('mummy', { state: 'walk', size: 1 }); mum = mumWrap.firstElementChild;
     dinoWrap.innerHTML = FX.dinoHTML(helper.id, { color: helper.color, state: 'idle', size: 150 });
     dino = dinoWrap.firstElementChild;
     panel.innerHTML = '<div class="mc-ask"><span class="mc-thought">🏠</span><b>Mummy is coming home…</b></div>';

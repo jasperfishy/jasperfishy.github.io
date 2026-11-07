@@ -2,7 +2,7 @@
  * Watch the moonbeams light the stones, then tap the same symbols in order: each right symbol makes the baby hop to the
  * next stone. Longer trails grow with the levels, and from level 4 there is a return trip where you tap the trail
  * BACKWARDS to bring a sleepy sibling home. A wrong symbol only makes the baby wobble: the trail is shown again. */
-import { createPlay, shuffle } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { createPlay, shuffle } from "../adv-kit.js?v=du-2b5bf1340085b709";
 
 const STARS = [["moon", "🌙"], ["fern", "🌿"], ["pawprint", "🐾"], ["flower", "🌼"], ["crystal", "💎"], ["star", "⭐"]];
 const HELPERS = [["tricera", "teal", "Trixie"], ["stego", "purple", "Spike"], ["bronto", "orange", "Bronte"], ["raptor", "red", "Zippy"], ["trex", "green", "Rexy"]];

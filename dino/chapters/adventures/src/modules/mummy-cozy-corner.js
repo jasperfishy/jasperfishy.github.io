@@ -3,7 +3,7 @@
 // relax in the living room (a comfy chair, a cup of tea, some cake, a feather fan), then it is bedtime:
 // she is tucked in, her pillow is fluffed, a bedtime story is read, a lullaby is played, a goodnight
 // nuzzle is given and finally the light goes out. Wrong choices are funny, never punished.
-import { attachBonus } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { attachBonus } from "../adv-kit.js?v=du-2b5bf1340085b709";
 const FX = window.DUFX;
 const W = 800, H = 500;
 const HELPERS = [
@@ -88,7 +88,7 @@ export function mountMummyCozyCorner(context) {
   FX.ambient(null);
 
   // ------------------------------------------------------------ choose a helper
-  root.innerHTML = `<div class="mc-pick"><div class="mc-pick-mum">${FX.personHTML('courtney', { state: 'tired', size: .55 })}</div>
+  root.innerHTML = `<div class="mc-pick"><div class="mc-pick-mum">${FX.personHTML('mummy', { state: 'tired', size: .55 })}</div>
     <div><h2>Mummy’s Cozy Corner</h2><p>Mummy has had a very long day and she is <b>so</b> tired. Pick a dinosaur helper to bring her everything she needs to relax, and then tuck her in for the night.</p></div></div>
     <div class="mc-helpers">${helperPool.map((h, i) => `<button class="mc-helper" data-i="${i}"><span class="mc-helper-art">${FX.dinoHTML(h.id, { color: h.color })}</span><b>${h.name}</b></button>`).join('')}</div>`;
   root.querySelectorAll('.mc-helper').forEach((b) => {
@@ -118,7 +118,7 @@ export function mountMummyCozyCorner(context) {
     area = root.querySelector('.mc-area'); layer = area.querySelector('.mc-layer'); bg = layer.querySelector('.mc-bgbox'); items = layer.querySelector('.mc-items');
     mumWrap = layer.querySelector('.mc-mum'); dinoWrap = layer.querySelector('.mc-dino'); dark = layer.querySelector('.mc-dark'); hearts = area.querySelector('.mc-hearts'); bubble = area.querySelector('.mc-bubble'); panel = root.querySelector('.mc-panel');
     bg.innerHTML = livingRoom();
-    mumWrap.innerHTML = FX.personHTML('courtney', { state: 'walk', size: 1 }); mum = mumWrap.firstElementChild;
+    mumWrap.innerHTML = FX.personHTML('mummy', { state: 'walk', size: 1 }); mum = mumWrap.firstElementChild;
     dinoWrap.innerHTML = FX.dinoHTML(helper.id, { color: helper.color, state: 'idle', size: 150 });
     dino = dinoWrap.firstElementChild;
     panel.innerHTML = '<div class="mc-ask"><span class="mc-thought">🏠</span><b>Mummy is coming home…</b></div>';

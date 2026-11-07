@@ -1,7 +1,7 @@
 /* Dino Picnic — hungry dinosaur guests walk up to the picnic blanket and ask for something to eat.
  * Drag (or tap) the right food. Requests grow from names ("berries!") to kinds ("I only eat plants")
  * to clues ("something red", "something crunchy"). Big guests ask for two courses. Everyone dances at the end. */
-import { createPlay, shuffle, dragPiece } from "../adv-kit.js?v=du-5ee3d40e60884152";
+import { createPlay, shuffle, dragPiece } from "../adv-kit.js?v=du-2b5bf1340085b709";
 
 const FOODS = [
   { icon: "🥬", label: "leafy greens", color: "green", feel: "leafy", kind: "plants" },

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 146">
+  <!-- Generic drawn Mummy for Dinosaur Universe. Eyes at (47,80) and (77,80); mouth centre (62,109). -->
+  <path d="M19 78 C8 28 116 28 105 78 L110 128 C97 140 27 140 14 128Z" fill="#a8532e" stroke="#3a2a22" stroke-width="3" stroke-linejoin="round"/>
+  <ellipse cx="62" cy="82" rx="40" ry="48" fill="#f3c19b" stroke="#3a2a22" stroke-width="3.2"/>
+  <path d="M21 76 C22 40 44 26 64 26 C88 26 106 44 103 76 C94 60 82 50 68 46 C58 58 40 66 21 76Z" fill="#b85f35" stroke="#3a2a22" stroke-width="3" stroke-linejoin="round"/>
+  <g transform="translate(92 46)"><circle r="7" fill="#ffd23f" stroke="#3a2a22" stroke-width="2"/><circle r="2.6" fill="#ff8a5c"/></g>
+  <path d="M40 67 Q47 63 54 66 M70 66 Q77 63 84 67" stroke="#7a3a1f" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="47" cy="80" rx="7.5" ry="8.5" fill="#fff" stroke="#3a2a22" stroke-width="2.2"/><circle cx="47.6" cy="81" r="4.4" fill="#2b1d16"/><circle cx="49" cy="79" r="1.6" fill="#fff"/>
+  <ellipse cx="77" cy="80" rx="7.5" ry="8.5" fill="#fff" stroke="#3a2a22" stroke-width="2.2"/><circle cx="77.6" cy="81" r="4.4" fill="#2b1d16"/><circle cx="79" cy="79" r="1.6" fill="#fff"/>
+  <path d="M39 74 l-4 -3 M41 71 l-2 -4 M85 74 l4 -3 M83 71 l2 -4" stroke="#3a2a22" stroke-width="2" stroke-linecap="round"/>
+  <path d="M59 90 Q62 97 66 92" stroke="#3a2a22" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <circle cx="36" cy="100" r="7" fill="#ff8f8f" opacity=".4"/><circle cx="88" cy="100" r="7" fill="#ff8f8f" opacity=".4"/>
+  <path d="M48 104 Q62 119 76 104 Q62 110 48 104Z" fill="#8a3b36" stroke="#3a2a22" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M53 109 Q62 114 71 109" stroke="#ff9a9a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <circle cx="23" cy="100" r="3.2" fill="#ffd23f" stroke="#3a2a22" stroke-width="1.6"/><circle cx="101" cy="100" r="3.2" fill="#ffd23f" stroke="#3a2a22" stroke-width="1.6"/>
+</svg>
