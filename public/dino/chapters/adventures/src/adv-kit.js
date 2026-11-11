@@ -206,6 +206,9 @@ export function createPlay(context, o) {
   };
   play.miss = function (el, text) {
     state.misses += 1; state.streak = 0;
+    // The activity keeps its own tally across the whole multi-round journey, so
+    // a slip has to reach it here or the stars at the end only ever see round 3.
+    if (context.oops) context.oops();
     bump("streak", 0);
     sfx("boing");
     if (el && F.shake && motionOK()) F.shake(el);

@@ -9,6 +9,7 @@ export function heroScene() {
   }).join('');
   return `
   <div class="hs-sky hs-sky-bg"></div>
+  <div class="hs-sky hs-photo" aria-hidden="true"></div>
   <i class="hs-orb hs-sun" data-orb title="Tap me!"></i>
   <i class="hs-orb hs-moon" data-orb title="Tap me!"><b></b><b></b><b></b></i>
   <div class="hs-stars">${stars}</div>

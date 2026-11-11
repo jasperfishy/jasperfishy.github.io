@@ -28,6 +28,17 @@
   Kit.getBest = (key) => { try { return Math.max(0, Number(JSON.parse(localStorage.getItem(key)).best) || 0); } catch (e) { return 0; } };
   Kit.rating = (score, t) => (score >= t[2] ? 3 : score >= t[1] ? 2 : score >= t[0] ? 1 : 0);
 
+  /* A friend from the story speaks over the shared screens, so a game never
+   * opens on a bare instruction and never ends in silence. A chapter opts in by
+   * naming its ledger prefix (window.DU_WORLD_ID = "park"); without that, or
+   * without the story engine on the page, this quietly does nothing. */
+  Kit.voice = (scene, kind, id) => {
+    const S = window.DUSTORY, world = window.DU_WORLD_ID;
+    const key = id || (scene && scene.scene && scene.scene.key);
+    if (!S || !S.voice || !world || !key) return "";
+    try { return S.voice(world + "." + key, kind); } catch (e) { return ""; }
+  };
+
   // Textures every game can use: kit-dot, kit-star, kit-spark.
   Kit.textures = (scene) => {
     if (scene.textures.exists("kit-star")) return;
@@ -59,6 +70,10 @@
 
   Kit.burst = (scene, x, y, o) => {
     if (!motionOK()) return;
+    // A world that forgets to build the kit textures used to spark green-and-
+    // black missing-texture boxes instead of magic, so the kit makes its own
+    // art whenever any part of it is asked for.
+    Kit.textures(scene);
     o = o || {};
     const n = calm() ? Math.max(3, Math.round((o.n || 14) * 0.4)) : (o.n || 14);
     const e = scene.add.particles(x, y, o.texture || "kit-dot", {
@@ -83,8 +98,30 @@
     scene.tweens.add({ targets: t, alpha: 0, y: H * 0.26, delay: 900, duration: 420, onComplete: () => t.destroy() });
   };
 
+  const CELESTE = [0xff6b6b, 0xffd93d, 0x6bcb77, 0x4d96ff, 0xc77dff, 0xff9f43];
+  // Meadow already called DUKit.celebrate() on a win; it did not exist, so the
+  // best moment in the game was silent. Works from a Phaser scene (particles land
+  // inside the letterboxed canvas) or from any page, via the hub's fireworks.
+  Kit.celebrate = function (scene) {
+    Kit.sfx("win");
+    if (!motionOK()) return;
+    if (scene && scene.add && scene.scale && scene.time) {
+      const W = scene.scale.width, H = scene.scale.height, vol = calm() ? 2 : 5;
+      for (let k = 0; k < vol; k++) {
+        scene.time.delayedCall(k * 170, () => {
+          Kit.burst(scene, Phaser.Math.Between(W * 0.15, W * 0.85), Phaser.Math.Between(H * 0.22, H * 0.6), {
+            texture: "kit-spark", tint: CELESTE[k % CELESTE.length], n: calm() ? 10 : 26,
+            gravity: 430, life: 1250, min: 130, max: 430, spin: true, depth: 130, scale: 1.15,
+          });
+        });
+      }
+      if (!calm()) Kit.shake(scene, 90, 0.0035);
+    } else if (FX() && FX().celebrate) FX().celebrate();
+  };
+
   // Twinkling sparkles scattered over an area (sun glints, stars, magic dust).
   Kit.sparkleField = (scene, count, x0, y0, x1, y1, tint) => {
+    Kit.textures(scene);
     for (let i = 0; i < count; i++) {
       const s = scene.add.image(Phaser.Math.Between(x0, x1), Phaser.Math.Between(y0, y1), "kit-spark").setTint(tint || 0xffffff).setAlpha(0).setScale(Phaser.Math.FloatBetween(0.3, 0.7)).setDepth(1);
       scene.tweens.add({ targets: s, alpha: { from: 0, to: 0.9 }, scale: s.scale * 1.5, angle: 45, duration: Phaser.Math.Between(700, 1400), yoyo: true, repeat: -1, delay: Phaser.Math.Between(0, 2000) });
@@ -109,8 +146,14 @@
     const card = scene.add.rectangle(0, 0, 560, 270, 0xffffff, 0.95).setStrokeStyle(5, o.color || 0x2ecc71, 1);
     const icon = scene.add.text(0, -78, o.emoji || "🦖", { fontSize: "64px" }).setOrigin(0.5);
     const title = scene.add.text(0, -8, o.title, { fontSize: "44px", fontFamily: FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0.5);
-    const hint = scene.add.text(0, 48, o.hint || "", { fontSize: "20px", fontFamily: FONT, color: "#52627f", align: "center", wordWrap: { width: 480 } }).setOrigin(0.5);
-    const go = scene.add.text(0, 98, "TAP TO START", { fontSize: "26px", fontFamily: FONT, fontStyle: "bold", color: "#ffffff", backgroundColor: o.cssColor || "#2ecc71", padding: { x: 22, y: 8 } }).setOrigin(0.5);
+    const say = String(o.hint || "");
+    const hint = scene.add.text(0, 0, say, { fontSize: say.length > 92 ? "18px" : "20px", fontFamily: FONT, color: "#52627f", align: "center", wordWrap: { width: 500 } }).setOrigin(0.5);
+    const go = scene.add.text(0, 0, "TAP TO START", { fontSize: "26px", fontFamily: FONT, fontStyle: "bold", color: "#ffffff", backgroundColor: o.cssColor || "#2ecc71", padding: { x: 22, y: 8 } }).setOrigin(0.5);
+    // A three-line instruction used to run straight through the button, so the
+    // card now measures its words and grows around them instead of over them.
+    hint.setY(34 + hint.height / 2);
+    go.setY(Math.max(98, hint.y + hint.height / 2 + 20 + go.height / 2));
+    card.setSize(560, Math.max(270, (go.y + go.height / 2 + 26) * 2));
     c.add([veil, card, icon, title, hint, go]);
     c.setScale(0.6).setAlpha(0);
     scene.tweens.add({ targets: c, scale: 1, alpha: 1, duration: 380, ease: "back.out" });
@@ -129,12 +172,14 @@
       scene.input.keyboard.once("keydown-SPACE", start);
       scene.input.keyboard.once("keydown-ENTER", start);
     });
+    scene.time.delayedCall(560, () => Kit.voice(scene, "intro", o.voiceId));
     return c;
   };
 
   // End screen: panel pops in, stars fill one by one with rising notes, confetti on a good run.
   Kit.endPanel = (scene, o, onAgain) => {
     const W = scene.scale.width, H = scene.scale.height;
+    Kit.textures(scene);
     const c = scene.add.container(W / 2, H / 2).setDepth(100);
     const veil = scene.add.rectangle(0, 0, W, H, 0x10243a, 0.45);
     const panel = scene.add.rectangle(0, 0, 460, 330, 0x14203a, 0.92).setStrokeStyle(4, 0xffffff, 0.35);
@@ -161,6 +206,8 @@
       });
     }
     if (stars === 3) scene.time.delayedCall(450 + 3 * 380, () => { Kit.sfx("win"); for (let k = 0; k < 3; k++) Kit.burst(scene, Phaser.Math.Between(W * 0.25, W * 0.75), H * 0.3, { tint: [0xff6b6b, 0xffd93d, 0x6bcb77, 0x4d96ff][k % 4], n: 22, gravity: 400, life: 1100, depth: 120 }); });
+    // Praise a good run, encourage a near one — in a friend's words, not a score.
+    scene.time.delayedCall(700, () => Kit.voice(scene, stars >= 3 ? "win" : "lose", o.voiceId));
     scene.time.delayedCall(450 + stars * 380 + 250, () => {
       scene.tweens.add({ targets: again, alpha: 1, duration: 250 });
       if (motionOK()) scene.tweens.add({ targets: again, scale: 1.07, duration: 520, yoyo: true, repeat: -1 });

@@ -68,6 +68,8 @@ body { font-family: "Trebuchet MS", "Comic Sans MS", "Chalkboard SE", system-ui,
 .pip { width: 16px; height: 16px; border-radius: 50%; background: #e0d5bd; border: 3px solid #fff; box-shadow: 0 2px 0 rgba(0,0,0,.14); transition: all .3s; }
 .pip.done { background: #f2b01e; } .pip.now { background: var(--gc, #4a8f3c); transform: scale(1.3); }
 #helper { width: 64px; flex: none; }
+.story-line { margin: 8px auto 0; max-width: 640px; padding: 5px 14px; font-size: 15px; font-weight: 700; font-style: italic; color: #4a3a20; background: rgba(255,255,255,.6); border-left: 6px solid var(--gc, #4a8f3c); border-radius: 6px 16px 16px 6px; text-align: center; animation: say-pop .5s cubic-bezier(.2,.9,.3,1.4); }
+.story-line[hidden] { display: none; }
 .say { margin: 4px auto 10px; max-width: 640px; min-height: 40px; padding: 8px 18px; background: #fff; border-radius: 18px; font-size: 19px; font-weight: 800; text-align: center; box-shadow: 0 4px 0 rgba(0,0,0,.1); }
 .say.pop { animation: say-pop .4s cubic-bezier(.2,.9,.3,1.4); }
 @keyframes say-pop { from { transform: scale(.85); opacity: .4; } to { transform: none; opacity: 1; } }
@@ -448,4 +450,116 @@ body { font-family: "Trebuchet MS", "Comic Sans MS", "Chalkboard SE", system-ui,
   .den-dino, .belt, .ph-smoke { animation-duration: 0.01ms !important; }
   .cb-sun, .pp-dino, .pp-flower, .pp-cloud, .pp-sun, .ds-moon, .ds-l1, .ds-l2, .cafe-lights i, .dots-start { animation: none !important; }
   .pp-dino { left: var(--x, 4%) !important; }
+}
+
+/* =============================================================================
+ * Premium pass for the eight games2 / games3 boards.
+ * Everything below is scoped to classes those two files draw: the status strip
+ * (.du-bar), the collecting walls (.x-wall / .x-slot and the named surfaces),
+ * the keep-going bonus boards (.bm-* memory golden board, .spn-* size parade
+ * line), the living dot-to-dot scene (.dots-dio) and the dash streak boost.
+ * No existing selector is redefined.
+ * ============================================================================= */
+.du-bar b { font-size: 15px; }
+.du-bar span { opacity: .92; font-weight: 800; }
+.du-bar .btn.small { font-size: 13px; padding: 4px 10px; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+
+/* A collecting wall: one row of slots that keeps whatever the child earned, level after level. */
+.x-wall {
+  display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+  padding: 9px 10px 14px; margin: 2px auto 9px; max-width: 660px; border-radius: 20px;
+  background: rgba(255,255,255,.66); box-shadow: 0 4px 0 rgba(0,0,0,.12); position: relative; z-index: 2;
+}
+.x-slot {
+  width: 52px; min-width: 52px; height: 50px; border-radius: 13px; position: relative;
+  display: grid; place-items: center; background: rgba(0,0,0,.06);
+  border: 3px dashed rgba(60,40,10,.22); transition: transform .2s, box-shadow .25s, background .25s;
+}
+.x-slot i { font-style: normal; font-size: 21px; line-height: 1; opacity: .32; filter: grayscale(1); display: block; }
+.x-slot svg { width: 30px; height: auto; display: block; }
+.x-slot .du-dino { width: 44px; display: block; }
+.x-slot.got { border-style: solid; border-color: #fff; background: #eafbe0; box-shadow: 0 0 0 3px #6bcb77, 0 3px 0 rgba(0,0,0,.14); }
+.x-slot.got i { opacity: 1; filter: none; }
+.x-slot small {
+  position: absolute; left: 50%; bottom: -13px; transform: translateX(-50%);
+  font-size: 9px; font-weight: 900; white-space: nowrap; color: #4a3312; background: rgba(255,255,255,.75);
+  border-radius: 6px; padding: 0 4px;
+}
+.x-wall.full { box-shadow: 0 0 0 4px #ffcf33, 0 4px 0 rgba(0,0,0,.12); }
+.x-slot.want { border-color: #ffcf33; animation: du-glow 1.2s ease-in-out infinite; }
+
+/* Each surface wears its own frame, so a trophy case is not a garden is not a cabinet. */
+.x-wall.mm-case { background: linear-gradient(#ffe9bd,#f6cf8e); }
+.x-wall.sp-shelf { background: linear-gradient(#d9f0ff,#a8d8f5); }
+.x-wall.cnt-garden { background: linear-gradient(#e6f7d8,#b9e3a4); }
+.x-wall.cnt-garden.bloom { box-shadow: 0 0 0 4px #ff8fc7, 0 4px 0 rgba(0,0,0,.12); }
+.x-wall.dd-wall { background: linear-gradient(#241f5e,#4c47a0); }
+.x-wall.dd-wall .x-slot { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.34); }
+.x-wall.dd-wall .x-slot.got { background: #fff8dd; border-color: #fff; }
+.x-wall.stk-book { background: linear-gradient(#ffe3ef,#f8bfd6); }
+.x-wall.cafe-wall { background: linear-gradient(#ffe6cd,#f5c795); }
+.x-wall.dash-case { background: linear-gradient(#dff3e2,#a9dcbc); }
+.x-wall.dash-case .x-slot small { bottom: -14px; }
+.x-wall.catch-nest { background: linear-gradient(#fdeec6,#f0d69a); }
+
+/* Keep-going bonus board for Memory: a tiny all-golden pair board inside the card. */
+.bm-found { display: flex; gap: 8px; justify-content: center; }
+.bm-slot {
+  width: 54px; height: 52px; border-radius: 13px; display: grid; place-items: center;
+  background: rgba(0,0,0,.06); border: 3px dashed rgba(60,40,10,.22);
+}
+.bm-slot i { font-style: normal; font-size: 22px; opacity: .4; }
+.bm-slot.got { border-style: solid; border-color: #ffcf33; background: #fff6d8; box-shadow: 0 0 0 3px #ffcf33; }
+.bm-slot.got i { opacity: 1; filter: none; }
+.bm-slot .du-dino { width: 46px; display: block; }
+.bm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(84vw, 300px); }
+.bm-card { position: relative; aspect-ratio: 1 / 1.15; perspective: 800px; border: 0; background: none; padding: 0; cursor: pointer; }
+.bm-card.flipped .mc-inner { transform: rotateY(180deg); }
+.bm-card.matched .mc-front { background: #fff6d8; box-shadow: 0 0 0 4px #ffcf33, 0 0 22px rgba(255,207,51,.75); }
+.bm-card.matched { pointer-events: none; }
+
+/* Keep-going bonus line for Size Parade: a longer row of growing friends. */
+.spn-line { display: flex; align-items: flex-end; justify-content: center; gap: 8px; min-height: 170px; width: 100%; padding: 8px; border-bottom: 8px solid #8b5a2b; background: linear-gradient(transparent 70%, rgba(139,90,43,.18)); }
+.spn-slot { position: relative; display: flex; align-items: flex-end; justify-content: center; border-radius: 12px; border: 3px dashed rgba(60,40,10,.22); padding-top: 18px; flex: none; }
+.spn-slot b { position: absolute; left: 4px; top: 1px; font-size: 15px; color: rgba(60,40,10,.5); }
+.spn-slot .ghost { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); pointer-events: none; }
+.spn-slot .ghost .du-dino { filter: brightness(0) opacity(.13); }
+.spn-slot.filled { border-color: transparent; }
+.spn-slot.hot, .spn-dino.hot { background: rgba(255,214,70,.45); border-color: #ffcf33; }
+.spn-slot.hint, .spn-dino.hint { animation: du-glow .6s ease-in-out infinite; background: rgba(255,214,70,.4); border-radius: 12px; }
+.spn-tray { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-end; padding: 8px; min-height: 90px; }
+.spn-dino { position: relative; border: 0; background: none; padding: 0; cursor: pointer; }
+
+/* Dot-to-Dot: the finished picture is not still any more, friends wander in. */
+.dots-dio { position: absolute; left: 0; right: 0; bottom: 4px; display: flex; gap: 6px; justify-content: center; align-items: flex-end; pointer-events: none; z-index: 4; }
+.dio-buddy { position: relative; display: block; animation: dio-in .7s cubic-bezier(.3,.9,.4,1.3) both; }
+.dio-buddy .du-dino { width: 58px; display: block; }
+.dio-tag {
+  position: absolute; left: 50%; top: -16px; transform: translateX(-50%);
+  font-style: normal; font-size: 11px; font-weight: 900; white-space: nowrap;
+  background: #fffaf0; color: #4a3312; border-radius: 10px; padding: 1px 7px; box-shadow: 0 2px 0 rgba(0,0,0,.15);
+}
+@keyframes dio-in { from { transform: translateY(46px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Dino Dash: a clean-jump streak buys big-jump legs — a third tap and a bigger dinosaur. */
+.dash-hud #dStreak { background: rgba(0,0,0,.22); color: #fff3b0; border-radius: 12px; padding: 2px 9px; font-weight: 900; font-size: 14px; }
+.dash-dino.boosted { transform: scale(1.16); transform-origin: 50% 100%; filter: drop-shadow(0 0 10px rgba(255,220,80,.85)); }
+
+/* Egg Catch: the nest asks for one pattern at a time, and the sky shows which egg that is. */
+.catch-egg.wanted { filter: drop-shadow(0 0 9px #ffe27a); }
+.catch-egg.hint-me { animation: du-glow .5s ease-in-out 4; }
+
+/* The same surfaces on a small screen, and quiet for children who ask for less motion. */
+@media (max-width: 520px) {
+  .x-wall { gap: 5px; padding: 7px 8px 13px; }
+  .x-slot { width: 42px; min-width: 42px; height: 42px; }
+  .x-slot i { font-size: 18px; }
+  .x-slot .du-dino { width: 36px; }
+  .x-slot small { font-size: 8px; bottom: -11px; }
+  .bm-grid { gap: 6px; }
+  .dots-dio { bottom: 2px; }
+  .dio-buddy .du-dino { width: 42px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .x-slot.want, .catch-egg.hint-me, .dio-buddy, .spn-slot.hint, .spn-dino.hint { animation: none !important; }
 }

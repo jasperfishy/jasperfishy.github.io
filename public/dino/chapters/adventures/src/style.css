@@ -119,6 +119,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .activity-card:after { content: ""; position: absolute; width: 100px; height: 100px; border-radius: 50%; right: -35px; bottom: -40px; background: var(--card-orb, rgba(42,116,93,.1)); }
 .card-top { width: 100%; display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+.card-stars { font-size: 12px; letter-spacing: 1px; opacity: .8; margin-top: 2px; }
 .activity-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 16px; background: var(--icon-bg, #e3f1df); font-size: 26px; }
 .level-pill { color: var(--forest); background: rgba(41,103,93,.09); padding: 6px 9px; border-radius: 99px; font-size: 10px; font-weight: 900; }
 .activity-card h3 { margin: 14px 0 5px; font-size: 17px; letter-spacing: -.02em; }
@@ -255,6 +256,17 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .celebration-card .big-prize { font-size: 57px; animation: prize-bounce .8s ease-in-out infinite alternate; }
 .celebration-card h2 { margin: 6px 0 7px; font-size: 29px; }
 .celebration-card p { margin: 0; color: var(--muted); line-height: 1.55; }
+.celebration-stars { display: flex; gap: 6px; justify-content: center; margin: 12px 0 2px; font-size: 34px; }
+.celebration-stars .cs { font-style: normal; opacity: .34; transform: scale(.82); transition: transform .4s cubic-bezier(.2,1.6,.4,1), opacity .3s; }
+.celebration-stars .cs.lit { opacity: 1; transform: scale(1); animation: star-pop .5s cubic-bezier(.2,1.7,.4,1) backwards; }
+.celebration-stars .cs.lit:nth-child(2) { animation-delay: .16s; }
+.celebration-stars .cs.lit:nth-child(3) { animation-delay: .32s; }
+@keyframes star-pop { from { transform: scale(.2) rotate(-30deg); opacity: 0; } }
+.celebration-friend { display: flex; align-items: center; gap: 10px; margin: 12px auto 0; padding: 9px 13px 9px 9px; border-radius: 19px; background: #eef7ef; max-width: 340px; text-align: left; }
+.celebration-friend span { display: grid; gap: 2px; }
+.celebration-friend b { font-size: 12px; color: #2f6d55; letter-spacing: .4px; text-transform: uppercase; }
+.celebration-friend i { font-style: normal; font-size: 15px; line-height: 1.4; color: #26463f; }
+.celebration.calm .celebration-stars .cs, .celebration.calm .celebration-stars .cs.lit { animation: none; transition: none; }
 .reward-badge { display: inline-flex; align-items: center; gap: 7px; margin: 15px 0 18px; padding: 8px 13px; border-radius: 99px; background: #fff2c4; color: #805a1b; font-size: 12px; font-weight: 900; }
 .balloon {
   position: absolute; bottom: -120px; width: 45px; height: 58px; border-radius: 52% 52% 48% 48%;
@@ -367,6 +379,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .palette-panel { padding: 14px; border-radius: 20px; background: #fff; }
 .palette-panel h3 { margin: 0 0 13px; color: var(--forest); font-size: 12px; text-align: center; }
 .palette-panel .gentle-hint { font-size: 10px; }
+/* the parts counter is the one number on this screen a child needs to read */
+.color-progress { font-size: 13px !important; font-weight: 700; color: var(--forest); letter-spacing: .1px; }
+.color-progress.full { color: #d8607f; animation: dino-hop .3s ease-out; }
 .gallery-overlay { position: absolute; z-index: 5; inset: 0; display: grid; place-items: center; padding: 14px; border-radius: 28px; background: rgba(22,63,61,.5); backdrop-filter: blur(4px); }
 .gallery-card-panel { position: relative; width: min(650px,100%); max-height: 92%; overflow: auto; padding: 25px 18px 18px; border-radius: 24px; background: #fffdf4; box-shadow: 0 18px 55px rgba(24,62,64,.23); }
 .gallery-card-panel h2 { margin: 0 40px 5px 0; font-size: 24px; }.gallery-card-panel > p { margin: 0 0 14px; color: var(--muted); font-size: 12px; }

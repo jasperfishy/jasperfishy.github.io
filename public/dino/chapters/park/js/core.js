@@ -34,6 +34,13 @@
   const sparkles = { get: () => Math.max(0, Number(store.get('dino_x-sparkles', 0)) || 0), add(n) { store.set('dino_x-sparkles', this.get() + n); } };
   const jar = { get: () => Math.max(0, Math.min(JAR - 1, Number(store.get('dino_x-jar', 0)) || 0)), set: (n) => store.set('dino_x-jar', n) };
 
+  /* The classic park and the Phaser park are the same twelve games with
+   * different internal names, so both editions have to write the same ledger
+   * key — otherwise the campaign map counts one dinosaur puzzle twice. */
+  const LEDGER_ID = { jigsaw: 'puzzle', lotto: 'footprint', assemble: 'mixer', sort: 'size', count: 'counting', dots: 'dot' };
+  const ledgerKey = (g) => 'park.' + (LEDGER_ID[g.id] || g.id);
+  const storyLine = (g, kind) => (window.DUSTORY && DUSTORY.line(ledgerKey(g), kind)) || '';
+
   /* ---------- dragging (pointer based: mouse, touch and pen) ---------- */
   function drag(node, o) {
     node.style.touchAction = 'none';
@@ -140,6 +147,15 @@
     box.innerHTML = '';
     for (let i = 1; i <= run.game.rounds; i++) box.append(el('i', 'pip' + (i < run.round ? ' done' : i === run.round ? ' now' : '')));
   }
+  /* The friend who introduced this game. Their line gets its own strip above the
+   * instruction, because a round speaks into #say in the same tick the game opens and
+   * used to erase the intro before anyone could read it. */
+  function greet(text) {
+    const g = $('#story'); if (!g || !run) return;
+    const who = window.DUSTORY && DUSTORY.FRIENDS && DUSTORY.FRIENDS[DUSTORY.gameVoice(ledgerKey(run.game))];
+    g.textContent = ((who && who.name ? who.name : 'A friend') + ' says: “' + text + '”');
+    g.hidden = false;
+  }
   function say(text, state) {
     const s = $('#say'); if (!s) return;
     s.textContent = text; s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop');
@@ -179,6 +195,10 @@
       if (!run || $('#game').classList.contains('hidden') || !$('#winOverlay').classList.contains('hidden')) return;
       if (++run.idle >= 10 && run.hintFn) { run.idle = 4; try { run.hintFn(); } catch (e) { /* hint is optional */ } }
     }, 1000);
+    // Every game opens with something a friend said about it, never a bare title.
+    const intro = storyLine(game, 'intro') || ('Let us play ' + game.name + '!');
+    say(intro, 'happy');
+    greet(intro);
     nextRound();
   }
 
@@ -253,6 +273,8 @@
   function finish() {
     const g = run.game, got = rating();
     stars.set(g.id, got);
+    // Also remember it where the campaign map can see, not only in this world.
+    if (window.DUJourney) DUJourney.record(ledgerKey(g), { stars: got });
     const bonus = run.bonus, jarBefore = jar.get();
     let jarNow = jarBefore + bonus, jarFull = false;
     if (jarNow >= JAR) { jarNow -= JAR; jarFull = true; }
@@ -267,7 +289,8 @@
   async function showWin(g, got, eggNow, hatched, info) {
     const ov = $('#winOverlay'), card = $('.win-card', ov);
     ov.classList.remove('hidden');
-    $('#winText').textContent = got === 3 ? 'Perfect! Roar-some!' : got === 2 ? 'Great job!' : 'Well done!';
+    $('#winText').textContent = storyLine(g, got === 1 ? 'lose' : 'win') ||
+      (got === 3 ? 'Perfect! Roar-some!' : got === 2 ? 'Great job!' : 'Well done!');
     const row = $('#winStars'); row.innerHTML = '';
     for (let i = 1; i <= 3; i++) row.append(el('span', 'wstar' + (i <= got ? ' on' : ''), '★'));
     $('#winDino').innerHTML = FX.dinoHTML(pick(SPECIES.filter((x) => x !== 'ptero')), { state: 'happy' });

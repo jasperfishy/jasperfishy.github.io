@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#e07b39" />
+<title>Dino Egg Dash · Dinosaur Universe</title>
+<link rel="stylesheet" href="../../fx/du-fx.css?v=du-556d96214a55198f">
+<link rel="stylesheet" href="../../fx/du-story.css?v=du-556d96214a55198f">
+<link rel="stylesheet" href="../../fx/du-wonder.css?v=du-556d96214a55198f">
+<style>
+  :root { --shadow: 0 10px 30px rgba(20,40,80,.25); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: linear-gradient(180deg,#ffe9c9,#cdeef5); -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+  #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  #game-root { width: 100%; height: 100%; max-width: 960px; max-height: 540px; margin: auto; }
+  #game-root canvas { display: block; width: 100% !important; height: 100% !important; border-radius: 16px; box-shadow: var(--shadow); touch-action: none; }
+  #hubBack {
+    position: fixed; top: 14px; left: 14px; z-index: 20;
+    width: 46px; height: 46px; border: none; border-radius: 50%;
+    background: rgba(255,255,255,.4); display: grid; place-items: center;
+    cursor: pointer; box-shadow: var(--shadow); font-size: 20px;
+  }
+  #hubBack:active { transform: scale(.92); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="game-root"></div>
+</div>
+<a id="hubBack" href="../../index.html?v=du-556d96214a55198f" aria-label="Back to the hub menu" title="Back to the hub menu">◀</a>
+<script src="../../lib/phaser.min.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-dino.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-fx.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-journey.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-music.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-story.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-wonder.js?v=du-556d96214a55198f"></script>
+<script src="../phaser-kit.js?v=du-556d96214a55198f"></script>
+<script type="module" src="main.js?v=du-556d96214a55198f"></script>
+<script>
+  // When this chapter is opened inside the hub's own iframe, the hub already
+  // shows a persistent "◀ Menu" bar above it — hide the standalone fallback.
+  if (window.self !== window.top) document.getElementById("hubBack").style.display = "none";
+</script>
+<script src="../../update-manager.js?v=du-556d96214a55198f"></script>
+</body>
+</html>

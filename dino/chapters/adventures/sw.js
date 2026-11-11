@@ -1,46 +1,48 @@
-const CACHE_NAME = "dinosaur-universe-shell-du-2b5bf1340085b709";
+const CACHE_NAME = "dinosaur-universe-shell-du-556d96214a55198f";
 const CORE_FILES = [
-  "./?v=du-2b5bf1340085b709",
-  "./index.html?v=du-2b5bf1340085b709",
-  "./manifest.webmanifest?v=du-2b5bf1340085b709",
-  "./icon.svg?v=du-2b5bf1340085b709",
-  "./assets/daddy-face.svg?v=du-2b5bf1340085b709",
-  "./assets/mummy-face.svg?v=du-2b5bf1340085b709",
-  "./src/adv-kit.js?v=du-2b5bf1340085b709",
-  "./src/fx-games.css?v=du-2b5bf1340085b709",
-  "./src/fx-kit.css?v=du-2b5bf1340085b709",
-  "./src/fx-mummy.css?v=du-2b5bf1340085b709",
-  "./src/fx-play.css?v=du-2b5bf1340085b709",
-  "./src/fx-puzzle.css?v=du-2b5bf1340085b709",
-  "./src/fx-quest.css?v=du-2b5bf1340085b709",
-  "./src/fx-rescue.css?v=du-2b5bf1340085b709",
-  "./src/main.js?v=du-2b5bf1340085b709",
-  "./src/module-registry.js?v=du-2b5bf1340085b709",
-  "./src/modules/builder.js?v=du-2b5bf1340085b709",
-  "./src/modules/daddy-chase.js?v=du-2b5bf1340085b709",
-  "./src/modules/dino-beat.js?v=du-2b5bf1340085b709",
-  "./src/modules/dino-care.js?v=du-2b5bf1340085b709",
-  "./src/modules/dino-constellations.js?v=du-2b5bf1340085b709",
-  "./src/modules/dino-discoveries.js?v=du-2b5bf1340085b709",
-  "./src/modules/dino-parade.js?v=du-2b5bf1340085b709",
-  "./src/modules/dino-quest.js?v=du-2b5bf1340085b709",
-  "./src/modules/dino-rescue.js?v=du-2b5bf1340085b709",
-  "./src/modules/fossil.js?v=du-2b5bf1340085b709",
-  "./src/modules/habitat-builder.js?v=du-2b5bf1340085b709",
-  "./src/modules/hatchling.js?v=du-2b5bf1340085b709",
-  "./src/modules/jigsaw.js?v=du-2b5bf1340085b709",
-  "./src/modules/memory.js?v=du-2b5bf1340085b709",
-  "./src/modules/moonbeam-rescue.js?v=du-2b5bf1340085b709",
-  "./src/modules/mummy-cozy-corner.js?v=du-2b5bf1340085b709",
-  "./src/modules/picnic.js?v=du-2b5bf1340085b709",
-  "./src/modules/rescue/chapters-a.js?v=du-2b5bf1340085b709",
-  "./src/modules/rescue/chapters-b.js?v=du-2b5bf1340085b709",
-  "./src/modules/rescue/engine.js?v=du-2b5bf1340085b709",
-  "./src/modules/shape-safari.js?v=du-2b5bf1340085b709",
-  "./src/modules/storybook.js?v=du-2b5bf1340085b709",
-  "./src/modules/trail.js?v=du-2b5bf1340085b709",
-  "./src/modules/wonder-activities.js?v=du-2b5bf1340085b709",
-  "./src/style.css?v=du-2b5bf1340085b709",
+  "./?v=du-556d96214a55198f",
+  "./assets/daddy-face.svg?v=du-556d96214a55198f",
+  "./assets/mummy-face.svg?v=du-556d96214a55198f",
+  "./assets/real/README.txt?v=du-556d96214a55198f",
+  "./assets/real/manifest.json?v=du-556d96214a55198f",
+  "./icon.svg?v=du-556d96214a55198f",
+  "./index.html?v=du-556d96214a55198f",
+  "./manifest.webmanifest?v=du-556d96214a55198f",
+  "./src/adv-kit.js?v=du-556d96214a55198f",
+  "./src/fx-games.css?v=du-556d96214a55198f",
+  "./src/fx-kit.css?v=du-556d96214a55198f",
+  "./src/fx-mummy.css?v=du-556d96214a55198f",
+  "./src/fx-play.css?v=du-556d96214a55198f",
+  "./src/fx-puzzle.css?v=du-556d96214a55198f",
+  "./src/fx-quest.css?v=du-556d96214a55198f",
+  "./src/fx-rescue.css?v=du-556d96214a55198f",
+  "./src/main.js?v=du-556d96214a55198f",
+  "./src/module-registry.js?v=du-556d96214a55198f",
+  "./src/modules/builder.js?v=du-556d96214a55198f",
+  "./src/modules/daddy-chase.js?v=du-556d96214a55198f",
+  "./src/modules/dino-beat.js?v=du-556d96214a55198f",
+  "./src/modules/dino-care.js?v=du-556d96214a55198f",
+  "./src/modules/dino-constellations.js?v=du-556d96214a55198f",
+  "./src/modules/dino-discoveries.js?v=du-556d96214a55198f",
+  "./src/modules/dino-parade.js?v=du-556d96214a55198f",
+  "./src/modules/dino-quest.js?v=du-556d96214a55198f",
+  "./src/modules/dino-rescue.js?v=du-556d96214a55198f",
+  "./src/modules/fossil.js?v=du-556d96214a55198f",
+  "./src/modules/habitat-builder.js?v=du-556d96214a55198f",
+  "./src/modules/hatchling.js?v=du-556d96214a55198f",
+  "./src/modules/jigsaw.js?v=du-556d96214a55198f",
+  "./src/modules/memory.js?v=du-556d96214a55198f",
+  "./src/modules/moonbeam-rescue.js?v=du-556d96214a55198f",
+  "./src/modules/mummy-cozy-corner.js?v=du-556d96214a55198f",
+  "./src/modules/picnic.js?v=du-556d96214a55198f",
+  "./src/modules/rescue/chapters-a.js?v=du-556d96214a55198f",
+  "./src/modules/rescue/chapters-b.js?v=du-556d96214a55198f",
+  "./src/modules/rescue/engine.js?v=du-556d96214a55198f",
+  "./src/modules/shape-safari.js?v=du-556d96214a55198f",
+  "./src/modules/storybook.js?v=du-556d96214a55198f",
+  "./src/modules/trail.js?v=du-556d96214a55198f",
+  "./src/modules/wonder-activities.js?v=du-556d96214a55198f",
+  "./src/style.css?v=du-556d96214a55198f",
   "../../update-manager.js"
 ];
 
@@ -54,7 +56,11 @@ self.addEventListener("install", function (event) {
       return /^dinosaur-universe-shell-v\d+$/.test(name);
     });
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(CORE_FILES);
+    // addAll() rejects as a unit: two renamed avatar files were enough to leave
+    // this whole world without an offline copy. Cache each file on its own.
+    const results = await Promise.allSettled(CORE_FILES.map(function (url) { return cache.add(url); }));
+    const failed = results.map(function (r, i) { return r.status === "rejected" ? CORE_FILES[i] : null; }).filter(Boolean);
+    if (failed.length) console.warn("[adventures-sw] not cached this release:", failed);
     if (needsUpdaterMigration) await self.skipWaiting();
   })());
 });

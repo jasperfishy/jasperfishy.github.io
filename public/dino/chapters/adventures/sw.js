@@ -1,11 +1,13 @@
-const CACHE_NAME = "dinosaur-universe-shell-v15";
+const CACHE_NAME = "__DU_VERSION__";
 const CORE_FILES = [
   "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon.svg",
   "./assets/daddy-face.svg",
   "./assets/mummy-face.svg",
+  "./assets/real/README.txt",
+  "./assets/real/manifest.json",
+  "./icon.svg",
+  "./index.html",
+  "./manifest.webmanifest",
   "./src/adv-kit.js",
   "./src/fx-games.css",
   "./src/fx-kit.css",
@@ -54,7 +56,11 @@ self.addEventListener("install", function (event) {
       return /^dinosaur-universe-shell-v\d+$/.test(name);
     });
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(CORE_FILES);
+    // addAll() rejects as a unit: two renamed avatar files were enough to leave
+    // this whole world without an offline copy. Cache each file on its own.
+    const results = await Promise.allSettled(CORE_FILES.map(function (url) { return cache.add(url); }));
+    const failed = results.map(function (r, i) { return r.status === "rejected" ? CORE_FILES[i] : null; }).filter(Boolean);
+    if (failed.length) console.warn("[adventures-sw] not cached this release:", failed);
     if (needsUpdaterMigration) await self.skipWaiting();
   })());
 });

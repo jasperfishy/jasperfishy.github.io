@@ -1,5 +1,5 @@
 // Chapters 1–3 of The Great Dino Rescue: The Call, the Whispering Forest, the Rickety Bridge.
-import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js?v=du-2b5bf1340085b709';
+import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js?v=du-556d96214a55198f';
 const FX = window.DUFX;
 
 const HILLS = tile('<path d="M0 100 L0 60 Q50 10 100 55 T200 50 T300 58 T400 60 L400 100Z" fill="#9ed7a6"/>', 400, 100);
@@ -113,7 +113,7 @@ export async function chapter2(E) {
         if (!it.hit && it.z > .86 && it.z < 1.0 && it.lane === S.lane) {
           it.hit = true;
           if (it.kind === 'fly') { S.got++; hud.querySelector('b').textContent = S.got; const r = ride.getBoundingClientRect(); FX_.burst(r.left + r.width / 2, r.top, { kind: 'sparkle', n: 14, color: '#fff2a8' }); E.sfx.sparkle(); }
-          else { S.stumble = 1.1; E.sfx.boing(); FX_.shakeScreen(); FX_.dinoState(ride.el, 'sad', 600); setTimeout(() => FX_.dinoState(ride.el, 'run'), 700); }
+          else { S.stumble = 1.1; E.slip(); E.sfx.boing(); FX_.shakeScreen(); FX_.dinoState(ride.el, 'sad', 600); setTimeout(() => FX_.dinoState(ride.el, 'run'), 700); }
         }
       }
       S.items = S.items.filter((it) => it.z < 1.15);
@@ -143,7 +143,7 @@ export async function chapter2(E) {
   let ok = false;
   while (!ok) {
     const a = await E.choose('Who is the king of the dinosaurs?', [{ icon: '🦆', label: 'A duck' }, { icon: '🦖', label: 'T-rex' }, { icon: '🐟', label: 'A fish' }]);
-    if (a === 1) ok = true; else await E.say(a === 0 ? 'Quack? No, no! Think of the big roar!' : 'Glub glub! That is not a stomper. Try again!', 'owl');
+    if (a === 1) ok = true; else { E.slip(); await E.say(a === 0 ? 'Quack? No, no! Think of the big roar!' : 'Glub glub! That is not a stomper. Try again!', 'owl'); }
   }
   E.sfx.win(); FX.celebrate();
   await E.say('Whoo-hoo! Correct! Take Pip with you. Pip knows the sky paths!', 'owl');

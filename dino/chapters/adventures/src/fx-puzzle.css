@@ -223,6 +223,7 @@
 .wx-scene::after { content: ""; position: absolute; left: -10%; right: -10%; bottom: -26%; height: 52%; border-radius: 50% 50% 0 0; background: linear-gradient(#8fd09a, #62b57d); }
 .wx-rain { background: linear-gradient(#8da7bd, #cfdde2 70%); } .wx-night { background: linear-gradient(#1d2459, #5b4f98); } .wx-chill { background: linear-gradient(#b7c9e6, #e9eefb 70%); } .wx-wind { background: linear-gradient(#b9e3d6, #eef8e4 70%); }
 .wx-scene.wx-shaded { filter: brightness(.85); } .wx-scene.wx-darker { filter: brightness(.7) saturate(1.2); }
+.wx-scene.wx-brighter { filter: brightness(1.12) saturate(1.1); } .wx-scene.wx-warm { filter: sepia(.25) saturate(1.2) brightness(1.05); } .wx-scene.wx-lit { filter: brightness(1.3); } .wx-scene.wx-sheltered { filter: brightness(.92) saturate(.9); }
 .wx-sky { position: absolute; left: 10px; top: 8px; z-index: 6; display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; background: rgba(255,255,255,.9); font-size: 12px; box-shadow: 0 3px 0 rgba(24,62,64,.12); }
 .wx-skyicon { font-size: 22px; }
 .wx-count { position: absolute; right: 10px; top: 8px; z-index: 6; background: rgba(255,255,255,.9); border-radius: 99px; padding: 2px 10px; font-weight: 800; font-size: 12px; }
@@ -246,6 +247,35 @@
 .wx-puddle { position: absolute; left: 22%; right: 22%; bottom: 6%; height: 18%; border-radius: 50%; background: radial-gradient(#9fd8f7, #5fb4ec); opacity: .9; animation: du-pop-in 1s cubic-bezier(.3,1.5,.5,1); }
 .wx-star { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #fffbd0; box-shadow: 0 0 8px 2px rgba(255,248,180,.8); animation: pk-twinkle 2s ease-in-out infinite; }
 .wx-zzz { position: absolute; left: 58%; top: 34%; font-size: 30px; animation: hs-hop 1.2s ease-in-out infinite; }
+/* Sun mirror — a caught beam of light bent down onto the plants. */
+.wx-mirror { position: absolute; left: 8%; top: 6%; font-size: 54px; animation: pk-sun 2.4s ease-in-out infinite; }
+.wx-ray { position: absolute; top: 16%; width: 6px; height: 62%; border-radius: 6px; background: linear-gradient(rgba(255,244,180,.9), rgba(255,244,180,0)); transform: rotate(12deg); transform-origin: top center; animation: wx-ray 1.6s ease-in-out infinite; }
+@keyframes wx-ray { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+/* Warm moss blanket — eggs tucked in with rising warmth. */
+.wx-eggs { position: absolute; left: 38%; bottom: 12%; font-size: 30px; letter-spacing: 2px; z-index: 5; animation: pop-in .8s cubic-bezier(.3,1.7,.5,1); }
+.wx-blanket { position: absolute; left: 33%; bottom: 15%; font-size: 54px; z-index: 6; animation: wx-tuck 1s cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes wx-tuck { from { transform: translateY(-46px) rotate(-14deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.wx-warmth { position: absolute; bottom: 22%; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,190,120,.85); animation: wx-rise 1.8s ease-in infinite; }
+@keyframes wx-rise { from { transform: translateY(0); opacity: .9; } to { transform: translateY(-72px); opacity: 0; } }
+/* Breeze fan — a spinning fan and cool gusts. */
+.wx-fan { position: absolute; right: 12%; top: 16%; font-size: 56px; animation: wx-spin 1.1s linear infinite; }
+@keyframes wx-spin { to { transform: rotate(360deg); } }
+.wx-gust.wx-cool { background: rgba(205,240,255,.9); height: 4px; }
+/* Glow lantern — a swinging lantern, a warm halo and fireflies. */
+.wx-halo { position: absolute; left: 50%; top: 46%; width: 210px; height: 210px; margin-left: -105px; margin-top: -105px; border-radius: 50%; background: radial-gradient(rgba(255,220,140,.55), rgba(255,220,140,0) 70%); animation: wx-glow 2s ease-in-out infinite; }
+@keyframes wx-glow { 0%, 100% { transform: scale(.9); opacity: .7; } 50% { transform: scale(1.1); opacity: 1; } }
+.wx-lantern { position: absolute; left: 50%; top: 28%; margin-left: -23px; font-size: 46px; z-index: 6; transform-origin: top center; animation: wx-swing 2.2s ease-in-out infinite; }
+@keyframes wx-swing { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+.wx-firefly { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #fff3b0; box-shadow: 0 0 8px 2px rgba(255,240,150,.8); animation: pk-twinkle 1.8s ease-in-out infinite; }
+/* Cosy cave — an arch over the friend with the storm muted outside. */
+.wx-cave { position: absolute; left: 50%; bottom: 4%; margin-left: -92px; font-size: 124px; z-index: 5; animation: pop-in 1s cubic-bezier(.3,1.5,.5,1); }
+.wx-caveglow { position: absolute; left: 50%; bottom: 9%; width: 130px; height: 84px; margin-left: -65px; border-radius: 50% 50% 0 0; background: radial-gradient(rgba(255,210,150,.5), rgba(255,210,150,0) 70%); z-index: 4; animation: wx-glow 2.4s ease-in-out infinite; }
+.wx-drop.wx-far { opacity: .4; height: 10px; }
+/* Tall grass wall — grass rises and the swirling sand settles. */
+.wx-grasswall { position: absolute; left: 12%; right: 12%; bottom: 7%; font-size: 44px; letter-spacing: -4px; text-align: center; z-index: 5; transform-origin: bottom center; animation: wx-grow 1s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes wx-grow { from { transform: scaleY(.2); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+.wx-sand { position: absolute; top: 10%; width: 5px; height: 5px; border-radius: 50%; background: #e7d3a1; animation: wx-settle 1.6s ease-in forwards; }
+@keyframes wx-settle { from { transform: translateY(0) translateX(0); opacity: 1; } to { transform: translateY(120px) translateX(22px); opacity: 0; } }
 .wx-tools { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
 .wx-tool { border: 0; border-radius: 18px; background: #fff; min-width: 92px; padding: 8px 8px 6px; display: grid; justify-items: center; cursor: pointer; box-shadow: 0 5px 0 rgba(24,62,64,.16); transition: transform .15s cubic-bezier(.3,1.5,.5,1); }
 .wx-tool:hover { transform: translateY(-4px) rotate(-2deg); }

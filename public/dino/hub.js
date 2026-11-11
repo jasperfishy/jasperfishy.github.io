@@ -62,6 +62,21 @@ window.addEventListener('message', (e) => {
   if (e.origin !== location.origin || e.source !== frame.contentWindow || !e.data) return;
   if (e.data.type === 'du-ready') { broadcast(); frameReady(); }
   if (e.data.type === 'du-back') closeChapter();
+  // A chapter keeps its own store and writes the shared ledger from inside the
+  // iframe; the same write reaches us here, so the map can refresh as it happens.
+  if (e.data.type === 'du-journey') {
+    if (window.DUJourney) window.DUJourney.reload();
+    if (stage.hidden) renderMenu();
+    else {
+      // The child is mid-game, so the reward is armed rather than dropped on top
+      // of the run: the strip turns gold and the ending plays on the way back.
+      renderStageStory(stage._chapter);
+      if (!storyArmed) {
+        const w = pendingWorld();
+        if (w) { storyArmed = w; toast('The story is ready for you! Back to the map to see what happens next ▶'); }
+      }
+    }
+  }
   if (e.data.type === 'du-settings-update') {
     if (typeof e.data.name === 'string') {
       const nextName = normalizeName(e.data.name);
@@ -190,15 +205,118 @@ function applyTod() {
   FX.ambient(tod === 'night' ? 'night' : 'meadow');
 }
 
-// ---------- Progress badges read from each world's own saved data ----------
+// ---------- Progress, straight from the ledger every world writes to ----------
+// Each world keeps its own key prefix in the shared star ledger: park.*, meadow.*,
+// drive.*, act.* and egg.*. Reading the ledger instead of the old per-world stores
+// means a star earned in any edition of any world lights up the map.
+const LEDGER = { park: 'park', meadow: 'meadow', drive: 'drive', adventures: 'act', 'egg-dash': 'egg' };
 function progress() {
-  let park = 0, meadow = 0, drive = 0, adventures = [];
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^dino_[a-z]+$/.test(k) && k !== 'dino_egg' && k !== 'dino_den') park +=Math.min(3, Number(JSON.parse(localStorage.getItem(k))) || 0); } } catch {}
-  try { meadow = (JSON.parse(localStorage.getItem('dm-completed') || '[]') || []).length; } catch {}
-  try { drive = Number((JSON.parse(localStorage.getItem('dino-car-studio-v1') || '{}') || {}).totalStars) || 0; } catch {}
-  try { adventures = (JSON.parse(localStorage.getItem('dinosaur-universe-player-v1') || '{}') || {}).completed || []; } catch {}
-  return { park, meadow, drive, adventures };
+  const J = window.DUJourney;
+  const out = { total: 0, gems: 0, finds: 0, chapter: 0, worlds: {} };
+  for (const id in LEDGER) out.worlds[id] = { stars: 0, played: 0 };
+  if (!J) return out;
+  for (const id in LEDGER) {
+    const p = LEDGER[id];
+    out.worlds[id] = { stars: J.worldStars(p), played: J.worldProgress(p).have };
+  }
+  out.total = J.total(); out.gems = J.gems(); out.finds = discoveries(J).length; out.chapter = J.chapter();
+  return out;
 }
+/* The ledger also keeps book-keeping finds — which chapters were seen, which
+ * way each choice went. Those are not things a child hunted down, so the
+ * discoveries count only ever shows the ones they actually collected. */
+function discoveries(J) {
+  return J.finds().filter((f) => !/^(story|choice):/.test(f));
+}
+function crystalOf(id) {
+  const J = window.DUJourney, S = window.DUSTORY;
+  if (!J || !S) return false;
+  const c = S.CHAPTERS[S.chapterFor(id)];
+  return c ? J.has('crystal:' + c.id) : false;
+}
+// The words a child picked, straight off the choice beat, so the map shows the
+// path in the same language the story used to offer it. Half the forks now sit
+// in the reward sequence, so both lists are searched.
+function pickLabel(chapter, tag) {
+  for (const b of (chapter.beats || []).concat(chapter.win || [])) {
+    const o = b.ask && b.ask.options && b.ask.options.find((x) => x.tag === tag);
+    if (o) return o.label;
+  }
+  return tag;
+}
+
+/* The path this child chose is part of the map, not a secret left inside a
+ * cutscene: the words they picked come back to them everywhere they look. */
+function trailHtml(S) {
+  if (!S || !S.trail) return '';
+  const t = S.trail();
+  const made = S.forksAnswered ? S.forksAnswered() : t.length;
+  const total = S.forkTotal ? S.forkTotal() : 0;
+  const end = S.ending ? S.ending() : null;
+  const friend = S.companion ? S.FRIENDS[S.companion()] : null;
+  return `<p class="sr-path">${friend ? `<b>🪶 Riding with ${escapeHtml(friend.name)}</b> · ` : ''}` +
+    `<b>${made}</b> of ${total} choices are yours` +
+    (end ? ` · heading for <b>${escapeHtml(end)}</b>` : '') + `</p>` +
+    (t.length ? `<p class="sr-trail">${t.map(escapeHtml).join(' → ')}</p>` : '');
+}
+
+// Which part of the main story a page belongs to — a whole world by id, and a
+// quick game through the Adventures chapter, so nothing sits outside the tale.
+function chapterIndexFor(id) {
+  const S = window.DUSTORY;
+  if (!S) return undefined;
+  const direct = S.chapterFor(id);
+  if (direct !== undefined) return direct;
+  return activities.some((a) => a.id === id) ? S.chapterFor('adventures') : undefined;
+}
+
+// The next story reward waiting to be handed out: a world whose stars are all
+// earned but whose ending cutscene has never been seen.
+function pendingWorld() {
+  const J = window.DUJourney, S = window.DUSTORY;
+  if (!J || !S) return null;
+  for (const id in LEDGER) {
+    const i = S.chapterFor(id);
+    const c = i === undefined ? null : S.CHAPTERS[i];
+    if (!c || !c.goal || !c.win) continue;
+    if (J.has('crystal:' + c.id)) continue;
+    if (J.worldStars(LEDGER[id]) >= c.goal.stars) return id;
+  }
+  return null;
+}
+let storyArmed = null;
+
+// The 23 quick-play games, grouped the way a child chooses: what shall we do?
+function groupsHtml(done) {
+  const J = window.DUJourney;
+  const order = ['Adventures', 'Puzzles', 'Creative', 'Cozy play', 'Discovery', 'Learning'];
+  const byCat = {};
+  for (const a of activities) (byCat[a.category] = byCat[a.category] || []).push(a);
+  return order.filter((c) => byCat[c]).map((cat) => `
+    <div class="module-group">
+      <h3>${CAT_ICON[cat] || '⭐'} ${cat}</h3>
+      <div class="module-grid">
+        ${byCat[cat].map((a, i) => {
+          const played = J && (J.played('act.' + a.id) || J.stars('act.' + a.id));
+          return `
+        <button class="module-card du-in${played ? ' played' : ''}" data-activity="${a.id}" style="--du-delay:${i * .06}s">
+          <span class="module-icon" style="--tint:${TINTS[a.category] || '#edf6ed'}">${a.icon}</span>
+          <span class="module-copy">
+            <span class="module-title">${a.title}</span>
+            <span class="module-sub">${a.subtitle}</span>
+          </span>
+          ${played ? '<span class="module-badge" aria-label="played">⭐</span>' : ''}
+          <span class="module-open" aria-hidden="true">▶</span>
+        </button>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+/* Wonder belongs to whichever page is showing: the hub owns the screen between
+ * chapters, the iframe owns it inside one. */
+function pauseWonder() { if (window.DUWONDER) window.DUWONDER.stop(); }
+function resumeWonder() { if (window.DUWONDER && !window.DUWONDER.running()) window.DUWONDER.start({ world: 'hub' }); }
 
 // ---------- Menu ----------
 const TINTS = { 'Puzzles': '#e6e3f5', 'Cozy play': '#fae8d5', 'Creative': '#f7e1d7', 'Discovery': '#dff0e8', 'Learning': '#dceef5', 'Adventures': '#f5e4cb' };
@@ -213,27 +331,59 @@ function renderMenu() {
   frame.removeAttribute('src');
   frame.classList.remove('ready');
   hub.hidden = false;
+  resumeWonder();
   const done = progress();
   const hello = name ? `Hello, ${name}!` : 'Hello!';
-  const chips = { park: done.park ? `⭐ ${done.park} / ${10 * 3} stars` : '', meadow: done.meadow ? `🌟 ${done.meadow} / 100 found` : '', drive: done.drive ? `🏁 ${done.drive} stars` : '', adventures: done.adventures.length ? `⭐ ${done.adventures.length} / ${activities.length} played` : '' };
+  const chips = {};
+  for (const id in done.worlds) {
+    const w = done.worlds[id];
+    if (!w.stars && !w.played) continue;
+    chips[id] = `⭐ ${w.stars}` + (w.played ? ` · ${w.played} played` : '');
+  }
+  const J = window.DUJourney, S = window.DUSTORY;
+  const arc = S ? S.CHAPTERS : [];
+  const here = J ? J.nextChapter() : 0;
+  const chapter = arc[here];
   hub.innerHTML = `
     <section class="hero-scene" data-tod="${tod}">
       ${heroScene()}
       <div class="hs-greet"><h1 class="wave">${wave(hello)}</h1><p>Where shall we go${name ? ', ' + escapeHtml(name) : ''}?</p></div>
       <span class="hs-hint">Tap Rex! Tap the sun!</span>
     </section>
+    ${chapter ? `
+    <section class="story-ribbon du-in">
+      <span class="sr-crystals">${arc.map((c, i) =>
+        `<span class="sr-pip${J && J.has('crystal:' + c.id) ? ' won' : i === here ? ' now' : ''}" title="${escapeHtml(c.title)}"></span>`).join('')}</span>
+      <div class="sr-body">
+        <span class="section-kicker">THE STARLIGHT GARDEN · PART ${here + 1} OF ${arc.length}</span>
+        <h2>${escapeHtml(chapter.title)}</h2>
+        <p>${escapeHtml(S.fill((chapter.goal && chapter.goal.text) || chapter.beats[0].text))}</p>
+        ${trailHtml(S)}
+        <div class="toolbar">
+          <button class="pill primary" id="storyBtn">📖 Play this part</button>
+          <button class="pill" id="allStoryBtn">The whole story</button>
+        </div>
+      </div>
+    </section>` : ''}
     <section class="worlds-section"><span class="section-kicker">${chapters.filter((c) => !c.artId).length} FULL DINO WORLDS</span><h2>Explore a dinosaur world</h2><p>Each world is a whole game of its own, with lots to find and do.</p>
     <div class="chapter-grid">
       ${chapters.map((c, i) => `
-        <button class="chapter-card du-in" data-chapter="${c.id}" style="--du-delay:${i * .12 + .2}s">
+        <button class="chapter-card du-in${chips[c.id] ? ' begun' : ''}" data-chapter="${c.id}" style="--du-delay:${i * .12 + .2}s">
           <span class="cc-art">${chapterArt(c.artId || c.id)}<span class="cc-play" aria-hidden="true">▶</span></span>
           <span class="cc-body">
             <span class="chapter-title">${c.title}</span>
             <span class="chapter-sub">${c.subtitle}</span>
             ${!c.artId && chips[c.id] ? `<span class="cc-chip">${chips[c.id]}</span>` : ''}
           </span>
+          ${crystalOf(c.id) ? '<span class="cc-crystal" title="You finished this world\'s story">💎</span>' : ''}
       </button>`).join('')}
     </div></section>
+    <section class="activities-section">
+      <span class="section-kicker activities-heading">${activities.length} QUICK-PLAY GAMES</span>
+      <h2>Or pop in for just one game</h2>
+      <p>Short ones, all still in the universe. Every game you finish adds a star to your Journey.</p>
+      ${groupsHtml(done)}
+    </section>
     <button class="pill" id="renameBtn">✏️ Change name</button>`;
   applyTod();
   for (const c of chapters) {
@@ -242,7 +392,94 @@ function renderMenu() {
     tilt(el);
   }
   document.querySelector('#renameBtn').onclick = () => nameDialog(false);
+  const sb = document.querySelector('#storyBtn');
+  if (sb) sb.onclick = () => window.DUSTORY.play(here, {});
+  const asb = document.querySelector('#allStoryBtn');
+  if (asb) asb.onclick = journeyDialog;
+  for (const a of activities) {
+    const el = document.querySelector(`[data-activity="${a.id}"]`);
+    el.onclick = (e) => openChapter({ id: a.id, title: a.title, url: 'chapters/adventures/index.html?activity=' + encodeURIComponent(a.id) }, e);
+  }
   wireHero();
+}
+
+// ---------- The Journey map ----------
+// One screen that answers "what have I done, and what is left to find?" — the
+// story path, every world's stars, and the codex of friends and wonders.
+function journeyDialog() {
+  const J = window.DUJourney, S = window.DUSTORY;
+  if (!J) { toast('Your journey is still being written…'); return; }
+  const done = progress();
+  const arc = S ? S.CHAPTERS : [];
+  const finds = discoveries(J);
+  const wonders = finds.filter((f) => f.indexOf('wonder:') === 0).length;
+  const picks = S ? S.picks() : {};
+  const path = arc.filter((c) => picks[c.id]).map((c) => ({ c, label: pickLabel(c, picks[c.id]) }));
+  const root = document.querySelector('#modal-root');
+  const fill = (t) => (S ? S.fill(t || '') : String(t || ''));
+  root.innerHTML = `
+  <div class="modal-backdrop">
+    <div class="modal modal-wide" role="dialog" aria-label="My journey">
+      <h2>🗺️ ${escapeHtml(name ? name + '’s Journey' : 'Your Journey')}</h2>
+      <div class="jy-totals">
+        <span class="jy-pill">⭐ <b>${done.total}</b> stars</span>
+        <span class="jy-pill">💎 <b>${done.gems}</b> treasures</span>
+        <span class="jy-pill">📖 <b>${done.finds}</b> discoveries</span>
+        <span class="jy-pill">🌟 <b>${arc.filter((c) => J.has('crystal:' + c.id)).length} / ${arc.length}</b> story crystals</span>
+      </div>
+
+      <h3 class="jy-h">The Starlight Garden</h3>
+      <ol class="jy-path">
+        ${arc.map((c, i) => {
+          const won = J.has('crystal:' + c.id);
+          const now = i === J.nextChapter();
+          return `<li class="jy-step${won ? ' won' : now ? ' now' : ''}">
+            <button data-chapter-story="${i}"><span class="jy-num">${i + 1}</span>
+            <span class="jy-what"><b>${escapeHtml(c.title)}</b><i>${escapeHtml(fill((c.goal && c.goal.text) || ((S.beats(i) || [])[0] || {}).text))}</i></span>
+            <span class="jy-mark">${won ? '💎' : now ? '▶' : '·'}</span></button></li>`;
+        }).join('')}
+      </ol>
+
+      ${path.length ? `<h3 class="jy-h">The way you chose</h3>
+      <ul class="jy-picks">
+        ${path.map((p) => `<li><b>${escapeHtml(p.c.title.split(' and ')[0].split('The ').pop())}</b><i>${escapeHtml(p.label)}</i></li>`).join('')}
+      </ul>
+      <p class="jy-wonders">${path.length >= 4 ? 'That is your own ending — the Starlight Garden remembers it.' : 'Choose again in a story and your ending changes too.'}</p>` : ''}
+
+      <h3 class="jy-h">Every world</h3>
+      <ul class="jy-worlds">
+        ${chapters.map((c) => {
+          const w = done.worlds[c.id] || { stars: 0, played: 0 };
+          return `<li><button data-jy-open="${c.id}">
+            <span class="jy-icon">${c.icon}</span>
+            <span class="jy-what"><b>${escapeHtml(c.title)}</b><i>${w.played ? `${w.played} game${w.played === 1 ? '' : 's'} played` : 'Not visited yet'}</i></span>
+            <span class="jy-stars">${'★'.repeat(Math.min(3, Math.round(w.stars / 3)))}${w.stars ? ` ${w.stars}⭐` : ''}${crystalOf(c.id) ? ' 💎' : ''}</span>
+          </button></li>`;
+        }).join('')}
+      </ul>
+
+      ${wonders ? `<h3 class="jy-h">Friends you have met along the way</h3>
+      <p class="jy-wonders">${wonders} of ${window.DUWONDER ? window.DUWONDER.VISITORS.length : 14} wonder visitors found${window.DUWONDER && wonders >= window.DUWONDER.VISITORS.length ? ' — you have met them all!' : '. Keep playing and more will come.'}</p>` : ''}
+
+      <div class="toolbar">
+        <button class="pill primary" type="button" id="closeJourney">Back to the worlds</button>
+      </div>
+    </div>
+  </div>`;
+  root.querySelector('#closeJourney').onclick = () => { root.innerHTML = ''; };
+  root.querySelector('.modal-backdrop').addEventListener('pointerdown', (e) => {
+    if (e.target === e.currentTarget) root.innerHTML = '';
+  });
+  root.querySelectorAll('[data-chapter-story]').forEach((b) => {
+    b.onclick = () => { root.innerHTML = ''; S.play(Number(b.dataset.chapterStory), {}); };
+  });
+  root.querySelectorAll('[data-jy-open]').forEach((b) => {
+    b.onclick = (e) => {
+      const c = chapters.find((x) => x.id === b.dataset.jyOpen);
+      root.innerHTML = '';
+      if (c) openChapter(c, e);
+    };
+  });
 }
 
 /* Cards lean toward the pointer. */
@@ -310,9 +547,39 @@ function wireHero() {
 }
 
 const CHAPTER_COLOUR = { park: '#ff8a4d', meadow: '#7fd16e', drive: '#4aa8ff' };
+/* The main story travels with the child into the game: which part this is, how
+ * close the goal is, who is riding with them, and the way to the reward
+ * cutscene. A quick game belongs to the Adventures chapter rather than having
+ * no story at all, so nothing on the site sits outside the tale. */
+function renderStageStory(c) {
+  const bar = document.querySelector('#stagebar');
+  const J = window.DUJourney, S = window.DUSTORY;
+  let el = bar.querySelector('#stageStory');
+  if (!el) { el = document.createElement('span'); el.id = 'stageStory'; bar.appendChild(el); }
+  const i = S ? chapterIndexFor((c && (c.artId || c.id)) || '') : undefined;
+  if (!S || i === undefined) { el.innerHTML = ''; return; }
+  const ch = S.CHAPTERS[i];
+  const prefix = LEDGER[ch.world];
+  const have = prefix && J ? J.worldStars(prefix) : 0;
+  const need = (ch.goal && ch.goal.stars) || 0;
+  const won = need > 0 && have >= need;
+  const friend = S.companion ? S.FRIENDS[S.companion()] : null;
+  el.innerHTML = `<span class="ss-part">PART ${i + 1} OF ${S.count}</span>` +
+    `<span class="ss-title">${escapeHtml(ch.title)}</span>` +
+    (need ? `<span class="ss-goal${won ? ' met' : ''}">${won ? '🎉' : '⭐'} ${have} / ${need}</span>` : '') +
+    (friend ? `<span class="ss-mate">${friend.id === 'pip' ? '🪽' : '🦣'} ${escapeHtml(friend.name)}</span>` : '') +
+    `<button class="pill ss-btn" id="stageStoryBtn" type="button">${won ? '🎉 See what happens next' : '📖 This part of the story'}</button>`;
+  el.querySelector('#stageStoryBtn').onclick = () => {
+    if (!won) return S.play(i, {});
+    if (J && J.has('crystal:' + ch.id)) return S.play(i, { mode: 'win' });
+    storyArmed = null;
+    S.celebrateWorld(ch.world);
+  };
+}
 function openChapter(c, e) {
   const x = e && e.clientX ? e.clientX : innerWidth / 2, y = e && e.clientY ? e.clientY : innerHeight / 2;
   const go = () => {
+    pauseWonder();
     hub.hidden = true;
     stage.hidden = false;
     document.body.classList.add('in-stage');
@@ -321,6 +588,8 @@ function openChapter(c, e) {
     loader.innerHTML = FX.dinoHTML(['trex', 'tricera', 'stego', 'bronto', 'raptor'][Math.floor(Math.random() * 5)], { state: 'walk' });
     frame.classList.remove('ready');
     stageTitle.textContent = c.title;
+    stage._chapter = c;
+    renderStageStory(c);
     frame.title = c.title;
     frame.src = c.url;
     clearTimeout(frame._guard);
@@ -328,7 +597,12 @@ function openChapter(c, e) {
     broadcast();
     window.scrollTo(0, 0);
   };
-  FX.iris(x, y, go, CHAPTER_COLOUR[c.artId || c.id] || '#0b6e5f');
+  // The story of a world is told the first time a child sets foot in it, and
+  // never again: the arc only ever adds context, it never withholds a game, and
+  // a rerun goes straight to the door. Single activities are not worlds, so the
+  // ledger lookup simply calls them back immediately.
+  const enter = () => FX.iris(x, y, go, CHAPTER_COLOUR[c.artId || c.id] || '#0b6e5f');
+  if (window.DUSTORY) DUSTORY.intro(c.id, enter); else enter();
 }
 function frameReady() {
   clearTimeout(frame._guard);
@@ -338,11 +612,20 @@ function frameReady() {
 frame.addEventListener('load', () => { if (frame.getAttribute('src')) setTimeout(frameReady, 80); });
 function closeChapter() {
   const b = document.querySelector('#backBtn').getBoundingClientRect();
-  FX.iris(b.left + b.width / 2, b.top + b.height / 2, () => { renderMenu(); window.scrollTo(0, 0); }, '#0b6e5f');
+  FX.iris(b.left + b.width / 2, b.top + b.height / 2, () => {
+    renderMenu(); window.scrollTo(0, 0);
+    // The reward cutscene is the end of a chapter, so it plays the moment a
+    // child is back on the map and free to watch it. Nothing is ever locked:
+    // the story only ever arrives on top of a game that is already finished.
+    const w = storyArmed || pendingWorld();
+    storyArmed = null;
+    if (w && window.DUSTORY) setTimeout(() => DUSTORY.celebrateWorld(w), 450);
+  }, '#0b6e5f');
 }
 
 // ---------- Boot ----------
 document.querySelector('#soundBtn').onclick = () => { settings.sound = !settings.sound; saveSettings(); if (settings.sound) FX.sfx.good(); };
+document.querySelector('#journeyBtn').onclick = journeyDialog;
 document.querySelector('#parentsBtn').onclick = parentsDialog;
 document.querySelector('#backBtn').onclick = closeChapter;
 document.querySelector('#soundBtn').textContent = settings.sound ? '🔊' : '🔇';

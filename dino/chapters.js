@@ -67,6 +67,14 @@ export const chapters = [
     url: 'chapters/adventures-phaser/index.html',
     storagePrefix: 'dino-adventures-phaser',
   },
+  {
+    id: 'egg-dash',
+    title: 'Dino Egg Dash',
+    subtitle: 'Phaser edition — hop over rocks and catch sparkly eggs',
+    icon: '🥚',
+    url: 'chapters/egg-dash/index.html',
+    storagePrefix: 'dino-egg-dash-v1',
+  },
 ];
 
 // Original quick-play activities use the same hub shell and launch directly

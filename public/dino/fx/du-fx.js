@@ -84,6 +84,13 @@
     engine: () => tone(70, .25, 'sawtooth', .05, 0, 90),
     star: () => { tone(988, .09, 'triangle', .12); tone(1319, .18, 'triangle', .12, .07); },
     thud: () => { tone(110, .16, 'sine', .22, 0, 55); noise(.1, .08, 0, 200, 600); },
+    // Added because the Phaser worlds already asked for these by name and the
+    // request was silently dropped — a jump with no sound feels broken to a child.
+    jump: () => { tone(320, .18, 'sine', .1, 0, 720); noise(.09, .04, 0, 900, 2600, 500); },
+    coin: () => { tone(1047, .07, 'triangle', .12); tone(1568, .17, 'triangle', .12, .06); },
+    scrape: () => { noise(.34, .09, 0, 1400, 0, 480); noise(.2, .04, .04, 3200, 0, 1200); },
+    // Never a harsh buzz: a small, sad step downward that says "try again".
+    lose: () => { [523, 440, 349].forEach((f, i) => tone(f, .2, 'triangle', .1, i * .13)); },
   };
 
   /* ---------- particle layer ---------- */

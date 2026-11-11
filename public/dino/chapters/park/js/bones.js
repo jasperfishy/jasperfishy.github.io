@@ -4,11 +4,49 @@
  * vertebrae follow a curve, ribs fan out, leg and wing bones are jointed chains, and each species has its own skull. */
 (function () {
   'use strict';
-  const { $, $$, rnd, pick, shuffle, sleep, el, drag, den, NAMES, COLORS, FX } = window.Park;
+  const { $, $$, rnd, pick, shuffle, sleep, el, drag, den, NAMES, SPECIES, COLORS, FX } = window.Park;
   const SP_NAME = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
-  const PART_NAME = { tail: 'the tail', spine: 'the backbone', neck: 'the neck', ribs: 'the ribs', skull: 'the skull', pelvis: 'the hips', legsB: 'the back legs', legsF: 'the front legs', legB: 'the back leg', legF: 'the front leg', legs: 'the legs', arms: 'the arms', plates: 'the back plates', body: 'the body', wingL: 'the near wing', wingR: 'the far wing' };
+  const PART_NAME = { tail: 'the tail', spine: 'the backbone', neck: 'the neck', ribs: 'the ribs', belly: 'the belly bones', chevron: 'the tail chevrons', skull: 'the skull', pelvis: 'the hips', legsB: 'the back legs', legsF: 'the front legs', legB: 'the back leg', legF: 'the front leg', legs: 'the legs', arms: 'the arms', plates: 'the back plates', body: 'the body', wingL: 'the near wing', wingR: 'the far wing' };
   const centreOf = (e) => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
   const f1 = (n) => +n.toFixed(1);
+  const f0 = (n) => Math.round(n);
+  /* Best times go under a hyphenated key, so the hub's /^dino_[a-z]+$/ star count never sees them. */
+  const bestMap = () => window.Park.store.get('x-best-bones', {}) || {};
+  const beatBest = (round, secs) => {
+    const all = bestMap(), was = Number(all[round]) || 0;
+    if (was && secs >= was) return { was, best: was, isNew: false };
+    all[round] = +secs.toFixed(1); window.Park.store.set('x-best-bones', all);
+    return { was, best: all[round], isNew: !!was };
+  };
+  const bestLine = (round) => { const b = Number(bestMap()[round]) || 0; return b ? 'Best ⏱ ' + b + 's' : 'No time yet'; };
+  /* A post-build "keep going" card that closes itself, so a wandering child can never wedge the runner. */
+  function keepGoing(ctx, title, sub, label, color, build) {
+    return new Promise((res) => {
+      const card = el('div', 'du-keep');
+      card.style.cssText = 'position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;width:min(92vw,460px);background:#fffaf0;border:4px solid #ffcf33;border-radius:24px;padding:14px 18px 16px;box-shadow:0 10px 0 rgba(0,0,0,.22);text-align:center';
+      card.innerHTML = '<b style="font-size:24px">' + title + '</b><span style="font-weight:800;font-size:15px;opacity:.8">' + sub + '</span>';
+      const row = el('div'); row.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;justify-content:center';
+      const yes = el('button', 'btn', '✨ ' + label), no = el('button', 'btn ghost', 'No, I did enough!');
+      row.append(yes, no); card.append(row); $('#game').append(card); FX.pop(card); FX.sfx.coin();
+      let closed = false, started = false, timer = 0;
+      const close = (v) => { if (closed) return; closed = true; clearTimeout(timer); card.remove(); res(v); };
+      no.onclick = () => { FX.sfx.tap(); close(false); };
+      yes.onclick = () => { if (started) return; started = true; row.remove(); FX.sfx.whoosh(); const box = el('div'); box.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:10px;width:100%'; card.append(box); build(box, () => close(true)); };
+      timer = setTimeout(() => close(started), started ? 45000 : 18000);
+    });
+  }
+  /* Every bone clicks home with its own sound, so a skull and a tail do not thunk alike. */
+  const BONE_SFX = { skull: 'chomp', spine: 'thud', tail: 'boing', ribs: 'whoosh', neck: 'pop', pelvis: 'drum', legs: 'jump', legsB: 'jump', legsF: 'tap', legB: 'jump', legF: 'tap', arms: 'chirp', plates: 'sparkle', wingL: 'splash', wingR: 'splash', body: 'thud' };
+  /* Four dig sites with their own light and litter: rebuilding never looks like the last time. */
+  const SITES = [
+    { name: 'Sunny quarry', sky: ['#cfeaff', '#f8e6b4'], far: '#dcc189', hill: '#e3b873', dig: '#cf9f58', ink: '#8a5a2a', props: ['🌵', '🪨', '⛏️', '🦖'], litter: 6 },
+    { name: 'River bank', sky: ['#bfe9f2', '#eafbd9'], far: '#a8d3b8', hill: '#cfc08a', dig: '#a9b071', ink: '#5f6b3a', props: ['🪵', '🌾', '🐊', '🦴'], litter: 8 },
+    { name: 'Red desert', sky: ['#ffd0a2', '#ffe9c4'], far: '#e08a5a', hill: '#d17a4a', dig: '#b2603a', ink: '#7a3a20', props: ['🌞', '🏜️', '🦂', '🪨'], litter: 7 },
+    { name: 'Lantern site', sky: ['#2a2f6b', '#5b4a86'], far: '#3f3a6a', hill: '#4a3f63', dig: '#3a3050', ink: '#241f38', props: ['🏮', '🌙', '✨', '🦴'], litter: 9, dark: 1 },
+  ];
+  /* Rounds 3 and 4 grow the animal: more vertebrae, more ribs, more plates. */
+  let RICH = 1, boneDeck = [], siteBank = [];
+  const B = (n) => Math.max(3, Math.round(n * RICH));
 
   /* ---------- skeleton drawing helpers (400 x 260 box, dinosaur faces right, ground at y = 240) ---------- */
   function catmull(pts, n) {
@@ -22,7 +60,8 @@
     return out;
   }
   /* A row of vertebrae along a curve; sizes shrink or grow with `size(t)`; optional spiky processes on top. */
-  function vertebrae(pts, n, size, spike) {
+  function vertebrae(pts, want, size, spike) {
+    const n = B(want);   /* later rounds grow extra vertebrae */
     const s = catmull(pts, n); let o = '';
     for (let i = 0; i <= n; i++) {
       const a = i < n ? Math.atan2(s[i + 1][1] - s[i][1], s[i + 1][0] - s[i][0]) : Math.atan2(s[i][1] - s[i - 1][1], s[i][0] - s[i - 1][0]);
@@ -144,82 +183,190 @@
     },
   };
   window.Park.skeletons = SK;   // handy for a future museum view
-  const ORDER = ['tricera', null, null, 'trex'];   // rounds 2 and 3 pick one of two species
   const WINGS = { ptero: ['wingL', 'wingR'] };
+  /* After the last build: five golden bones into a tiny skeleton. Tap a bone, then tap the glow it fits. */
+  function bonusGolden(ctx, host, done) {
+    RICH = 1;
+    const art = {
+      skull: skull('trex', 34, 24, .42, 0),
+      spine: vertebrae([[6, 26], [28, 20], [52, 24]], 4, () => 7, 3),
+      ribs: ribs(16, 44, 14, 20, 3, 1),
+      legs: chain([[26, 8], [32, 22], [24, 34]], 5) + claw(24, 34, 8, 4),
+      tail: vertebrae([[54, 26], [30, 32], [6, 36]], 5, () => 6, 0),
+    };
+    const gold = (s) => s.replace(/class="bn"/g, 'class="bn" fill="#ffd864" stroke="#8a6112"')
+      .replace(/class="bo"/g, 'class="bo" stroke="#8a6112"').replace(/class="bi"/g, 'class="bi" stroke="#ffeaa6"')
+      .replace(/class="hl"/g, 'class="hl" fill="#fff8d8"').replace(/class="ln"/g, 'class="ln" stroke="#a47c1f"');
+    host.innerHTML = '<p style="margin:0;font-weight:800;font-size:14px">Five golden bones! Tap a bone, then tap the glow it fits.</p>';
+    const strip = el('div', 'gold-strip'), tray = el('div', 'gold-tray');
+    strip.style.cssText = 'display:flex;gap:6px;justify-content:center;align-items:flex-end;flex-wrap:wrap;width:min(94vw,400px);background:linear-gradient(#5a4a2a,#382d1b);border-radius:18px;padding:8px;box-shadow:inset 0 4px 10px rgba(0,0,0,.45)';
+    tray.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center';
+    const ids = Object.keys(art), slots = {};
+    ids.forEach((id) => {
+      const s = el('button', 'gold-slot'); s.dataset.id = id; s.setAttribute('aria-label', 'Golden place: ' + PART_NAME[id]);
+      s.style.cssText = 'width:66px;height:48px;border:3px dashed #d9b45f;border-radius:12px;background:rgba(255,238,180,.14);display:grid;place-items:center;cursor:pointer;padding:0;font-family:inherit';
+      s.innerHTML = `<svg viewBox="0 0 60 44" width="54" height="38" opacity=".3">${gold(art[id])}</svg>`;
+      strip.append(s); slots[id] = s;
+    });
+    let sel = null, got = 0;
+    const clearSel = () => { $$('.gold-bone', tray).forEach((q) => { q.classList.remove('sel'); q.style.outline = ''; }); };
+    const put = (b, s) => {
+      if (!s || s.classList.contains('full')) return false;
+      if (s.dataset.id !== b.dataset.id) { FX.sfx.thud(); FX.shake(s); FX.shake(b); ctx.say('Nearly! Look at the shape of the glow.'); return false; }
+      s.classList.add('full'); s.style.borderStyle = 'solid'; s.style.background = 'rgba(255,238,180,.6)';
+      b.remove(); FX.sfx.coin(); FX.sfx.note(got * 2 + 4, .18);
+      const c = centreOf(s); FX.burst(c.x, c.y, { kind: 'stars', n: 10 });
+      FX.anim(s, [{ transform: 'scale(1.32)' }, { transform: 'scale(1)' }], { duration: 360, easing: 'cubic-bezier(.3,1.5,.5,1)' });
+      ctx.say(`${PART_NAME[b.dataset.id]} in gold! ${ids.length - got - 1} to go.`);
+      if (++got === ids.length) { ctx.bonus(2, strip, 'Golden skeleton!'); FX.celebrate(); FX.sfx.win(); setTimeout(done, 1300); }
+      return true;
+    };
+    shuffle(ids).forEach((id) => {
+      const b = el('button', 'gold-bone'); b.dataset.id = id; b.setAttribute('aria-label', 'Golden bone: ' + PART_NAME[id]);
+      b.style.cssText = 'width:72px;height:54px;border:0;border-radius:14px;background:#fff8e2;box-shadow:0 4px 0 rgba(0,0,0,.3);display:grid;place-items:center;cursor:pointer;padding:0;font-family:inherit';
+      b.innerHTML = `<svg viewBox="0 0 60 44" width="62" height="44">${gold(art[id])}</svg>`;
+      b.onclick = () => { clearSel(); sel = b; b.classList.add('sel'); b.style.outline = '4px solid #ffcf33'; FX.sfx.tap(); FX.pulse(b); ctx.say('Now tap the place it glows.'); };
+      tray.append(b);
+    });
+    ids.forEach((id) => { slots[id].onclick = () => { if (!sel) { ctx.say('Choose a golden bone first!'); FX.sfx.tap(); return; } if (put(sel, slots[id])) { sel = null; clearSel(); } }; });
+    host.append(strip, tray);
+  }
 
   /* ---------- store: pieces already placed, per round, for the museum ---------- */
   window.Park.register({
     id: 'bones', name: 'Build-a-Dino', icon: 'trex', color: '#b07a3a', rounds: 4, helper: 'trex', helperColor: 'orange', ambient: 'desert',
     desc: 'Rebuild a dinosaur from its bones, then bring it to life!',
     round(ctx) {
-      const R = ctx.round, species = ORDER[R - 1] || pick(R === 2 ? ['stego', 'ptero'] : ['bronto', 'raptor']);
-      const parts = SK[species](), total = parts.length, spin = R >= 3, blind = R === 4;
-      const t0 = Date.now(); let slips = 0, hints = 0, placed = 0, stage = 'bones', selected = null;
-      ctx.say(R === 1 ? `Dig site! Drag the bones to rebuild the ${SP_NAME[species]}.` : spin ? 'Some bones are upside down! Tap a bone to turn it, then drag it into place.' : `A new skeleton! Rebuild the ${SP_NAME[species]}.`);
+      const R = ctx.round;
+      RICH = [1, 1.1, 1.4, 1.7][R - 1];
+      /* Triceratops first, T-rex last, and two species in between that change with every play. */
+      if (R === 1) { boneDeck = ['tricera', ...shuffle(SPECIES.filter((s) => s !== 'tricera' && s !== 'trex')).slice(0, 2), 'trex']; siteBank = shuffle(SITES); }
+      const species = boneDeck[R - 1], S = siteBank[(R - 1) % siteBank.length];
+      const parts = SK[species](), spin = R >= 3, blind = R === 4;
+      const t0 = Date.now(); let slips = 0, hints = 0, placed = 0, total = parts.length, stage = 'bones', selected = null;
+      ctx.say(R === 1 ? `Dig site! Drag the bones to rebuild the ${SP_NAME[species]}.` : spin ? 'Some bones are upside down! Tap a bone to turn it, then drag it into place.' : `A new skeleton at the ${S.name.toLowerCase()}! Rebuild the ${SP_NAME[species]}.`);
 
       const wrap = el('div', 'bd-wrap');
       const steps = el('div', 'bd-steps', ['🦴 Bones', '🎨 Skin', '🏷️ Name', '🌿 Alive!'].map((t, i) => `<span class="${i === 0 ? 'now' : ''}">${t}</span>`).join(''));
       const stageBox = el('div', 'bd-stage');
       const ns = 'http://www.w3.org/2000/svg';
       const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 400 260'); svg.setAttribute('class', 'bd-svg');
-      svg.innerHTML = `<defs><linearGradient id="bdsand${R}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9bd"/><stop offset="1" stop-color="#f0c987"/></linearGradient></defs>
-        <rect width="400" height="260" fill="url(#bdsand${R})"/><circle cx="350" cy="40" r="22" fill="#ffd45a"/><circle cx="350" cy="40" r="32" fill="#ffd45a" opacity=".3"/>
-        <path d="M0 214 Q80 196 160 212 T320 206 T400 214 V260 H0Z" fill="#e3b873"/><path d="M0 238 Q120 226 240 240 T400 236 V260 H0Z" fill="#cf9f58"/>
+      /* Every site brings its own light, hills and litter, so the same bones never sit in the same place twice. */
+      const hills = (() => { let d = 'M0 182'; for (let x = 0; x < 400; x += 50) d += ` Q${x + 25} ${150 - rnd(48)} ${x + 50} ${170 + rnd(20)}`; return d + ' V260 H0Z'; })();
+      const litter = Array.from({ length: S.litter }, () => `<text x="${f0(8 + rnd(384))}" y="${f0(198 + rnd(54))}" font-size="${f0(12 + rnd(15))}" opacity="${S.dark ? .7 : .9}">${pick(S.props)}</text>`).join('');
+      const night = S.dark ? `${Array.from({ length: 20 }, () => `<circle cx="${f0(rnd(400))}" cy="${f0(rnd(150))}" r="${f1(1 + Math.random() * 1.6)}" fill="#fff" opacity="${f1(.5 + Math.random() * .5)}"/>`).join('')}
+        <circle cx="66" cy="44" r="20" fill="#fffbe0"/><circle cx="58" cy="38" r="18" fill="${S.sky[0]}"/><text x="318" y="206" font-size="26">🏮</text><circle cx="330" cy="196" r="26" fill="#ffdf8a" opacity=".2"/>`
+        : `<circle cx="350" cy="40" r="22" fill="#ffd45a"/><circle cx="350" cy="40" r="32" fill="#ffd45a" opacity=".3"/>`;
+      const stakes = R >= 2 ? `<g fill="none" stroke-linecap="round"><path d="M20 238 V212 M380 238 V212" stroke="#6b4a22" stroke-width="4"/><path d="M20 214 Q200 ${196 + rnd(14)} 380 214" stroke="#e9d69a" stroke-width="2.5" stroke-dasharray="6 5"/></g>` : '';
+      svg.innerHTML = `<defs><linearGradient id="bdsky${R}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.sky[0]}"/><stop offset="1" stop-color="${S.sky[1]}"/></linearGradient></defs>
+        <rect width="400" height="260" fill="url(#bdsky${R})"/>${night}
+        <path d="${hills}" fill="${S.far}" opacity=".9"/>
+        <path d="M0 214 Q80 196 160 212 T320 206 T400 214 V260 H0Z" fill="${S.hill}"/><path d="M0 238 Q120 226 240 240 T400 236 V260 H0Z" fill="${S.dig}"/>
         <path d="M18 238 q-4 -34 8 -50 M26 190 q-18 -4 -24 8 M26 190 q14 -14 28 -6" stroke="#4d7a3c" stroke-width="5" fill="none" stroke-linecap="round"/>
-        <g fill="#b8894a" opacity=".6"><ellipse cx="62" cy="250" rx="14" ry="5"/><ellipse cx="360" cy="248" rx="18" ry="6"/><ellipse cx="220" cy="252" rx="12" ry="4"/></g>
-        <ellipse cx="206" cy="244" rx="150" ry="9" fill="#8a5a2a" opacity=".22"/>`;
+        <g fill="${S.ink}" opacity=".55"><ellipse cx="62" cy="250" rx="14" ry="5"/><ellipse cx="360" cy="248" rx="18" ry="6"/><ellipse cx="220" cy="252" rx="12" ry="4"/></g>
+        ${stakes}<ellipse cx="206" cy="244" rx="150" ry="9" fill="${S.ink}" opacity=".22"/>${litter}`;
       const gGhost = document.createElementNS(ns, 'g'), gPlaced = document.createElementNS(ns, 'g');
       gGhost.setAttribute('class', 'bd-ghosts' + (blind ? ' faint' : '')); gPlaced.setAttribute('class', 'bd-placed');
       svg.append(gGhost, gPlaced);
-      const slotOf = {}, placedOf = {};
-      parts.forEach((p) => {
-        const g = document.createElementNS(ns, 'g'); g.setAttribute('class', 'ghost'); g.dataset.id = p.id; g.innerHTML = p.svg; gGhost.append(g); slotOf[p.id] = g;
-        const q = document.createElementNS(ns, 'g'); q.setAttribute('class', 'put'); q.dataset.id = p.id; q.innerHTML = p.svg; gPlaced.append(q); placedOf[p.id] = q;
-      });
       stageBox.append(svg);
       const tray = el('div', 'bd-tray');
-      const bar = el('div', 'bd-progress', `<span>0 / ${total} bones</span><i></i>`);
+      const bar = el('div', 'bd-progress', '<span>0 / 0 bones</span><i></i>');
       const hintBtn = el('button', 'btn small bd-hint', '💡 Show me');
-      wrap.append(steps, stageBox, bar, tray, hintBtn); ctx.area.append(wrap);
-      const bump = (n) => { $('span', bar).textContent = `${n} / ${total} bones`; $('i', bar).style.width = (n / total * 100) + '%'; };
+      /* Peeking at the ghost shape is free, as often as you like; the helper's hint still counts. */
+      const peekBtn = el('button', 'btn small bd-peek', '👻 Ghost bones');
+      const top = el('div', 'bd-top');
+      top.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;font-weight:900;font-size:14px;color:#fff;background:linear-gradient(90deg,#b07a3a,#e0b169);border-radius:16px;padding:5px 12px;box-shadow:0 4px 0 rgba(0,0,0,.16)';
+      const topBones = el('span', 'bd-top-count'), topBest = el('span', 'bd-top-best');
+      top.append(el('b', 'bd-top-level', `Level ${R} · ${S.name}`), topBones, topBest);
+      wrap.append(steps, top, stageBox, bar, tray, hintBtn, peekBtn); ctx.area.append(wrap);
+      const slotOf = {}, placedOf = {};
+      const addGhost = (p) => {
+        const g = document.createElementNS(ns, 'g'); g.setAttribute('class', 'ghost'); g.dataset.id = p.id; g.innerHTML = p.svg; gGhost.append(g); slotOf[p.id] = g;
+        const q = document.createElementNS(ns, 'g'); q.setAttribute('class', 'put'); q.dataset.id = p.id; q.innerHTML = p.svg; gPlaced.append(q); placedOf[p.id] = q;
+      };
+      parts.forEach(addGhost);
+      /* Later animals grow extra bones, measured out of the ribcage and tail the skeleton just drew. */
+      if (R >= 3) {
+        const rib = slotOf.ribs || slotOf.body, tail = slotOf.tail;
+        let b = null, tb = null;
+        try { b = rib && rib.getBBox(); tb = tail && tail.getBBox(); } catch (e) { /* needs the site on screen before it can measure */ }
+        if (b && b.width > 10) {
+          parts.push({ id: 'belly', svg: ribs(f0(b.x + b.width * .26), f0(b.x + b.width * .72), f0(b.y + b.height * .92), f0(b.height * .3), R >= 4 ? 4 : 3, -2) });
+          addGhost(parts[parts.length - 1]);
+          if (R >= 4 && tb && tb.width > 20) {
+            parts.push({ id: 'chevron', svg: chain([[f0(tb.x + tb.width * .62), f0(tb.y + tb.height * .82)], [f0(tb.x + tb.width * .34), f0(tb.y + tb.height * 1.04)]], 4.5, false)
+              + chain([[f0(tb.x + tb.width * .84), f0(tb.y + tb.height * .68)], [f0(tb.x + tb.width * .58), f0(tb.y + tb.height * .92)]], 4, false) });
+            addGhost(parts[parts.length - 1]);
+          }
+        }
+      }
+      total = parts.length;
+      const bump = (n) => { $('span', bar).textContent = `${n} / ${total} bones`; $('i', bar).style.width = (n / total * 100) + '%'; topBones.textContent = `${total} bones`; };
+      bump(0); topBest.textContent = bestLine(R);
 
       // Each piece is cut from the same skeleton, cropped to its own bounds, so shapes stay in proportion.
-      const pieces = parts.map((p) => {
+      const pieces = parts.map((p, i) => {
         const bb = slotOf[p.id].getBBox(), pad = 10, w = bb.width + pad * 2, h = bb.height + pad * 2, k = Math.min(.6, 170 / Math.max(w, h));
         const d = el('div', 'bd-piece'); d.dataset.id = p.id;
         d.innerHTML = `<span class="pc-rot"><svg viewBox="${f1(bb.x - pad)} ${f1(bb.y - pad)} ${f1(w)} ${f1(h)}" width="${f1(Math.max(56, w * k))}" height="${f1(Math.max(40, h * k))}"><g>${p.svg}</g></svg></span>`;
         d.setAttribute('role', 'button'); d.setAttribute('aria-label', 'Bone: ' + PART_NAME[p.id]);
         d.dataset.rot = spin ? [90, 180, 270][rnd(3)] : 0; $('.pc-rot', d).style.transform = `rotate(${d.dataset.rot}deg)`;
+        FX.anim(d, [{ opacity: 0, transform: 'translateY(14px) scale(.8)' }, { opacity: 1, transform: 'none' }], { duration: 320, delay: i * 55, easing: 'cubic-bezier(.2,.9,.3,1.3)', fill: 'backwards' });
         return d;
       });
-      const rotate = (d) => { d.dataset.rot = (+d.dataset.rot + 90) % 360; $('.pc-rot', d).style.transform = `rotate(${d.dataset.rot}deg)`; FX.sfx.tap(); };
+      const rotate = (d) => { d.dataset.rot = (+d.dataset.rot + 90) % 360; $('.pc-rot', d).style.transform = `rotate(${d.dataset.rot}deg)`; FX.sfx.scrape(); };
       const slotsAt = (x, y) => parts.map((p) => slotOf[p.id]).filter((g) => !g.classList.contains('done')).filter((g) => { const r = g.getBoundingClientRect(); return x >= r.left - 8 && x <= r.right + 8 && y >= r.top - 8 && y <= r.bottom + 8; });
       const place = (d, x, y) => {
         const cands = slotsAt(x, y); if (!cands.length) return false;
         const own = slotOf[d.dataset.id];
-        if (!cands.includes(own)) { slips++; ctx.bad(.5, cands[0]); FX.shake(cands[0]); ctx.say('Hmm, that bone belongs somewhere else. Look at its shape!'); return false; }
+        if (!cands.includes(own)) {
+          slips++; ctx.bad(.5, cands[0]); FX.shake(cands[0]); FX.sfx.thud();
+          const there = cands[0].dataset.id;
+          /* A wrong drop names both bones, so the miss teaches instead of only buzzing. */
+          ctx.say(R === 1 ? `You are holding ${PART_NAME[d.dataset.id]}. This shape is ${PART_NAME[there]} — see which way it curves?`
+            : `So close! ${PART_NAME[there]} lives here, and your ${PART_NAME[d.dataset.id]} has a friend nearby.`, 'sad');
+          return false;
+        }
         if (+d.dataset.rot % 360 !== 0) { ctx.say('Right place! Now tap the bone to turn it the right way up.'); FX.pop(d); FX.sfx.tap(); return false; }
         snap(d); return true;
       };
       const snap = (d) => {
         const id = d.dataset.id, slot = slotOf[id], put = placedOf[id];
-        slot.classList.add('done'); put.classList.add('on'); FX.sfx.thud(); FX.sfx.note(placed * 2 + 3, .18); FX.sfx.tap();
+        slot.classList.add('done'); put.classList.add('on');
+        FX.sfx[BONE_SFX[id] || 'thud'](); FX.sfx.note(placed * 2 + 3, .18);
         put.style.transformBox = 'fill-box'; put.style.transformOrigin = 'center'; FX.anim(put, [{ transform: 'scale(1.22)', opacity: .3 }, { transform: 'scale(.96)', opacity: 1, offset: .6 }, { transform: 'scale(1)' }], { duration: 420, easing: 'ease-out' });
         const c = centreOf(slot); FX.burst(c.x, c.y, { kind: 'sparkle', n: 12 }); FX.burst(c.x, c.y, { kind: 'bones', n: 3, scale: .7 });
+        const ring = el('div');
+        ring.style.cssText = `position:fixed;left:${f0(c.x - 34)}px;top:${f0(c.y - 34)}px;width:68px;height:68px;border-radius:50%;border:5px solid #ffdf6b;pointer-events:none;z-index:60`;
+        document.body.append(ring);
+        FX.anim(ring, [{ transform: 'scale(.5)', opacity: 1 }, { transform: 'scale(1.9)', opacity: 0 }], { duration: 620, easing: 'ease-out' });
+        setTimeout(() => ring.remove(), 700);
+        // Blink the skull's eyes the moment the head clicks home — a skeleton should wink back.
+        $$('ellipse.eye', put).forEach((e, i) => {
+          e.style.transformBox = 'fill-box'; e.style.transformOrigin = 'center';
+          FX.anim(e, [{ transform: 'scaleY(1)' }, { transform: 'scaleY(.1)', offset: .5 }, { transform: 'scaleY(1)' }], { duration: 480, delay: 220 + i * 90 });
+        });
         d.classList.add('locked'); d.remove(); ctx.good(slot); placed++; bump(placed);
-        ctx.say(placed < total ? `That is ${PART_NAME[id]}! ${total - placed} bone${total - placed === 1 ? '' : 's'} to go.` : `That is ${PART_NAME[id]}! The skeleton is finished!`);
+        ctx.say(placed < total ? `That is ${PART_NAME[id]}! ${total - placed} bone${total - placed === 1 ? '' : 's'} to go.` : `That is ${PART_NAME[id]}! The ${SP_NAME[species]} has every bone!`);
         if (placed === total) setTimeout(() => skinStage(), 700);
       };
       shuffle(pieces).forEach((d) => {
         drag(d, {
           over: (x, y) => { const s = slotsAt(x, y); parts.forEach((p) => slotOf[p.id].classList.toggle('hot', s.includes(slotOf[p.id]) && s[0] === slotOf[p.id])); },
           drop: (x, y) => { parts.forEach((p) => slotOf[p.id].classList.remove('hot')); return place(d, x, y); },
-          tap: () => { if (spin) { rotate(d); return; } pieces.forEach((q) => q.classList.remove('sel')); selected = d; d.classList.add('sel'); FX.sfx.tap(); },
+          tap: () => { if (spin) { rotate(d); return; } pieces.forEach((q) => q.classList.remove('sel')); selected = d; d.classList.add('sel'); FX.sfx.tap(); ctx.say(`That is ${PART_NAME[d.dataset.id]}. Now tap its shape on the bones.`); },
         });
         tray.append(d);
       });
       // Tap a piece, then tap the skeleton, for little fingers that do not like dragging.
       svg.addEventListener('pointerdown', (e) => { if (stage !== 'bones' || !selected || spin) return; const p = selected; if (place(p, e.clientX, e.clientY)) selected = null; });
+      peekBtn.onclick = () => {
+        if (stage !== 'bones') return;
+        gGhost.classList.remove('gone', 'faint'); FX.sfx.whoosh();
+        FX.anim(gGhost, [{ opacity: .12 }, { opacity: 1 }], { duration: 320 });
+        ctx.say('There is the shape every bone wants to be!');
+        setTimeout(() => { if (blind) gGhost.classList.add('faint'); }, 2600);
+      };
       const showHint = () => {
         if (stage !== 'bones') return;
         const d = pieces.find((q) => q.isConnected && !q.classList.contains('locked')); if (!d) return;
@@ -235,11 +382,16 @@
       const stepTo = (i) => $$('span', steps).forEach((s, k) => { s.className = k < i ? 'done' : k === i ? 'now' : ''; });
       async function skinStage() {
         if (!ctx.alive()) return;
-        stage = 'skin'; stepTo(1); tray.classList.add('hidden'); hintBtn.classList.add('hidden'); ctx.hint(null);
+        stage = 'skin'; stepTo(1); tray.classList.add('hidden'); hintBtn.classList.add('hidden'); peekBtn.classList.add('hidden'); ctx.hint(null);
         FX.sfx.win(); FX.celebrate(); gGhost.classList.add('gone');
         const secs = (Date.now() - t0) / 1000;
+        /* The bone-laying time is what gets beaten, and it shows on the site board right away. */
+        const rec = beatBest(R, secs), rp = centreOf(stageBox);
+        if (rec.isNew) { FX.floatText(rp.x, rp.y - 60, `New best bones! ${rec.best}s`, { size: 26 }); FX.sfx.coin(); }
+        else if (!rec.was) FX.floatText(rp.x, rp.y - 60, `First dig: ${rec.best}s`, { size: 22 });
+        topBest.textContent = bestLine(R);
         if (!slips && !hints && secs < total * 12) ctx.bonus(1, stageBox, 'Speedy builder!');
-        ctx.say('A whole skeleton! Now give it skin. Pick a colour!');
+        ctx.say(R === 1 ? 'A whole skeleton! Now give it skin. Pick a colour!' : `Every one of the ${total} bones, in ${f0(secs)} seconds. Now pick a colour!`);
         dinoBox = el('div', 'bd-skin'); stageBox.append(dinoBox);
         const pal = el('div', 'bd-pal');
         const names = { green: 'Green', teal: 'Teal', purple: 'Purple', orange: 'Orange', pink: 'Pink', blue: 'Blue', yellow: 'Yellow', red: 'Red' };
@@ -272,9 +424,9 @@
         const names = shuffle(NAMES).slice(0, 5); let chosen = null;
         const row = el('div', 'mix-names'); const go = el('button', 'btn big wake', '✨ Wake it up!'); go.disabled = true;
         const card = el('div', 'bd-card hidden');
-        const showCard = () => { card.classList.remove('hidden'); card.innerHTML = `<b>${chosen}</b><span>${SP_NAME[species]} · ${total} bones</span>`; FX.pop(card); };
-        names.forEach((n) => { const b = el('button', 'chip', n); b.onclick = () => { chosen = n; $$('.chip', row).forEach((x) => x.classList.toggle('on', x === b)); go.disabled = false; FX.sfx.tap(); FX.sfx.chirp(); showCard(); ctx.say(`${n}! What a lovely name!`); }; row.append(b); });
-        const dice = el('button', 'chip', '🎲'); dice.setAttribute('aria-label', 'Surprise me'); dice.onclick = () => { const n = pick(NAMES); chosen = n; $$('.chip', row).forEach((x) => x.classList.remove('on')); go.disabled = false; FX.sfx.sparkle(); showCard(); ctx.say(`Ooh, ${n}! A surprise name!`); }; row.append(dice);
+        const showCard = () => { card.classList.remove('hidden'); card.innerHTML = `<b>${chosen}</b><span>${SP_NAME[species]} · ${total} bones · ${S.name}</span>`; FX.pop(card); };
+        names.forEach((n) => { const b = el('button', 'chip', n); b.onclick = () => { chosen = n; $$('.chip', row).forEach((x) => x.classList.toggle('on', x === b)); go.disabled = false; FX.sfx.chirp(); showCard(); ctx.say(`${n}! What a lovely name!`); }; row.append(b); });
+        const dice = el('button', 'chip', '🎲'); dice.setAttribute('aria-label', 'Surprise me'); dice.onclick = () => { const n = pick(NAMES); chosen = n; $$('.chip', row).forEach((x) => x.classList.remove('on')); go.disabled = false; FX.sfx.coin(); showCard(); ctx.say(`Ooh, ${n}! A surprise name!`); }; row.append(dice);
         wrap.append(row, card, go);
         go.onclick = () => { if (!chosen) return; row.remove(); card.remove(); go.remove(); aliveStage(chosen); };
       }
@@ -284,13 +436,24 @@
         if (!ctx.alive()) return;
         stage = 'alive'; stepTo(3);
         const stars = !slips && !hints ? 3 : slips <= 2 && hints <= 1 ? 2 : 1;
+        /* A museum neighbour comes to greet the new animal, so the diorama differs every play. */
+        const pals = window.Park.museum.all(), buddy = pals.length ? pals[pals.length - 1] : null;
         den.add({ s: species, c: colour, n: name }); window.Park.museum.add({ s: species, c: colour, n: name, st: stars, p: total });
         const dio = el('div', 'bd-dio');
-        dio.innerHTML = '<i class="bd-sun">☀️</i><i class="bd-cloud c1">☁️</i><i class="bd-cloud c2">☁️</i><div class="bd-hills"></div><div class="bd-trees"><span>🌴</span><span>🌿</span><span>🌳</span><span>🌿</span><span>🌴</span></div><div class="bd-flowers">🌼 🌸 🌼 🌷 🌼 🌸</div><div class="bd-ground"></div>';
+        dio.style.background = `linear-gradient(${S.sky[0]}, ${S.sky[1]} 70%)`;
+        dio.innerHTML = S.dark
+          ? '<i class="bd-sun">🌙</i><i class="bd-cloud c1">⭐</i><i class="bd-cloud c2">✨</i><div class="bd-hills"></div><div class="bd-trees"><span>🌲</span><span>🏮</span><span>🌲</span><span>🌵</span><span>🏮</span></div><div class="bd-flowers">✨ 🌼 ✨ 🌼 ✨ 🌼</div><div class="bd-ground" style="background:linear-gradient(#3f5f5a,#2c4a46);box-shadow:inset 0 6px 0 #4e6f66"></div>'
+          : '<i class="bd-sun">☀️</i><i class="bd-cloud c1">☁️</i><i class="bd-cloud c2">☁️</i><div class="bd-hills"></div><div class="bd-trees"><span>🌴</span><span>🌿</span><span>🌳</span><span>🌿</span><span>🌴</span></div><div class="bd-flowers">🌼 🌸 🌼 🌷 🌼 🌸</div><div class="bd-ground"></div>';
+        if (buddy && buddy.s !== species) {
+          const far = el('div', 'bd-buddy', FX.dinoHTML(buddy.s, { color: buddy.c, state: 'idle' }));
+          far.style.cssText = 'position:absolute;right:4%;bottom:24%;width:20%;opacity:.85;filter:saturate(.85)';
+          dio.append(far);
+          FX.anim(far, [{ transform: 'translateY(0)' }, { transform: 'translateY(-7px)' }, { transform: 'translateY(0)' }], { duration: 2600, iterations: Infinity, easing: 'ease-in-out' });
+        }
         const walker = el('div', 'bd-walker', FX.dinoHTML(species, { color: colour, state: 'walk' }));
         const tag = el('div', 'bd-tag', `<b>${name}</b><span>${[1, 2, 3].map((n) => `<i class="${n <= stars ? 'on' : ''}">★</i>`).join('')}</span>`);
         dio.append(walker, tag);
-        stageBox.replaceWith(dio); $('.bd-tray', wrap) && tray.remove(); bar.remove(); hintBtn.remove();
+        stageBox.replaceWith(dio); $('.bd-tray', wrap) && tray.remove(); bar.remove(); hintBtn.remove(); peekBtn.remove(); top.remove();
         FX.celebrate(); ctx.flutter(6); FX.sfx.whoosh();
         const dEl = $('.du-dino', walker); dEl.setAttribute('data-base', 'walk');
         ctx.say(`${name} the ${SP_NAME[species]} is waking up…`);
@@ -299,11 +462,19 @@
         walker.classList.add('go');
         await sleep(2300); if (!ctx.alive()) return;
         dEl.setAttribute('data-base', 'happy'); FX.dinoState(dEl, 'roar', 1300); FX.sfx.roar(); FX.shakeScreen(3);
-        ctx.say(`${name} the ${SP_NAME[species]} is ALIVE! Roar!`);
+        ctx.say(`${name} the ${SP_NAME[species]} is ALIVE! You built it from ${total} bones!`);
         for (let i = 0; i < 4; i++) setTimeout(() => { if (!ctx.alive()) return; const c = centreOf(walker); FX.burst(c.x, c.y - 20, { kind: i % 2 ? 'hearts' : 'stars', n: 6 }); FX.sfx.chirp(); }, 500 + i * 800);
         ctx.bonus(stars - 1 > 0 ? stars - 1 : 0, tag, stars === 3 ? 'Perfect build!' : 'Great build!');
+        if (window.DUWONDER && DUWONDER.running && DUWONDER.running()) DUWONDER.mote(R === ctx.rounds ? 3 : 1);
         await sleep(3400);
-        ctx.done(`${name} moved into the Dino Museum! ${'⭐'.repeat(stars)}`, 1500);
+        if (!ctx.alive()) return;
+        const last = R === ctx.rounds;
+        if (last && await keepGoing(ctx, 'Keep going?', 'Five golden bones are buried under the site.', 'Dig up the gold!', '#b07a3a', (host, done) => bonusGolden(ctx, host, done))) {
+          ctx.done(`${name} and a golden skeleton — ${pals.length + 1} dinosaurs live in your museum now!`, 2200);
+          return;
+        }
+        ctx.done(last ? `${name} is the ${pals.length + 1}th dinosaur in your museum, built bone by bone! ${'⭐'.repeat(stars)}`
+          : `${name} moved into the Dino Museum! ${'⭐'.repeat(stars)}`, 1800);
       }
     },
   });

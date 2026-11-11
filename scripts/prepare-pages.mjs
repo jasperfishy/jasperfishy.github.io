@@ -33,6 +33,54 @@ async function listFiles(directory) {
   return files;
 }
 const files = (await listFiles(dinoSource)).sort();
+
+// The two service-worker precache lists used to be typed by hand, and they drifted:
+// Adventures named two avatar images that no longer exist, and the app worker never
+// listed the Rescue module or Egg Dash at all. cache.addAll() is all-or-nothing, so a
+// single missing file aborts the install and the whole world loses offline play.
+// Build the lists from what is actually on disk so they cannot go stale again.
+function withEntries(workerSource, name, entries) {
+  const marker = "const " + name + " = [";
+  const start = workerSource.indexOf(marker);
+  const end = workerSource.indexOf("\n];", start);
+  if (start < 0 || end < 0) throw new Error("Could not find " + name + " in a service worker.");
+  const body = entries.map((entry, i) => "  " + JSON.stringify(entry) + (i + 1 < entries.length ? "," : "")).join("\n");
+  return workerSource.slice(0, start + marker.length) + "\n" + body + workerSource.slice(end);
+}
+async function precacheList(directory, extra = []) {
+  // Eager = code, CSS and small art. Big video is left to the runtime cache: eleven
+  // megabytes of mp4 downloaded before a child can tap anything is a bad trade, and
+  // every extra request is one more chance for the install to fail on a weak network.
+  // The scenery photographs and the real-media library are lazy for the same reason
+  // — a cutscene asks for its own plate when it opens, and the service worker caches
+  // it then, so the second visit is offline-ready without the first one being slow.
+  const LAZY = /\.(?:mp4|webm|mov|m4v|weba|md)$/i;
+  const LAZY_ART = /^(?:.*\/)?(?:fx\/art|assets\/real)\/.*\.(?:jpg|jpeg|png|webp)$/i;
+  const found = (await listFiles(directory)).map((file) => path.relative(directory, file).split(path.sep).join("/"));
+  const entries = ["./", ...found.filter((r) => r !== "sw.js" && !LAZY.test(r) && !LAZY_ART.test(r)).sort().map((r) => "./" + r)];
+  for (const relative of extra) {
+    try { await readFile(path.resolve(directory, relative)); entries.push(relative); } catch { /* outside this world */ }
+  }
+  // A generated entry that 404s is the bug this whole function exists to prevent.
+  for (const entry of entries.filter((e) => e.startsWith("./") && !/\/$/.test(e))) {
+    try { await readFile(path.resolve(directory, entry)); } catch { throw new Error("Precache list would 404: " + entry); }
+  }
+  return entries;
+}
+const appPreCache = await precacheList(dinoSource);
+const adventurePreCache = await precacheList(path.join(dinoSource, "chapters", "adventures"), ["../../update-manager.js"]);
+const appWorkerPath = path.join(dinoSource, "sw.js");
+const adventureWorkerPath = path.join(dinoSource, "chapters", "adventures", "sw.js");
+let appWorkerText = withEntries(await readFile(appWorkerPath, "utf8"), "ASSETS", appPreCache);
+let adventureWorkerText = withEntries(await readFile(adventureWorkerPath, "utf8"), "CORE_FILES", adventurePreCache);
+await writeFile(appWorkerPath, appWorkerText);
+await writeFile(adventureWorkerPath, adventureWorkerText);
+// Keep the checked-in source lists identical to the generated ones, so the next
+// person who adds a file sees the same diff the build would have produced.
+const publicDino = fileURLToPath(new URL("public/dino/", root));
+await writeFile(path.join(publicDino, "sw.js"), appWorkerText.replace(/const VERSION = "[^"]+";/, 'const VERSION = "__DU_VERSION__";'));
+await writeFile(path.join(publicDino, "chapters", "adventures", "sw.js"), adventureWorkerText.replace(/const CACHE_NAME = "[^"]+";/, 'const CACHE_NAME = "__DU_VERSION__";'));
+
 const digest = createHash("sha256");
 for (const file of files) {
   const relative = path.relative(dinoSource, file).split(path.sep).join("/");

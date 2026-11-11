@@ -11,6 +11,10 @@
 .dq-world { position: absolute; inset: 0; }
 .dq-world > * { position: absolute; }
 .dq-sky { inset: 0; }
+/* A photograph of the valley, behind the painted trees and grass. It fades in
+ * when it arrives so a slow download never shows a hard rectangle. */
+.dq-photo { inset: 0; background-size: cover; background-position: center 62%; animation: dq-photo-in 1.2s ease-out both; }
+@keyframes dq-photo-in { from { opacity: 0 } to { opacity: 1 } }
 .dq-par { left: 0; width: 200%; background-repeat: repeat-x; background-size: 50% 100%; animation: dq-scroll 14s linear infinite; animation-play-state: paused; }
 .walking .dq-par { animation-play-state: running; }
 .dq-par.far { top: 28%; height: 36%; animation-duration: 40s; opacity: .85; }

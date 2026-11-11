@@ -113,7 +113,7 @@ export async function chapter2(E) {
         if (!it.hit && it.z > .86 && it.z < 1.0 && it.lane === S.lane) {
           it.hit = true;
           if (it.kind === 'fly') { S.got++; hud.querySelector('b').textContent = S.got; const r = ride.getBoundingClientRect(); FX_.burst(r.left + r.width / 2, r.top, { kind: 'sparkle', n: 14, color: '#fff2a8' }); E.sfx.sparkle(); }
-          else { S.stumble = 1.1; E.sfx.boing(); FX_.shakeScreen(); FX_.dinoState(ride.el, 'sad', 600); setTimeout(() => FX_.dinoState(ride.el, 'run'), 700); }
+          else { S.stumble = 1.1; E.slip(); E.sfx.boing(); FX_.shakeScreen(); FX_.dinoState(ride.el, 'sad', 600); setTimeout(() => FX_.dinoState(ride.el, 'run'), 700); }
         }
       }
       S.items = S.items.filter((it) => it.z < 1.15);
@@ -143,7 +143,7 @@ export async function chapter2(E) {
   let ok = false;
   while (!ok) {
     const a = await E.choose('Who is the king of the dinosaurs?', [{ icon: '🦆', label: 'A duck' }, { icon: '🦖', label: 'T-rex' }, { icon: '🐟', label: 'A fish' }]);
-    if (a === 1) ok = true; else await E.say(a === 0 ? 'Quack? No, no! Think of the big roar!' : 'Glub glub! That is not a stomper. Try again!', 'owl');
+    if (a === 1) ok = true; else { E.slip(); await E.say(a === 0 ? 'Quack? No, no! Think of the big roar!' : 'Glub glub! That is not a stomper. Try again!', 'owl'); }
   }
   E.sfx.win(); FX.celebrate();
   await E.say('Whoo-hoo! Correct! Take Pip with you. Pip knows the sky paths!', 'owl');

@@ -151,8 +151,13 @@ function sound(kind) {
   if (!state.sound) return;
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    // A fresh AudioContext for every beep is expensive, and browsers cap how
+    // many a page may hold — so the shared one from the effects layer is used
+    // when it is there, and only a page without it falls back to opening its own.
+    const shared = window.DUFX && DUFX.audioCtx ? DUFX.audioCtx() : null;
+    const ctx = shared || (AudioCtx ? new AudioCtx() : null);
+    if (!ctx) return;
+    const own = !shared;
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -198,15 +203,31 @@ function heroDinoSvg() {
 }
 
 function levelOf(id) { return Math.max(1, Number(state.levels[id] || 1)); }
-function challengeOf(id) {
-  const base = levelOf(id);
+// Difficulty is a property of the level being played, not of the activity, so a
+// multi-round journey can ask for a harder game as the rounds go by.
+function challengeAt(level) {
   const offset = state.difficulty === "gentle" ? 0 : state.difficulty === "adventurer" ? 2 : 1;
-  return Math.min(8, base + offset - 1);
+  // The ceiling stays at 6 on purpose: above it the games ask for hidden-number trails,
+  // nine-beat songs and ten-star paths that are beyond a little explorer. Levels keep
+  // climbing so the map always shows progress, but the play never turns into a wall.
+  return Math.min(6, level + offset - 1);
 }
+function challengeOf(id) { return challengeAt(levelOf(id)); }
+// The games that are not played in rounds are long in other ways: a seven-chapter
+// ride bumps into things and nobody is worse for it. This is how many slips a
+// three-star run may contain, so the rating is kind to the length of the game.
+const GRACE = { rescue: 8, daddy: 4, mummy: 4 };
+// One honest rating for the games that never rate themselves: three stars for a
+// clean run, two for a few wobbles, one for finishing at all.
+function ratingOf(misses, grace) {
+  if (!misses) return 3;
+  return misses <= Math.max(1, grace) ? 2 : 1;
+}
+function mapStars() { return window.DUJourney ? DUJourney.worldStars("act") : state.stars; }
 
 function renderHome() {
+  leaveStage();
   currentActivity = null;
-  activeContext = null;
   app.innerHTML = '<section class="welcome">' +
     '<div class="welcome-copy">' +
       '<p class="eyebrow">Your next little adventure</p>' +
@@ -217,9 +238,9 @@ function renderHome() {
     '</div><div class="welcome-art">' + heroDinoSvg() + '</div>' +
     '</section>' +
     '<section class="progress-panel" aria-label="Adventure progress">' +
-      '<div class="progress-copy"><span class="progress-medal">🏅</span><span><strong>Your dino discoveries</strong><small>' + state.completed.length + ' activities tried · ' + state.stars + ' happy stars earned</small></span></div>' +
+      '<div class="progress-copy"><span class="progress-medal">🏅</span><span><strong>Your dino discoveries</strong><small>' + state.completed.length + ' activities tried · ' + mapStars() + ' stars on your adventure map</small></span></div>' +
       '<button class="soft-button" id="albumButton" type="button">Sticker album 🌟 ' + getExtras().stickers.length + '/' + STICKERS.length + '</button>' +
-      '<span class="progress-count">' + state.stars + ' ⭐</span></section>' +
+      '<span class="progress-count">' + mapStars() + ' ⭐</span></section>' +
     '<div class="section-heading" id="adventures"><h2>Pick a little adventure</h2><p>More levels, surprises and dinosaur friends are waiting as you play.</p></div>' +
     '<div class="filter-row" id="filterRow"></div><div class="activity-grid" id="activityGrid"></div>' +
     '<p class="footer-note">Made for curious little explorers · Grown-up settings are tucked safely away</p>';
@@ -253,8 +274,11 @@ function renderActivityCards() {
   });
   grid.innerHTML = filtered.map(function (activity, index) {
     const level = levelOf(activity.id);
+    // The same stars the campaign map keeps, so a child can see which games they
+    // have already three-starred before tapping into one.
+    const best = window.DUJourney ? DUJourney.stars("act." + activity.id) : 0;
     return '<button class="activity-card" data-activity="' + activity.id + '" style="--card-bg:' + activity.tint + ';--icon-bg:rgba(255,255,255,.72);--card-orb:rgba(255,255,255,.42)">' +
-      '<span class="card-top"><span class="activity-icon">' + activity.icon + '</span><span class="level-pill">LEVEL ' + level + '</span></span>' +
+      '<span class="card-top"><span class="activity-icon">' + activity.icon + '</span><span class="card-stars">' + (best ? "⭐".repeat(best) : "☆☆☆") + '</span><span class="level-pill">LEVEL ' + level + '</span></span>' +
       '<h3>' + escapeHtml(activity.title) + '</h3><p>' + escapeHtml(activity.description) + '</p>' +
       '<span class="card-footer"><span>' + escapeHtml(activity.category) + '</span><span class="level-dots">' + "✦".repeat(Math.min(5, Math.ceil(level / 2))) + '</span></span></button>';
   }).join("");
@@ -370,17 +394,18 @@ function roundsFor(level) { return Math.min(5, 3 + Math.floor((level - 1) / 2));
 function openActivity(id) {
   const activity = ACTIVITIES.find(function (item) { return item.id === id; });
   if (!activity) return;
+  leaveStage();
   currentActivity = id;
   const level = levelOf(id);
   app.innerHTML = '<div class="game-topline"><button class="back-button" id="backHome" aria-label="Back to adventures">←</button>' +
     '<div class="game-title-box"><h1>' + escapeHtml(activity.title) + '</h1><p>' + escapeHtml(personalized("Let’s see what we can discover!")) + '</p></div></div>' +
-    '<div class="level-banner"><span>Adventure level <strong>' + level + '</strong></span><span>' + state.stars + ' stars collected ⭐</span></div>' +
+    '<div class="level-banner"><span>Adventure level <strong>' + level + '</strong></span><span>' + mapStars() + ' stars on the map 🗺</span></div>' +
     '<section class="game-stage" id="gameStage"></section>';
   document.getElementById("backHome").addEventListener("click", exitActivity);
   const context = {
     activity: activity,
     level: level,
-    challenge: challengeOf(id),
+    challenge: challengeAt(level),
     playerName: state.name,
     speechEnabled: state.speech,
     stage: document.getElementById("gameStage"),
@@ -388,18 +413,36 @@ function openActivity(id) {
     message: personalized,
     sound: sound,
     speak: speak,
-    notify: showToast
+    notify: showToast,
+    rounds: GRACE[id] || 1,
+    misses: 0,
+    // The one place a game can admit a mistake. Without it every finish looked
+    // identical and three stars meant "you clicked through" instead of "you got it".
+    oops: function () { context.misses += 1; }
   };
-  context.rate = function (n) { finishInfo.stars = Math.max(1, Math.min(3, Number(n) || 3)); };
-  finishInfo = { stars: 3, ratings: [], sticker: null };
+  context.rate = function (n) { finishInfo.rated = true; finishInfo.stars = Math.max(1, Math.min(3, Number(n) || 3)); };
+  finishInfo = { stars: 3, ratings: [], sticker: null, rated: false };
   activeContext = context; context.stage._ctx = context;
   const moduleMount = getModule(id);
+  if (window.DUSTORY) DUSTORY.hush();
+  // A dinosaur friend introduces the game, in the same voice as the rest of the
+  // universe, instead of the child guessing what to do from a line of small text.
+  if (window.DUSTORY) window.setTimeout(function () { DUSTORY.voice("act." + id, "intro"); }, 700);
   if (window.DUFX && DUFX.ambient) DUFX.ambient(AMBIENT[id] || "meadow");
   if (moduleMount && ROUND_IDS.indexOf(id) >= 0) runRounds(context, moduleMount, level);
   else if (moduleMount) moduleMount(context);
 }
 
-let finishInfo = { stars: 3, ratings: [], sticker: null };
+// Modules that run loops — the chase, the seven-chapter ride — listen for this
+// and shut their music, timers and animation frames down on the spot instead of
+// waiting for an observer to notice they had been thrown away.
+function leaveStage() {
+  const stage = activeContext && activeContext.stage;
+  if (stage) { try { stage.dispatchEvent(new CustomEvent("du-leave")); } catch (error) { /* no event support */ } }
+  activeContext = null;
+}
+
+let finishInfo = { stars: 3, ratings: [], sticker: null, rated: false };
 
 function runRounds(context, mount, baseLevel) {
   const total = roundsFor(baseLevel);
@@ -416,7 +459,7 @@ function runRounds(context, mount, baseLevel) {
   }
   paint();
   const finalAdvance = context.advance;
-  context.rate = function (n) { pending = Math.max(1, Math.min(3, Number(n) || 3)); };
+  context.rate = function (n) { pending = Math.max(1, Math.min(3, Number(n) || 3)); finishInfo.rated = true; };
   context.advance = function (message) {
     if (busy) return;
     const got = pending || 3; pending = 0;
@@ -446,6 +489,9 @@ function runRounds(context, mount, baseLevel) {
       if (!document.contains(context.stage) || !context.stage.querySelector(".round-interlude")) return;
       context.stage.innerHTML = "";
       context.level = baseLevel + round - 1;
+      // The banner promises the rounds grow harder, but the number each module
+      // actually reads was worked out once, before round one. Now it really does.
+      context.challenge = challengeAt(context.level);
       busy = false;
       mount(context);
     }
@@ -459,27 +505,48 @@ function runRounds(context, mount, baseLevel) {
 function finishLevel(message) {
   const id = currentActivity;
   if (!id) return;
+  const ctx = activeContext;
+  const misses = ctx ? Number(ctx.misses) || 0 : 0;
+  const stars = finishInfo.rated ? finishInfo.stars : ratingOf(misses, ctx ? ctx.rounds : 1);
   state.levels[id] = levelOf(id) + 1;
   state.stars += 1;
   if (!state.completed.includes(id)) state.completed.push(id);
   saveState();
+  // These twenty-three games are the ones the hub opens most, and until now
+  // finishing one left the campaign map completely blank: the stars only ever
+  // lived on this page. They are booked where every other world books them.
+  if (window.DUJourney) DUJourney.record("act." + id, { stars: stars });
+  if (window.DUWONDER) DUWONDER.mote(stars >= 3 ? 3 : 1);
   const dino = DINOSAURS[(state.stars - 1) % DINOSAURS.length];
   speak(personalized("You did it! A new dinosaur friend is cheering for you."));
   if (state.sound) sound("good");
   finishInfo.sticker = awardSticker();
-  celebrate(dino, message, id);
-  finishInfo = { stars: 3, ratings: [], sticker: null };
+  finishInfo.stars = stars;
+  celebrate(dino, message, id, stars);
+  finishInfo = { stars: 3, ratings: [], sticker: null, rated: false };
 }
 
-function celebrate(dino, message, id) {
+function friendCheer(id, stars) {
+  const S = window.DUSTORY, F = window.DUFX;
+  if (!S) return "";
+  const key = "act." + id;
+  const list = S.names();
+  const who = list.find(function (item) { return item.id === (S.gameVoice(key) || "rex"); }) || list[0];
+  const art = F && F.dinoHTML ? F.dinoHTML(who.species, { state: "happy", color: who.colour, size: "62px" }) : "";
+  return '<div class="celebration-friend">' + art + '<span><b>' + escapeHtml(who.name) + '</b><i>' +
+    escapeHtml(S.forGame(key, stars >= 3 ? "win" : "lose")) + '</i></span></div>';
+}
+
+function celebrate(dino, message, id, stars) {
   const old = document.querySelector(".celebration");
   if (old) old.remove();
   const layer = document.createElement("div");
   layer.className = "celebration";
   if (state.calmCelebrations) layer.classList.add("calm");
   layer.innerHTML = '<div class="celebration-dino" aria-hidden="true">' + dino.icon + '</div><div class="celebration-card" role="dialog" aria-modal="true">' +
-    '<div class="big-prize" aria-hidden="true">' + [1, 2, 3].map(function (n) { return '<i class="cs-star' + (n <= finishInfo.stars ? "" : " off") + '" style="--i:' + n + '">' + (n <= finishInfo.stars ? "⭐" : "☆") + "</i>"; }).join("") + '</div><h2>' + escapeHtml(personalized(finishInfo.stars === 3 ? "Perfect, wonderful work!" : "Wonderful work!")) + '</h2>' +
+    '<div class="big-prize" role="img" aria-label="' + finishInfo.stars + ' of 3 stars earned">' + [1, 2, 3].map(function (n) { return '<i class="cs-star' + (n <= finishInfo.stars ? "" : " off") + '" style="--i:' + n + '">' + (n <= finishInfo.stars ? "⭐" : "☆") + "</i>"; }).join("") + '</div><h2>' + escapeHtml(personalized(finishInfo.stars === 3 ? "Perfect, wonderful work!" : "Wonderful work!")) + '</h2>' +
     '<p>' + escapeHtml(personalized(message || dino.name + " " + dino.cheer + "!")) + '</p>' +
+    friendCheer(id, stars == null ? finishInfo.stars : stars) +
     '<span class="reward-badge">' + dino.icon + ' New friend: ' + escapeHtml(dino.name) + ' · Level ' + levelOf(id) + '</span>' +
     (finishInfo.sticker ? '<span class="reward-badge cs-sticker">New sticker: ' + finishInfo.sticker + '</span>' : "") +
     '<div class="win-actions"><button class="primary-button" id="nextLevelButton">Play next level →</button><button class="soft-button" id="chooseGameButton">Choose another game</button></div>' +
@@ -682,7 +749,7 @@ function mountColoring(context) {
     context.stage.innerHTML = stageTitle(context, "🎨", "Coloring studio", "Choose a picture, pick a colour and tap a part to paint it.") +
       '<div class="page-strip" id="pageStrip" aria-label="Coloring pages"></div>' +
       '<div class="color-layout"><div class="color-art-wrap" id="colorArtWrap">' + svgForPage(pageIndex) + '</div>' +
-      '<aside class="palette-panel"><h3>Choose a colour</h3><div class="palette" id="palette"></div><p class="gentle-hint">Your picture saves on this device.</p></aside></div>' +
+      '<aside class="palette-panel"><h3>Choose a colour</h3><div class="palette" id="palette"></div><p class="gentle-hint color-progress" id="colorProgress" aria-live="polite"></p><p class="gentle-hint">Your picture saves on this device.</p></aside></div>' +
       '<div class="stage-controls"><button class="tiny-button" id="undoColor">Undo colour</button><button class="tiny-button secondary" id="clearColor">Start this page again</button><button class="soft-button" id="saveColor">Save picture</button><button class="soft-button" id="printColor">Print picture</button><button class="soft-button" id="galleryButton">My pictures</button></div>';
     const strip = context.stage.querySelector("#pageStrip");
     strip.innerHTML = COLOR_PAGES.slice(0, unlocked).map(function (page, index) {
@@ -751,6 +818,20 @@ function mountColoring(context) {
       context.stage.querySelectorAll('#colorArtWrap [data-region="' + lastRegion + '"]').forEach(function (part) { part.classList.add("cw-flash"); });
       lastRegion = null;
     }
+    progressText();
+  }
+  // Children give up on a picture they cannot see the end of, so the studio says
+  // out loud how many parts are left; the last one flips to the praise line.
+  function progressText() {
+    const el = context.stage.querySelector("#colorProgress");
+    if (!el) return;
+    const names = Array.prototype.map.call(context.stage.querySelectorAll("#colorArtWrap [data-region]"), function (e) { return e.dataset.region; });
+    const unique = names.filter(function (k, i) { return names.indexOf(k) === i; });
+    const work = state.colorWork[pageIndex] || {};
+    const done = unique.filter(function (k) { return !!work[k]; }).length;
+    const whole = done >= unique.length;
+    el.textContent = whole ? "Every part is painted!" : "Painted " + done + " of " + unique.length + " parts.";
+    el.classList.toggle("full", whole);
   }
   function checkComplete() {
     const names = new Set(Array.prototype.map.call(context.stage.querySelectorAll("#colorArtWrap [data-region]"), function (e) { return e.dataset.region; }));

@@ -72,7 +72,7 @@ export async function chapter5(E) {
           me.animate([{ translate: '0 0' }, { translate: '0 -40px' }, { translate: '0 0' }], { duration: 500 }); E.playNote(step * 2, 'major', .4, .16); await wait(520); step++; s.querySelector('span').textContent = '✓';
           if (step >= cols) { resolve(); return; }
         } else {
-          s.classList.add('hot'); E.sfx.boing(); FX.noise && FX.noise(.4, .1, 0, 1200, 3000); s.querySelector('span').textContent = '🔥'; me.animate([{ translate: '0 0' }, { translate: '0 -30px' }, { translate: '0 0' }], { duration: 400 });
+          s.classList.add('hot'); E.slip(); E.sfx.boing(); FX.noise && FX.noise(.4, .1, 0, 1200, 3000); s.querySelector('span').textContent = '🔥'; me.animate([{ translate: '0 0' }, { translate: '0 -30px' }, { translate: '0 0' }], { duration: 400 });
           await wait(650); s.classList.remove('hot'); s.querySelector('span').textContent = '?';
           if ((s.wrongs = (s.wrongs || 0) + 1) && stones.filter((t) => t.c === step).some((t) => t.wrongs >= 2)) { E.say('Hot hot hot! Look again…', 'narrator', 200); stones.filter((t) => t.c === step && t.r === safe[step])[0].classList.add('glow'); setTimeout(() => stones.forEach((t) => t.classList.remove('glow')), 1200); }
         }
@@ -130,7 +130,7 @@ export async function chapter6(E) {
         if (!it.hit && Math.abs(dx) < (it.k === 'ring' ? 40 : 54) && Math.abs(dy) < (it.k === 'ring' ? 54 : 62)) {
           it.hit = true;
           if (it.k === 'ring') { S.rings++; hud.querySelector('b').textContent = S.rings; E.sfx.sparkle(); const r = fly.getBoundingClientRect(); FX.burst(r.left + r.width * .6, r.top + r.height / 2, { kind: 'sparkle', n: 14, color: '#ffe14d' }); }
-          else { S.stun = 1; E.sfx.boing(); FX.shakeScreen(); FX.dinoState(fly.el, 'sad', 600); setTimeout(() => FX.dinoState(fly.el, 'run'), 700); }
+          else { S.stun = 1; E.slip(); E.sfx.boing(); FX.shakeScreen(); FX.dinoState(fly.el, 'sad', 600); setTimeout(() => FX.dinoState(fly.el, 'run'), 700); }
         }
       }
       S.items = S.items.filter((it) => it.x > -120);
@@ -187,7 +187,7 @@ export async function chapter7(E) {
     E.sfx.tap(); await wait(1100);
     flash.animate([{ opacity: 0 }, { opacity: .9 }, { opacity: 0 }], { duration: 350 }); E.sfx.drum(); FX.shakeScreen();
     const bolt = E.add('⚡', 'rs-bolt', 'left:' + lanes[l] + '%'); setTimeout(() => bolt.remove(), 500);
-    if (l === lane) { FX.dinoState(me.el, 'sad', 600); E.sfx.boing(); setTimeout(() => FX.dinoState(me.el, 'idle'), 700); } else { dodged++; }
+    if (l === lane) { E.slip(); FX.dinoState(me.el, 'sad', 600); E.sfx.boing(); setTimeout(() => FX.dinoState(me.el, 'idle'), 700); } else { dodged++; }
     mark.remove(); await wait(450);
   }
   document.removeEventListener('keydown', onKey); ctrls.remove(); stop = false;

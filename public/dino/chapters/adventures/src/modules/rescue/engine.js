@@ -51,6 +51,9 @@ export function createEngine(context) {
 
   E.playNote = (deg, scale, dur, vol, wave) => FX.tone && FX.tone(freq(261.6, scale || 'major', deg), dur || .35, wave || 'triangle', vol == null ? .12 : vol);
   E.sfx = FX.sfx;
+  // The one place this story admits a mistake. Without it a seven-chapter ride always
+  // paid three stars, and the campaign map could not tell a careful rider from a lucky one.
+  E.slip = () => { if (E.context && E.context.oops) E.context.oops(); };
   E.music = function (name) {
     E.stopMusic(); const th = THEMES[name]; if (!th) return; E.theme = name; step = 0;
     const eighth = 60000 / th.bpm / 2;
@@ -147,7 +150,7 @@ export function createEngine(context) {
     btns.forEach((b, i) => b.addEventListener('pointerdown', async () => {
       if (busy) return; play(i);
       if (i === seq[pos]) { if (++pos === seq.length) { busy = true; pad.classList.add('done'); await wait(700); pad.remove(); resolve(); } }
-      else { busy = true; pos = 0; FX.sfx.boing(); pad.classList.add('shake'); await wait(500); pad.classList.remove('shake'); await E.say('Oops, let’s listen once more!', 'narrator', 400); demo(); }
+      else { busy = true; pos = 0; E.slip(); FX.sfx.boing(); pad.classList.add('shake'); await wait(500); pad.classList.remove('shake'); await E.say('Oops, let’s listen once more!', 'narrator', 400); demo(); }
     }));
     E.skip = () => { busy = true; pad.remove(); resolve(); };
     demo();

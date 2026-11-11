@@ -1,0 +1,284 @@
+/* Dinosaur Universe — story screens: cutscenes, the campaign map, badges and the codex.
+ * Design language matches hub.css (teal ink, big pills, layered sky/mountain/ground). */
+
+/* The story overlays used to say `font-family: inherit`, which on a chapter page
+ * with no hub.css means the browser's serif default — so Rex introduced a game
+ * in a book font while the game itself shouted in rounded capitals. The overlay
+ * family now carries its own friendly stack, matching du-wonder.css. */
+.du-cut, .du-stop, .du-codex, .du-whisper, .du-win-fly {
+  font-family: "Baloo 2", "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+}
+
+/* The dino art is drawn with width/height attributes, so it only fits its band
+ * when something constrains the SVG. du-fx.css normally does that, but a chapter
+ * page can load the story without it — and then the friend spills over the
+ * words it is meant to sit beside. */
+.du-cut-art .du-dino, .du-stop-art .du-dino, .du-whisper-art .du-dino, .du-codex-cell .du-dino, .du-win-fly .du-dino { display: block; max-width: 100%; }
+.du-cut-art .du-dino-svg, .du-stop-art .du-dino-svg, .du-whisper-art .du-dino-svg, .du-codex-cell .du-dino-svg, .du-win-fly .du-dino-svg { width: 100%; height: auto; display: block; }
+
+/* ---------- cutscene overlay ---------- */
+.du-cut {
+  position: fixed; inset: 0; z-index: 900; display: grid; place-items: end center;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+  font-family: inherit; color: #fff; overflow: hidden;
+  animation: du-cut-in .42s ease-out both;
+}
+@keyframes du-cut-in { from { opacity: 0 } to { opacity: 1 } }
+.du-cut:focus { outline: none; }
+
+.du-cut-scene { position: absolute; inset: 0; z-index: -1; overflow: hidden;
+  background: linear-gradient(180deg, var(--s1, #0c1a45), var(--s2, #2f4f8c));
+  transition: --s1 2.4s ease, --s2 2.4s ease;
+}
+.du-cut-scene[data-scene="night"]   { --s1: #0b1740; --s2: #35508f; }
+.du-cut-scene[data-scene="sun"]     { --s1: #ffd08a; --s2: #8fd8f0; }
+.du-cut-scene[data-scene="day"]     { --s1: #8fd8f0; --s2: #d9f3e4; }
+.du-cut-scene[data-scene="meadow"]  { --s1: #a8e0f2; --s2: #8fd18f; }
+.du-cut-scene[data-scene="rainbow"] { --s1: #f7c8e8; --s2: #bfe3ff; }
+.du-cut-scene[data-scene="snow"]    { --s1: #cfe4ff; --s2: #f4faff; }
+.du-cut-scene[data-scene="storm"]   { --s1: #3a4266; --s2: #6b7ba8; }
+.du-cut-scene[data-scene="volcano"] { --s1: #4a2333; --s2: #e2743f; }
+/* night + volcano are the two dark scenes; text shadow keeps copy readable */
+.du-cut-scene[data-scene="snow"] ~ .du-cut-wrap, .du-cut-scene[data-scene="day"] ~ .du-cut-wrap,
+.du-cut-scene[data-scene="sun"] ~ .du-cut-wrap, .du-cut-scene[data-scene="meadow"] ~ .du-cut-wrap,
+.du-cut-scene[data-scene="rainbow"] ~ .du-cut-wrap { color: #10322f; }
+
+/* ---------- the real world behind the story ----------
+ * Eight photographs in fx/art are the lands these chapters are set in: the valley
+ * the stars came down on, the park the sauropods wake up in, the long green road,
+ * the last hill. Each one keeps the scene's own gradient as a wash over the top,
+ * so the friend and the words never sit on a busy picture — and if a photo has
+ * not arrived yet (a first visit on a weak network) the gradient is still there
+ * underneath and the cutscene looks exactly the way it used to. */
+.du-cut-scene[data-scene="night"]   { background-image: linear-gradient(180deg, rgba(11,23,64,.30), rgba(16,26,64,.78)), url(art/night.jpg); }
+.du-cut-scene[data-scene="sun"]     { background-image: linear-gradient(180deg, rgba(255,208,138,.18), rgba(214,240,224,.62)), url(art/sun.jpg); }
+.du-cut-scene[data-scene="day"]     { background-image: linear-gradient(180deg, rgba(143,216,240,.16), rgba(217,243,228,.60)), url(art/day.jpg); }
+.du-cut-scene[data-scene="meadow"]  { background-image: linear-gradient(180deg, rgba(168,224,242,.16), rgba(143,209,143,.58)), url(art/meadow.jpg); }
+.du-cut-scene[data-scene="rainbow"] { background-image: linear-gradient(180deg, rgba(247,200,232,.20), rgba(191,227,255,.60)), url(art/rainbow.jpg); }
+.du-cut-scene[data-scene="snow"]    { background-image: linear-gradient(180deg, rgba(207,228,255,.16), rgba(244,250,255,.62)), url(art/snow.jpg); }
+.du-cut-scene[data-scene="storm"]   { background-image: linear-gradient(180deg, rgba(58,66,102,.55), rgba(24,30,58,.80)), url(art/night.jpg); }
+.du-cut-scene[data-scene="volcano"] { background-image: linear-gradient(180deg, rgba(74,35,51,.45), rgba(96,38,40,.78)), url(art/mountain.jpg); }
+.du-cut-scene[data-scene="cave"]    { background-image: linear-gradient(180deg, rgba(22,26,48,.50), rgba(10,14,30,.86)), url(art/cave.jpg); }
+.du-cut-scene { background-size: cover, cover; background-position: center, 62%; background-repeat: no-repeat; }
+/* A photograph is busy enough on its own: the painted hills go soft so the
+ * friend stays the thing a child looks at. */
+.du-cut-scene::before, .du-cut-scene::after { opacity: .5; }
+
+/* distant hills, drawn with gradients so there is nothing to download */
+.du-cut-scene::before, .du-cut-scene::after {
+  content: ""; position: absolute; left: -10%; right: -10%; bottom: -2%; height: 52%;
+  background: radial-gradient(58% 100% at 22% 100%, rgba(20,60,58,.55) 0 60%, transparent 61%),
+              radial-gradient(46% 88% at 62% 100%, rgba(20,60,58,.42) 0 60%, transparent 61%),
+              radial-gradient(70% 120% at 96% 100%, rgba(20,60,58,.5) 0 60%, transparent 61%);
+  animation: du-hills 34s ease-in-out infinite alternate;
+}
+.du-cut-scene::after { height: 34%; opacity: .75; animation-duration: 22s; animation-direction: alternate-reverse; }
+@keyframes du-hills { from { transform: translateX(-2%) } to { transform: translateX(2%) } }
+
+/* Mount Roar: the volcano every chapter looks up at */
+.du-cut-stars { position: absolute; inset: 0; display: block;
+  background-image:
+    radial-gradient(3px 3px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 31% 9%, #fff8 50%, transparent 51%),
+    radial-gradient(3px 3px at 52% 22%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 71% 12%, #fff9 50%, transparent 51%),
+    radial-gradient(3px 3px at 88% 26%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 44% 34%, #fff7 50%, transparent 51%),
+    radial-gradient(2px 2px at 64% 40%, #fff6 50%, transparent 51%),
+    radial-gradient(96px 52px at 78% 62%, #223a5e 0 60%, transparent 61%),
+    radial-gradient(14px 8px at 78% 44%, #ff9d5c 0 60%, transparent 61%);
+  animation: du-twinkle 4.2s ease-in-out infinite alternate;
+}
+@keyframes du-twinkle { from { opacity: .62 } to { opacity: 1 } }
+
+.du-cut-wrap {
+  position: relative; width: min(760px, 100%); display: grid; gap: 6px;
+  justify-items: center; text-align: center; padding-bottom: 4px;
+  text-shadow: 0 2px 14px rgba(4,24,32,.45);
+}
+.du-cut-kicker { margin: 0; font-size: .74rem; font-weight: 900; letter-spacing: .16em; opacity: .85; text-transform: uppercase; }
+.du-cut-title { margin: 0; font-size: clamp(1.15rem, 4.2vw, 1.7rem); font-weight: 900; letter-spacing: -.02em; }
+.du-cut-stage { position: relative; height: clamp(130px, 30vh, 250px); display: grid; place-items: end center; width: 100%; }
+.du-cut-art { position: relative; filter: drop-shadow(0 12px 18px rgba(3,30,26,.35)); }
+.du-cut-art.in { animation: du-friend-in .62s cubic-bezier(.2,.9,.3,1.35) both; }
+@keyframes du-friend-in {
+  0% { transform: translateY(38px) scale(.6) rotate(-9deg); opacity: 0 }
+  62% { transform: translateY(-8px) scale(1.08) rotate(4deg); opacity: 1 }
+  100% { transform: translateY(0) scale(1) rotate(0) }
+}
+.du-cut-art::after {
+  content: attr(data-friend); position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%);
+  font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+  background: #ffffffd9; color: #0b6e5f; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+}
+.du-cut-card {
+  margin: 6px 0 0; max-width: 60ch; background: rgba(9,40,45,.62); backdrop-filter: blur(8px);
+  border: 2px solid rgba(255,255,255,.22); border-radius: 22px; padding: 14px 18px 16px;
+  font-size: clamp(1.02rem, 3.6vw, 1.32rem); font-weight: 700; line-height: 1.4; min-height: 4.4em;
+  display: grid; gap: 6px; align-content: center;
+}
+.du-cut-who { font-size: .74rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: #ffd93d; }
+.du-cut-text::after { content: "▌"; animation: du-caret .7s steps(2) infinite; opacity: .7; margin-left: 1px; }
+@keyframes du-caret { 50% { opacity: 0 } }
+.du-cut-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; margin-top: 4px; }
+.du-cut-count { font-size: .8rem; font-weight: 800; opacity: .8; letter-spacing: .08em; }
+.du-cut-actions { display: flex; gap: 8px; }
+/* Buttons must look right inside a chapter page, which has no hub.css. */
+.du-cut .pill {
+  min-height: 48px; min-width: 104px; font-weight: 800; font-family: inherit; font-size: .95rem;
+  border: 2px solid rgba(255,255,255,.5); border-radius: 999px; padding: 10px 18px;
+  background: rgba(255,255,255,.16); color: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.du-cut .pill:hover { background: rgba(255,255,255,.3); }
+.du-cut .pill.primary { background: #ffd93d; border-color: #ffe98a; color: #10322f; }
+.du-cut #cutNext { animation: du-nudge 1.6s ease-in-out infinite; }
+@keyframes du-nudge { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+
+/* ---------- the choice beats ---------- */
+/* Two enormous picture-buttons: a three-year-old who cannot read yet can still
+   point at one, and the story will not move on until they do. */
+.du-cut-ask { display: grid; gap: 9px; width: 100%; max-width: 620px; margin-top: 10px; }
+.du-cut-ask[hidden] { display: none; }
+.du-cut-ask.in { animation: du-ask-in .34s cubic-bezier(.2,.9,.3,1.4) both; }
+@keyframes du-ask-in { from { opacity: 0; transform: translateY(12px) scale(.97) } to { opacity: 1; transform: none } }
+.du-cut-askq {
+  justify-self: start; font-size: .74rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
+  background: #ffd93d; color: #10322f; padding: 4px 12px; border-radius: 999px;
+}
+.du-cut-opts { display: grid; gap: 9px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.du-cut-opt {
+  display: flex; align-items: center; gap: 10px; text-align: left; font: inherit;
+  min-height: 62px; padding: 12px 15px; cursor: pointer; text-shadow: none;
+  background: #fffdf2; color: #10322f; border: 3px solid #ffe98a; border-radius: 20px;
+  box-shadow: 0 6px 16px rgba(3,30,26,.28);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .16s cubic-bezier(.2,.9,.3,1.4), background .16s, border-color .16s, box-shadow .16s;
+}
+.du-cut-opt:hover, .du-cut-opt:focus-visible {
+  transform: translateY(-3px) scale(1.02); background: #fff; border-color: #ffd93d;
+  box-shadow: 0 14px 28px rgba(3,30,26,.4); outline: none;
+}
+.du-cut-opt-key {
+  flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  background: #ffd93d; color: #10322f; font-weight: 900; font-size: .95rem; box-shadow: inset 0 -3px 0 rgba(0,0,0,.14);
+}
+.du-cut-opt-label { font-size: clamp(.95rem, 3.1vw, 1.08rem); font-weight: 800; line-height: 1.25; }
+
+/* ---------- campaign map (hub) ---------- */
+.du-map { position: relative; margin: 18px 0 8px; padding: 6px 0 2px; }
+.du-map-track {
+  position: relative; display: grid; gap: 12px; padding: 4px 2px 10px;
+}
+/* the dotted path between worlds is drawn behind the cards */
+.du-map-track::before {
+  content: ""; position: absolute; left: 8%; right: 8%; top: 0; bottom: 12px; z-index: 0;
+  background-image: radial-gradient(circle, var(--accent-2) 0 3px, transparent 3.5px);
+  background-size: 20px 20px; background-repeat: repeat-y; background-position: 50% 0;
+  opacity: .32;
+}
+.du-stop {
+  position: relative; z-index: 1; display: grid; gap: 8px; text-align: left;
+  grid-template-columns: 74px 1fr auto; align-items: center;
+  background: var(--card); border: 3px solid transparent; border-radius: 24px; padding: 12px 14px;
+  box-shadow: 0 6px 18px rgba(8,70,60,.13); cursor: pointer; color: var(--ink);
+  transition: transform .18s cubic-bezier(.2,.9,.3,1.3), box-shadow .18s, border-color .18s;
+}
+.du-stop:hover, .du-stop:focus-visible { transform: translateY(-3px) scale(1.012); box-shadow: 0 12px 26px rgba(8,70,60,.2); border-color: var(--accent-2); }
+.du-stop[data-done="1"] { border-color: #ffd93d; background: linear-gradient(180deg, #fffdf2, #fff); }
+.du-stop-art { position: relative; width: 74px; height: 62px; display: grid; place-items: end center; }
+.du-stop-art .du-dino { width: 74px; }
+.du-stop-body { display: grid; gap: 3px; min-width: 0; }
+.du-stop-kicker { font-size: .68rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-2); }
+.du-stop-title { font-size: 1.06rem; font-weight: 900; letter-spacing: -.01em; }
+.du-stop-sub { font-size: .86rem; opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.du-stop-right { display: grid; gap: 6px; justify-items: end; }
+.du-stars { font-size: .95rem; font-weight: 900; letter-spacing: .04em; white-space: nowrap; }
+.du-stars .off { opacity: .26; }
+.du-progress { width: 96px; height: 9px; border-radius: 999px; background: #dfeee9; overflow: hidden; }
+.du-progress i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #2a9d8f, #ffd93d); transition: width .7s cubic-bezier(.2,.9,.3,1); }
+.du-tick { font-size: 1.5rem; line-height: 1; }
+.du-lock { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 21px; background: rgba(20,60,58,.34); font-size: 1.6rem; }
+
+/* ---------- badge shelf + codex ---------- */
+.du-shelf { display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 12px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.du-badge {
+  scroll-snap-align: start; flex: 0 0 auto; width: 104px; text-align: center;
+  background: var(--card); border-radius: 20px; padding: 10px 8px 12px; color: var(--ink);
+  box-shadow: 0 4px 12px rgba(8,70,60,.12); border: 2px solid transparent;
+}
+.du-badge[data-on="1"] { border-color: #ffd93d; background: linear-gradient(180deg, #fffbe9, #fff); }
+.du-badge[data-on="1"] .du-badge-gem { animation: du-gem 2.6s ease-in-out infinite; }
+@keyframes du-gem { 0%,100% { transform: rotate(-6deg) scale(1) } 50% { transform: rotate(6deg) scale(1.12) } }
+.du-badge-gem { display: block; font-size: 2rem; line-height: 1.15; filter: grayscale(1) opacity(.35); }
+.du-badge[data-on="1"] .du-badge-gem { filter: none; }
+.du-badge-name { display: block; font-size: .72rem; font-weight: 900; letter-spacing: .02em; margin-top: 4px; }
+.du-badge-note { display: block; font-size: .64rem; opacity: .66; line-height: 1.25; margin-top: 2px; }
+
+.du-codex { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; padding: 4px 0 10px; }
+.du-codex-cell { background: var(--card); border-radius: 18px; padding: 8px 6px 10px; text-align: center; box-shadow: 0 4px 12px rgba(8,70,60,.1); }
+.du-codex-cell .du-dino { width: 100%; filter: grayscale(1) opacity(.22); }
+.du-codex-cell[data-found="1"] .du-dino { filter: none; animation: du-gem 4s ease-in-out infinite; }
+.du-codex-cell b { display: block; font-size: .74rem; margin-top: 2px; }
+.du-codex-cell span { display: block; font-size: .64rem; opacity: .64; }
+
+.du-section-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 20px 0 6px; }
+.du-section-h h2 { margin: 0; font-size: 1.16rem; letter-spacing: -.01em; }
+.du-section-h .du-meter { font-size: .8rem; font-weight: 900; color: var(--accent); background: #ffffffb8; padding: 4px 10px; border-radius: 999px; }
+
+/* a toast that a badge or crystal was just won */
+.du-win-fly {
+  position: fixed; left: 50%; top: 16%; transform: translateX(-50%); z-index: 950;
+  background: linear-gradient(180deg, #fff8dd, #ffe9a8); color: #6b4a00;
+  border: 3px solid #ffd93d; border-radius: 22px; padding: 12px 20px; text-align: center;
+  box-shadow: 0 12px 30px rgba(80,60,0,.28); font-weight: 900; pointer-events: none; max-width: 88vw;
+  animation: du-win-pop .5s cubic-bezier(.2,.9,.3,1.4) both, du-win-out .5s 2.4s ease-in forwards;
+}
+.du-win-fly small { display: block; font-weight: 700; font-size: .74rem; opacity: .8; margin-top: 2px; }
+.du-win-fly b { display: block; font-size: 1.5rem; margin-bottom: 2px; }
+@keyframes du-win-pop { from { transform: translateX(-50%) scale(.6); opacity: 0 } to { transform: translateX(-50%) scale(1); opacity: 1 } }
+@keyframes du-win-out { to { transform: translateX(-50%) translateY(-24px); opacity: 0 } }
+
+/* ---------- the whisper band: one friend, one line, over any game ----------
+   Deliberately pointer-transparent: a speech bubble must never swallow a tap
+   aimed at the game underneath it. */
+.du-whisper {
+  position: fixed; z-index: 90; left: 14px; bottom: 14px;
+  display: flex; align-items: flex-end; gap: 6px;
+  max-width: min(420px, 62vw); pointer-events: none;
+  opacity: 0; transform: translateY(14px) scale(.94);
+  transition: opacity .3s ease, transform .3s cubic-bezier(.2,1.4,.4,1);
+}
+.du-whisper.in { opacity: 1; transform: none; }
+.du-whisper-art { flex: none; width: 76px; height: 66px; display: grid; place-items: end center; filter: drop-shadow(0 6px 10px rgba(8,60,50,.25)); }
+.du-whisper-art .du-dino { width: 76px; }
+.du-whisper-body {
+  background: #fffdf2; border: 3px solid #ffe98a; border-radius: 16px;
+  padding: 8px 13px 9px; box-shadow: 0 10px 22px rgba(8,70,60,.22);
+  display: grid; gap: 2px; min-width: 0;
+}
+.du-whisper-body b { font-size: .7rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: #2a9d8f; }
+.du-whisper-body i { font-style: normal; font-size: 1rem; line-height: 1.28; font-weight: 700; color: #10322f; text-wrap: balance; }
+@media (max-width: 560px) {
+  .du-whisper { left: 8px; right: 8px; bottom: 8px; max-width: none; }
+  .du-whisper-art, .du-whisper-art .du-dino { width: 58px; height: 50px; }
+  .du-whisper-body i { font-size: .92rem; }
+}
+
+@media (max-width: 560px) {
+  .du-stop { grid-template-columns: 58px 1fr; padding: 10px; }
+  .du-stop-art, .du-stop-art .du-dino { width: 58px; height: 50px; }
+  .du-stop-right { grid-column: 1 / -1; justify-items: start; grid-auto-flow: column; align-items: center; gap: 10px; }
+  .du-cut-card { min-height: 5.6em; }
+}
+
+/* ---------- reduced motion: the story still reads, it just stops moving ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .du-cut, .du-cut-art.in, .du-cut #cutNext, .du-cut-scene::before, .du-cut-scene::after,
+  .du-cut-stars, .du-badge[data-on="1"] .du-badge-gem, .du-codex-cell[data-found="1"] .du-dino,
+  .du-win-fly, .du-cut-text::after, .du-cut-ask.in { animation: none !important; }
+  .du-win-fly { animation: none !important; opacity: 1; }
+  .du-whisper { transition: none; }
+  .du-cut-card { min-height: 0; }
+  .du-progress i { transition: none; }
+}

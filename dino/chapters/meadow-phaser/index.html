@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#087f8c" />
 <title>Dino Meadow · Dinosaur Universe</title>
+<link rel="stylesheet" href="../../fx/du-fx.css?v=du-556d96214a55198f">
+<link rel="stylesheet" href="../../fx/du-story.css?v=du-556d96214a55198f">
+<link rel="stylesheet" href="../../fx/du-wonder.css?v=du-556d96214a55198f">
 <style>
   :root { --shadow: 0 10px 30px rgba(20,40,80,.25); }
   * { box-sizing: border-box; }
@@ -25,16 +28,21 @@
 <div id="stage">
   <div id="game-root"></div>
 </div>
-<a id="hubBack" href="../../index.html?v=du-2b5bf1340085b709" aria-label="Back to the hub menu" title="Back to the hub menu">◀</a>
-<script src="../../lib/phaser.min.js?v=du-2b5bf1340085b709"></script>
-<script src="../../fx/du-fx.js?v=du-2b5bf1340085b709"></script>
-<script src="../phaser-kit.js?v=du-2b5bf1340085b709"></script>
-<script src="main.js?v=du-2b5bf1340085b709"></script>
+<a id="hubBack" href="../../index.html?v=du-556d96214a55198f" aria-label="Back to the hub menu" title="Back to the hub menu">◀</a>
+<script src="../../lib/phaser.min.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-dino.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-fx.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-journey.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-music.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-story.js?v=du-556d96214a55198f"></script>
+<script src="../../fx/du-wonder.js?v=du-556d96214a55198f"></script>
+<script src="../phaser-kit.js?v=du-556d96214a55198f"></script>
+<script src="main.js?v=du-556d96214a55198f"></script>
 <script>
   // When this chapter is opened inside the hub's own iframe, the hub already
   // shows a persistent "◀ Menu" bar above it — hide the standalone fallback.
   if (window.self !== window.top) document.getElementById("hubBack").style.display = "none";
 </script>
-<script src="../../update-manager.js?v=du-2b5bf1340085b709"></script>
+<script src="../../update-manager.js?v=du-556d96214a55198f"></script>
 </body>
 </html>

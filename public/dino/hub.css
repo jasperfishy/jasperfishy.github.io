@@ -57,6 +57,18 @@ body.in-stage #hubbar { display: none; }
 .hero-scene[data-tod="night"] { --sky1: #0c1a45; --sky2: #2f4f8c; --m1: #243666; --m2: #314678; --g1: #2c6657; --g2: #1d4a45; }
 .hero-scene[data-tod="dawn"]  { --sky1: #9ec4f0; --sky2: #ffd7bf; --m1: #96b7b1; --m2: #b5c9b4; --g1: #94cf8e; --g2: #62b078; }
 .hs-sky-bg { position: absolute; inset: 0; background: linear-gradient(var(--sky1), var(--sky2)); }
+/* The hub opens on the same real valley the story is told in front of, and it
+ * changes with the time of day just like the painted sky does. The gradient stays
+ * underneath as a wash over the top of the photo, so Rex and the words never sit
+ * on a busy picture — and while a photograph is still downloading, or if it never
+ * arrives, the scene looks exactly the way it did before the photo existed. */
+.hs-photo { position: absolute; inset: 0; background-size: cover; background-position: center 58%;
+  animation: hs-photo-in 1.4s ease-out both; }
+@keyframes hs-photo-in { from { opacity: 0 } to { opacity: 1 } }
+.hero-scene[data-tod="day"] .hs-photo   { background-image: linear-gradient(180deg, rgba(143,216,240,.14), rgba(230,247,216,.52)), url(fx/art/day.jpg); }
+.hero-scene[data-tod="dawn"] .hs-photo  { background-image: linear-gradient(180deg, rgba(158,196,240,.20), rgba(255,215,191,.58)), url(fx/art/sun.jpg); }
+.hero-scene[data-tod="dusk"] .hs-photo  { background-image: linear-gradient(180deg, rgba(106,95,176,.30), rgba(255,178,122,.52)), url(fx/art/sun.jpg); }
+.hero-scene[data-tod="night"] .hs-photo { background-image: linear-gradient(180deg, rgba(12,26,69,.34), rgba(47,79,140,.74)), url(fx/art/night.jpg); }
 .hs-layer { position: absolute; inset: 0; transform: translate(calc(var(--px) * var(--k, 1) * -10px), calc(var(--py) * var(--k, 1) * -5px)); transition: transform .25s ease-out; pointer-events: none; }
 .hs-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .hs-mtn1 { fill: var(--m1); transition: fill 3s; } .hs-mtn2 { fill: var(--m2); transition: fill 3s; }
@@ -128,7 +140,7 @@ body.in-stage #hubbar { display: none; }
 .hs-fore em { position: absolute; bottom: 2px; font-style: normal; font-size: 22px; transform-origin: 50% 100%; animation: hs-grass 3.4s ease-in-out infinite; }
 .hs-fore em:nth-of-type(2) { animation-delay: -1s; } .hs-fore em:nth-of-type(3) { animation-delay: -2s; }
 
-.hs-greet { position: absolute; left: 0; right: 0; top: 0; padding: 16px 22px; z-index: 7; text-shadow: 0 2px 10px rgba(0,60,60,.35); color: #fff; pointer-events: none; }
+.hs-greet { position: absolute; left: 0; right: 0; top: 0; padding: 16px 22px; z-index: 7; text-shadow: 0 2px 4px rgba(6,44,52,.62), 0 7px 20px rgba(6,44,52,.45); color: #fff; pointer-events: none; }
 .hs-greet h1 { margin: 0; font-size: clamp(1.7rem, 4.6vw, 2.7rem); letter-spacing: -.02em; line-height: 1.05; }
 .hs-greet p { margin: 4px 0 0; font-size: clamp(.95rem, 2vw, 1.15rem); font-weight: 700; opacity: .96; }
 .wave span { display: inline-block; animation: hs-wave 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * .07s); white-space: pre; }
@@ -230,9 +242,20 @@ body[data-tod="night"] .module-group h3 { color: #a8e3d2; }
 /* ===================== STAGE ===================== */
 #stage { position: fixed; inset: 0; display: flex; flex-direction: column; background: #fff; z-index: 20; }
 #stage[hidden] { display: none; }
-#stagebar { display: flex; align-items: center; gap: 12px; padding: 8px 14px; padding-top: calc(8px + env(safe-area-inset-top)); background: linear-gradient(90deg, #0b6e5f, #1b8b78); color: #fff; box-shadow: 0 3px 12px rgba(8,70,60,.3); }
+#stagebar { display: flex; align-items: center; gap: 12px; padding: 8px 14px; padding-top: calc(8px + env(safe-area-inset-top)); background: linear-gradient(90deg, #0b6e5f, #1b8b78); color: #fff; box-shadow: 0 3px 12px rgba(8,70,60,.3); flex-wrap: wrap; }
 #stagebar .back { background: #fff; padding: 9px 16px; font-weight: 800; }
 #stageTitle { font-weight: 900; font-size: 1.05rem; letter-spacing: -.01em; }
+/* The story strip rides in the game bar, so the main tale is never left behind
+ * on the menu. It is deliberately small: the game stays the biggest thing here. */
+#stageStory { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+#stageStory .ss-part { background: rgba(255,255,255,.18); border-radius: 999px; padding: 4px 10px; font-size: .72rem; font-weight: 900; letter-spacing: .04em; }
+#stageStory .ss-title { font-weight: 800; font-size: .86rem; opacity: .95; }
+#stageStory .ss-goal { background: rgba(6,40,35,.35); border-radius: 999px; padding: 4px 10px; font-weight: 900; font-size: .78rem; }
+#stageStory .ss-goal.met { background: #ffd23f; color: #40300a; animation: du-twinkle 1.6s ease-in-out infinite; }
+#stageStory .ss-mate { font-size: .78rem; font-weight: 800; opacity: .9; }
+#stageStory .ss-btn { background: #fff; color: #0b6e5f; font-size: .8rem; padding: 7px 12px; font-weight: 900; }
+.sr-path { font-size: .92rem; font-weight: 700; color: #26513f; margin: 6px 0 0; }
+.sr-trail { font-size: .84rem; color: #4b6a5c; margin: 2px 0 0; }
 #chapter { flex: 1; border: 0; width: 100%; background: #fff; opacity: 0; transition: opacity .45s; }
 #chapter.ready { opacity: 1; }
 #loader { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); width: 150px; z-index: 0; transition: opacity .3s; }
@@ -273,3 +296,61 @@ body[data-tod="night"] .module-group h3 { color: #a8e3d2; }
 .ca-balloon { position: absolute; bottom: 30%; left: var(--x); width: 20px; height: 26px; border-radius: 50% 50% 46% 46%; background: var(--c); box-shadow: inset -4px -4px 0 rgba(0,0,0,.12); animation: ca-rise 6s ease-in-out infinite; animation-delay: var(--d); }
 .ca-balloon::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: 24px; background: rgba(0,0,0,.35); }
 @keyframes ca-rise { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-34px) rotate(4deg); } }
+
+/* ===================== STORY RIBBON ===================== */
+.story-ribbon {
+  display: grid; grid-template-columns: 26px 1fr; gap: 16px; align-items: start;
+  margin: 18px 0 6px; padding: 18px 20px;
+  border-radius: 28px; border: 2px solid rgba(233,196,106,.7);
+  background: linear-gradient(150deg, rgba(255,247,224,.92), rgba(232,248,240,.9));
+  box-shadow: 0 10px 26px rgba(20,60,58,.12);
+}
+body[data-tod="night"] .story-ribbon { background: linear-gradient(150deg, rgba(48,58,120,.86), rgba(30,52,96,.82)); border-color: rgba(255,226,120,.45); }
+.story-ribbon h2 { margin: 2px 0 4px; font-size: 1.35rem; }
+.story-ribbon p { margin: 0 0 10px; color: #4b6b66; max-width: 62ch; }
+body[data-tod="night"] .story-ribbon p { color: #c9e2dd; }
+.story-ribbon .toolbar { margin-top: 4px; }
+/* The crystals read left to right down the side of the ribbon, like a path. */
+.sr-crystals { display: grid; gap: 9px; align-content: start; padding-top: 4px; }
+.sr-pip { width: 15px; height: 15px; border-radius: 50%; background: #d7e7e1; box-shadow: inset 0 0 0 2px rgba(255,255,255,.6); }
+.sr-pip.now { background: #ffd45e; animation: du-twinkle 1.6s ease-in-out infinite; }
+.sr-pip.won { background: #2a9d8f; box-shadow: 0 0 0 2px #ffe9a8, 0 0 10px rgba(255,226,120,.8); }
+.cc-crystal { position: absolute; right: 10px; top: 8px; font-size: 1.5rem; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); animation: du-bob2 2.8s ease-in-out infinite; }
+.chapter-card.begun::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 42%, rgba(255,232,150,.26) 50%, transparent 58%); transform: translateX(-120%); animation: hub-shimmer 6.5s ease-in-out infinite; pointer-events: none; }
+
+/* ===================== JOURNEY MAP ===================== */
+.modal-wide { max-width: 680px; }
+.jy-totals { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+.jy-pill { padding: 7px 13px; border-radius: 999px; background: #eef8f3; border: 1px solid #cfe8e2; font-size: .86rem; font-weight: 700; }
+.jy-pill b { font-size: 1.02rem; }
+.jy-h { margin: 18px 0 8px; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; color: #177a63; }
+.jy-path, .jy-worlds { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.jy-path button, .jy-worlds button {
+  width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 11px;
+  padding: 9px 12px; border: 1px solid #dceee7; border-radius: 16px; background: #fbfffd; color: var(--ink);
+  font: inherit; text-align: left; cursor: pointer; transition: transform .16s, border-color .2s, box-shadow .2s;
+}
+.jy-path button:hover, .jy-worlds button:hover { transform: translateX(3px); border-color: #8ccbb9; box-shadow: 0 6px 16px rgba(20,60,58,.12); }
+.jy-num { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: #dff0e8; color: #177a63; font-weight: 900; font-size: .9rem; }
+.jy-step.won .jy-num { background: #2a9d8f; color: #fff; }
+.jy-step.now .jy-num { background: #ffd45e; color: #6b4c00; animation: du-twinkle 1.8s ease-in-out infinite; }
+.jy-what { min-width: 0; display: grid; gap: 2px; }
+.jy-what b { font-size: .98rem; }
+.jy-what i { font-style: normal; color: #5c7a75; font-size: .78rem; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.jy-mark { font-weight: 900; color: #2a9d8f; white-space: nowrap; }
+.jy-worlds .jy-icon { font-size: 1.5rem; display: grid; place-items: center; }
+.jy-wonders { margin: 0; color: #4b6b66; font-size: .88rem; }
+.jy-picks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.jy-picks li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 9px 12px;
+  border: 1px solid #e6d9bd; border-radius: 16px; background: linear-gradient(180deg, #fffdf4, #fff);
+  box-shadow: 0 3px 10px rgba(60,50,20,.06);
+}
+.jy-picks b { font-size: .82rem; color: #a5691c; letter-spacing: .04em; text-transform: uppercase; }
+.jy-picks i { font-style: normal; font-size: .92rem; font-weight: 700; color: var(--ink); }
+body[data-tod="night"] .jy-picks li { background: linear-gradient(180deg, rgba(56,64,104,.8), rgba(34,44,78,.8)); border-color: rgba(255,255,255,.16); }
+body[data-tod="night"] .jy-picks b { color: #f0c46a; }
+@media (max-width: 560px) {
+  .story-ribbon { grid-template-columns: 1fr; }
+  .sr-crystals { grid-auto-flow: column; justify-content: start; }
+}
