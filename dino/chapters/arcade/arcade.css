@@ -230,21 +230,8 @@ header > * { pointer-events: auto; }
   transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.3s ease, background 0.3s ease;
   animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-#gameGrid .game-card:nth-child(1) { animation-delay: 0.03s; }
-#gameGrid .game-card:nth-child(2) { animation-delay: 0.06s; }
-#gameGrid .game-card:nth-child(3) { animation-delay: 0.09s; }
-#gameGrid .game-card:nth-child(4) { animation-delay: 0.12s; }
-#gameGrid .game-card:nth-child(5) { animation-delay: 0.15s; }
-#gameGrid .game-card:nth-child(6) { animation-delay: 0.18s; }
-#gameGrid .game-card:nth-child(7) { animation-delay: 0.21s; }
-#gameGrid .game-card:nth-child(8) { animation-delay: 0.24s; }
-#gameGrid .game-card:nth-child(9) { animation-delay: 0.27s; }
-#gameGrid .game-card:nth-child(10) { animation-delay: 0.3s; }
-#gameGrid .game-card:nth-child(11) { animation-delay: 0.33s; }
-#gameGrid .game-card:nth-child(12) { animation-delay: 0.36s; }
-#gameGrid .game-card:nth-child(13) { animation-delay: 0.39s; }
-#gameGrid .game-card:nth-child(14) { animation-delay: 0.42s; }
-#gameGrid .game-card:nth-child(15) { animation-delay: 0.45s; }
+/* the grid grows with the catalogue, so the stagger rides an index variable */
+#gameGrid .game-card { animation-delay: calc(var(--i, 0) * 0.03s); }
 
 .game-card::before {
   content: "";
@@ -601,7 +588,17 @@ body[data-mode="menu"] #shade, body[data-mode="cover"] #shade { display: none; }
   #instruments { top: calc(60px + env(safe-area-inset-top)); left: 20px; right: 20px; }
   .inst-score b { font-size: 28px; }
   .meter { width: 112px; }
-  #notice { bottom: 14vh; max-width: 92vw; white-space: normal; text-align: center; }
+  /* on a phone the field is the whole screen, so the caption that was a strip of
+     chrome in landscape would sit on top of the pack and hide the very thing it is
+     announcing. it lives in the sky now, over the art and never over the actors. */
+  #notice {
+    top: calc(196px + env(safe-area-inset-top));
+    bottom: auto;
+    max-width: 86vw;
+    white-space: normal;
+    text-align: center;
+    background: color-mix(in srgb, var(--panel) 74%, transparent);
+  }
   #hint {
     bottom: calc(14px + env(safe-area-inset-bottom));
     width: 90%;

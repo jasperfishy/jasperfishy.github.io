@@ -3,7 +3,7 @@
 // at the top of the arc, and lift the hatchlings off the rocks before their
 // bubbles stop rising.
 
-import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-a1454ea5250e1aa0';
+import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-f652baf3e7fda2b1';
 
 const GOAL = 16;
 const STAR = [6, 11, 16];

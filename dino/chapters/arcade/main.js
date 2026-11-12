@@ -1,9 +1,9 @@
-import { CATALOG, byId, LOADERS } from './catalog.js?v=du-a1454ea5250e1aa0';
-import { emblemFor } from './emblems.js?v=du-a1454ea5250e1aa0';
+import { CATALOG, byId, LOADERS } from './catalog.js?v=du-f652baf3e7fda2b1';
+import { emblemFor } from './emblems.js?v=du-f652baf3e7fda2b1';
 import {
   W, metrics, makeScene, ArcadeAudio, readSave, saveStars, shell,
   starsMarkup, bestFor
-} from './engine.js?v=du-a1454ea5250e1aa0';
+} from './engine.js?v=du-f652baf3e7fda2b1';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -42,11 +42,22 @@ function miniStars(n) {
     `<svg viewBox="0 0 24 24" aria-hidden="true" class="${i < n ? 'lit' : ''}"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>`).join('')}</span>`;
 }
 
+const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty'];
+function numberWords(n) {
+  if (n < 20) return ONES[n];
+  return TENS[Math.floor(n / 10)] + (n % 10 ? '-' + ONES[n % 10] : '');
+}
+
 function renderMenu() {
+  const word = numberWords(CATALOG.length);
+  $('menuCount').textContent = word.charAt(0).toUpperCase() + word.slice(1) + ' small worlds';
+  $('menuWays').textContent = word + ' ways';
   const save = readSave();
-  $('gameGrid').innerHTML = CATALOG.map((g) => {
+  $('gameGrid').innerHTML = CATALOG.map((g, i) => {
     const best = Number(save[g.id]) || 0;
-    return `<button class="game-card" type="button" data-game="${g.id}" style="--accent:${g.accent}">
+    return `<button class="game-card" type="button" data-game="${g.id}" style="--accent:${g.accent};--i:${i}">
       <span class="gc-no">${String(g.no).padStart(2, '0')}</span>
       <span class="gc-art">${emblemFor(g)}</span>
       <span class="gc-body">

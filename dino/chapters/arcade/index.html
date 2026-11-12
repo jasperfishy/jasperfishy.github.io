@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#10262a">
 <title>Prehistoric Arcade · Dinosaur Universe</title>
-<link rel="stylesheet" href="arcade.css?v=du-a1454ea5250e1aa0">
+<link rel="stylesheet" href="arcade.css?v=du-f652baf3e7fda2b1">
 </head>
 <body data-mode="menu" data-tod="dusk">
-<main id="deck" aria-label="Prehistoric Arcade, ten games in the Dinosaur Universe">
+<main id="deck" aria-label="Prehistoric Arcade in the Dinosaur Universe">
   <div id="world-backdrop" aria-hidden="true">
     <i class="wb-sun"></i>
     <i class="wb-cloud wb-c1"></i><i class="wb-cloud wb-c2"></i><i class="wb-cloud wb-c3"></i>
@@ -26,7 +26,7 @@
   <div id="grain" aria-hidden="true"></div>
 
   <header>
-    <a id="back" href="../index.html?v=du-a1454ea5250e1aa0"><span aria-hidden="true">‹</span> Dinosaur Universe</a>
+    <a id="back" href="../index.html?v=du-f652baf3e7fda2b1"><span aria-hidden="true">‹</span> Dinosaur Universe</a>
     <div class="tools">
       <button id="mute" type="button" aria-pressed="true">Sound on</button>
       <button id="pause" type="button" hidden>Pause</button>
@@ -35,8 +35,8 @@
 
   <section id="menu">
     <div class="menu-head">
-      <span class="kicker">Prehistoric Arcade <i></i> Ten small worlds</span>
-      <h1>The wild planet,<br><em>ten ways</em></h1>
+      <span class="kicker">Prehistoric Arcade <i></i> <span id="menuCount">Twenty-nine small worlds</span></span>
+      <h1>The wild planet,<br><em id="menuWays">twenty-nine ways</em></h1>
       <p>Each one a living place with its own weather, its own creatures and its own way to be brave. Pick a world and stay a while.</p>
     </div>
     <div id="gameGrid"></div>
@@ -54,7 +54,7 @@
       <div><small>Best</small><p id="coverBest">Not yet flown</p></div>
     </div>
     <button id="startBtn" class="launch" type="button"><span>Enter the world</span><b aria-hidden="true">→</b></button>
-    <button id="coverBack" class="quiet" type="button">All ten worlds</button>
+    <button id="coverBack" class="quiet" type="button">All worlds</button>
   </section>
 
   <div id="air" aria-hidden="true"></div>
@@ -80,7 +80,7 @@
     <h2>The world holds its breath</h2>
     <p>Everything is exactly where you left it.</p>
     <button id="resume" class="launch" type="button"><span>Continue</span><b aria-hidden="true">→</b></button>
-    <button id="leave" class="quiet" type="button">All ten worlds</button>
+    <button id="leave" class="quiet" type="button">All worlds</button>
   </section>
 
   <section id="results" hidden>
@@ -91,12 +91,12 @@
     <div class="result-actions">
       <button id="again" class="launch" type="button"><span>Run it again</span><b aria-hidden="true">→</b></button>
       <button id="next" class="quiet" type="button"></button>
-      <button id="home" class="quiet" type="button">All ten worlds</button>
+      <button id="home" class="quiet" type="button">All worlds</button>
     </div>
   </section>
 </main>
-<script src="../../fx/du-journey.js?v=du-a1454ea5250e1aa0"></script>
-<script src="../../lib/phaser.min.js?v=du-a1454ea5250e1aa0"></script>
-<script type="module" src="main.js?v=du-a1454ea5250e1aa0"></script>
+<script src="../../fx/du-journey.js?v=du-f652baf3e7fda2b1"></script>
+<script src="../../lib/phaser.min.js?v=du-f652baf3e7fda2b1"></script>
+<script type="module" src="main.js?v=du-f652baf3e7fda2b1"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 // Chapters 4–7: the Crystal Cave, the River of Fire, the Sky Ride and Grumblecloud's Peak.
-import { wait, rnd, MOUNTS, writeSave, kidName } from './engine.js?v=du-a1454ea5250e1aa0';
-import { sing } from './chapters-a.js?v=du-a1454ea5250e1aa0';
+import { wait, rnd, MOUNTS, writeSave, kidName } from './engine.js?v=du-f652baf3e7fda2b1';
+import { sing } from './chapters-a.js?v=du-f652baf3e7fda2b1';
 const FX = window.DUFX;
 const KEYS = [{ icon: '💎', deg: 0, color: '#4fd0ff' }, { icon: '🔮', deg: 1, color: '#c18bff' }, { icon: '💚', deg: 2, color: '#5be39b' }, { icon: '🧡', deg: 3, color: '#ffb04d' }];
 const seqOf = (n) => { const a = []; for (let i = 0; i < n; i++) a.push(Math.floor(Math.random() * 4)); return a; };

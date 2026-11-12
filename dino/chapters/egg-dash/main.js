@@ -1,7 +1,7 @@
 /* Dinosaur Universe — Dino Egg Dash (original Phaser chapter).
  * A baby T-rex hops over rocks and catches sparkly eggs. Ages 3–8.
  * All art is drawn on canvas at boot (no copied assets). */
-import { chapters } from "../../chapters.js?v=du-a1454ea5250e1aa0";
+import { chapters } from "../../chapters.js?v=du-f652baf3e7fda2b1";
 
 const W = 960, H = 540;
 const STORE_KEY = "dino-egg-dash-v1";
