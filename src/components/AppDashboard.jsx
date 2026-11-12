@@ -5,6 +5,7 @@ import mobileDiveFilm from "../assets/marianas-small.mp4";
 import divePoster from "../assets/marianas-poster.webp";
 import "../tidal.css";
 import "../premium.css";
+import "../install.css";
 import dinoHub from "../assets/dino-hub.jpg";
 import dinoPark from "../assets/dino-park.jpg";
 import dinoMeadow from "../assets/dino-meadow.jpg";
@@ -164,7 +165,7 @@ function DinoArt() {
   );
 }
 
-function DinoSection() {
+function DinoSection({ onInstall }) {
   return (
     <section id="dinosaur-universe" className="project-section dino-section" aria-labelledby="dino-title" data-reveal>
       <div className="section-heading">
@@ -194,7 +195,7 @@ function DinoSection() {
             <a className="button button-primary" href={DINO_URL}>
               Open Dinosaur Universe <Icon name="arrow" />
             </a>
-            <span className="install-hint"><Icon name="device" />Add it to a tablet’s home screen</span>
+            <a className="button button-install" href="#install-apps" onClick={() => onInstall("dino")}><Icon name="device" />Install on your device</a>
           </div>
           <p className="app-facts">Free to play. No ads, no accounts, nothing to buy.</p>
         </div>
@@ -235,6 +236,63 @@ function DinoSection() {
           <h3>Ready for the car.</h3>
           <p>Once it has loaded, it keeps working offline. Progress is saved on the device you play on.</p>
         </article>
+      </div>
+    </section>
+  );
+}
+
+function InstallGuide({ selectedApp, onSelect }) {
+  const app = apps.find((item) => item.id === selectedApp) || apps[0];
+  return (
+    <section id="install-apps" className="install-section" aria-labelledby="install-title">
+      <div className="install-intro">
+        <span className="install-symbol" aria-hidden="true"><Icon name="device" /></span>
+        <h2 id="install-title">A little closer.<br />One tap away.</h2>
+        <p>Keep your favourite app on your home screen or desktop. Free to install, with no app store needed.</p>
+        <p className="install-caption">Phone, iPad, tablet or computer.</p>
+      </div>
+      <div className="install-guide">
+        <h3>Install the apps</h3>
+        <fieldset className="install-picker">
+          <legend>1. Choose your app</legend>
+          {apps.map((item) => (
+            <label key={item.id}>
+              <input type="radio" name="install-app" value={item.id} checked={app.id === item.id} onChange={() => onSelect(item.id)} />
+              <span>{item.name}</span>
+            </label>
+          ))}
+        </fieldset>
+        <h4>2. Follow the steps for your device</h4>
+        <p>Open <strong>{app.name}</strong> using the button below, then add it from your browser. Install the app page, rather than this collection page.</p>
+        <div className="install-devices">
+          <details open>
+            <summary>iPhone &amp; iPad <Icon name="down" /></summary>
+            <ol>
+              <li>Open {app.name} in <strong>Safari</strong>.</li>
+              <li>Tap <strong>Share</strong> (the square with an upward arrow). It may be inside the <strong>More</strong> menu.</li>
+              <li>Choose <strong>Add to Home Screen</strong>. Scroll down if needed. Leave <strong>Open as Web App</strong> on if shown, then tap <strong>Add</strong>.</li>
+            </ol>
+          </details>
+          <details>
+            <summary>Android phone &amp; tablet <Icon name="down" /></summary>
+            <ol>
+              <li>Open {app.name} in <strong>Chrome</strong>.</li>
+              <li>Tap the <strong>⋮ menu</strong>, then <strong>Add to home screen</strong> or <strong>Install app</strong>.</li>
+              <li>Choose <strong>Install</strong> if offered, then follow the confirmation. Some browsers offer a home-screen shortcut instead.</li>
+            </ol>
+          </details>
+          <details>
+            <summary>Desktop &amp; laptop <Icon name="down" /></summary>
+            <ol>
+              <li>Open {app.name} in <strong>Chrome</strong> or <strong>Edge</strong> on your computer.</li>
+              <li>Use the install icon in the address bar. In Chrome, you can also choose <strong>⋮ → Cast, save and share → Install page as app</strong>. In Edge, look under <strong>⋯ → Apps</strong>.</li>
+              <li>Confirm <strong>Install</strong>. On a Mac with Safari, use <strong>File → Add to Dock</strong> instead (macOS Sonoma or later).</li>
+            </ol>
+          </details>
+        </div>
+        <a className="button button-primary install-open" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name}<Icon name="external" /></a>
+        <p className="install-small">Opens in a new tab, so you can keep these steps handy. If you are browsing inside another app, open the link in Safari or Chrome first.</p>
+        {app.id === "focusdrop" && <a className="install-offline" href={`${APP_URL}/?install=1`} target="_blank" rel="noopener noreferrer">Prefer a download? Get FocusDrop’s offline copy <Icon name="external" /></a>}
       </div>
     </section>
   );
@@ -373,6 +431,7 @@ function CaptureDemo() {
 
 export default function AppDashboard() {
   const landingRef = useRef(null);
+  const [installApp, setInstallApp] = useState("focusdrop");
   const scrolled = useHeaderState();
   useReveal();
 
@@ -405,6 +464,7 @@ export default function AppDashboard() {
           </a>
           <nav aria-label="Main navigation">
             <a href="#app-catalogue">The apps</a>
+            <a className="nav-install" href="#install-apps">Install apps <Icon name="down" /></a>
             <a href="#dinosaur-universe">Dinosaurs</a>
             <a href="#about">The idea</a>
             <a
@@ -428,7 +488,11 @@ export default function AppDashboard() {
                   <em className="hero-title-line">worlds.</em>
                 </h1>
                 <p className="hero-lede">A quiet place to catch a thought. A dinosaur world to get lost in. Pick a current and see where it takes you.</p>
-                <div className="hero-actions"><a className="button button-primary" href="#app-catalogue">Explore the apps <Icon name="down"/></a></div>
+                <div className="hero-actions">
+                  <a className="button button-primary" href="#app-catalogue">Explore the apps <Icon name="down" /></a>
+                  <a className="button button-install" href="#install-apps"><Icon name="device" />Install the apps</a>
+                </div>
+                <p className="hero-device-note">Free. Yours to keep close. On phone, iPad &amp; desktop.</p>
               </div>
               <a className="hero-scroll" href="#app-catalogue" aria-label="Scroll to the apps"><span>Scroll</span><i /></a>
               <p className="hero-credit">Film: <a href="https://oceanexplorer.noaa.gov/multimedia/video-playlist-best-jellyfish/" target="_blank" rel="noopener noreferrer">NOAA Ocean Exploration</a>, Marianas 2016</p>
@@ -453,12 +517,16 @@ export default function AppDashboard() {
                   <ul className="card-facts" aria-label={`${app.name} at a glance`}>
                     {(CARD_FACTS[app.id] || []).map((fact) => <li key={fact}>{fact}</li>)}
                   </ul>
-                  <a className="button button-primary" href={app.url}>Open {app.name}<Icon name="arrow" /></a>
+                  <div className="catalogue-actions">
+                    <a className="button button-primary" href={app.url}>Open {app.name}<Icon name="arrow" /></a>
+                    <a className="button button-install" href="#install-apps" onClick={() => setInstallApp(app.id)} aria-label={`Install ${app.name} on your device`}><Icon name="device" />Install on your device</a>
+                  </div>
                 </article>
               ))}
             </div>
-            <p className="directory-note">Choose an app to open it. Each has its own place to play or work.</p>
+            <p className="directory-note">Open an app to try it, or install it to keep it close. No account needed.</p>
           </section>
+          <InstallGuide selectedApp={installApp} onSelect={setInstallApp} />
           <section
             id="focusdrop"
             className="project-section"
@@ -506,13 +574,13 @@ export default function AppDashboard() {
                     Open FocusDrop <Icon name="arrow" />
                   </a>
                   <a
-                    className="install-link"
+                    className="button button-install"
                     href={`${APP_URL}/?install=1`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <Icon name="device" />
-                    Install the app
+                    Install on your device
                   </a>
                 </div>
                 <p className="app-facts">Free to use. No account needed.</p>
@@ -546,7 +614,7 @@ export default function AppDashboard() {
               </article>
             </div>
           </section>
-          <DinoSection />
+          <DinoSection onInstall={setInstallApp} />
           <section
             id="about"
             className="about-section"
@@ -585,7 +653,7 @@ export default function AppDashboard() {
                   <Icon name="down" />
                 </summary>
                 <p>
-                  Yes. Open it in your browser, or use “Install the app” for
+                  Yes. Open it in your browser, or use “Install on your device” for
                   guidance on adding it to your phone or desktop. Once installed
                   and loaded, it works offline too.
                 </p>
@@ -651,6 +719,7 @@ export default function AppDashboard() {
               <h2>Apps</h2>
               <a href={APP_URL} target="_blank" rel="noopener noreferrer">FocusDrop</a>
               <a href={DINO_URL}>Dinosaur Universe</a>
+              <a href="#install-apps">Install the apps</a>
             </div>
             <div>
               <h2>Jasperfish</h2>

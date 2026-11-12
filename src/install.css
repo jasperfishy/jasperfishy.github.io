@@ -1,0 +1,63 @@
+/* Installation belongs alongside discovery, in the existing tidal palette. */
+.site-header nav a.nav-install { display: inline-flex; gap: 7px; color: var(--peach); }
+.nav-install .icon { width: 15px; height: 15px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.button.button-install { min-height: 48px; border: 1px solid #9b9f89; border-radius: 6px; color: var(--cream); background: rgba(11,35,34,.64); font-size: .9rem; }
+.button.button-install:hover { background: #284b43; border-color: var(--peach); }
+.button.button-primary { border-radius: 6px; }
+.hero-device-note { margin: 16px 0 0; color: #c5d0c9; font-size: .8rem; line-height: 1.6; }
+.catalogue-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: auto; padding-top: 5px; }
+.catalogue-card .catalogue-actions .button { margin: 0; min-height: 48px; }
+.catalogue-actions .button { padding-inline: 18px; }
+.install-section { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); gap: clamp(28px,6vw,90px); margin: 44px 0 70px; padding: clamp(26px,4.5vw,64px); border: 1px solid rgba(237,196,159,.3); border-radius: 22px; background: #173a35; }
+.install-intro { align-self: start; }
+.install-symbol { display: grid; place-items: center; width: 56px; height: 56px; border: 1px solid var(--line); border-radius: 16px; color: var(--peach); margin-bottom: 28px; }
+.install-symbol .icon { width: 28px; height: 28px; }
+.install-intro h2 { font: 400 clamp(2.8rem,4.3vw,4.8rem)/1.06 Georgia,serif; letter-spacing: -.045em; margin: 0 0 22px; color: var(--cream); }
+.install-intro p { color: var(--mist); max-width: 32ch; line-height: 1.8; }
+.install-intro .install-caption { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); font-size: .84rem; color: var(--peach); }
+.install-guide h3 { margin: 0 0 22px; font-size: 1.45rem; letter-spacing: -.025em; }
+.install-picker { display: flex; flex-wrap: wrap; gap: 10px; border: 0; margin: 0 0 24px; padding: 0; min-width: 0; }
+.install-picker legend, .install-guide h4 { font-size: .95rem; font-weight: 600; margin: 0 0 12px; padding: 0; color: var(--cream); }
+.install-picker label { position: relative; cursor: pointer; }
+.install-picker input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.install-picker span { display: flex; align-items: center; min-height: 48px; padding: 10px 16px; border: 1px solid #7c9687; border-radius: 8px; font-size: .9rem; color: var(--cream); }
+.install-picker input:checked + span { background: var(--peach); border-color: var(--peach); color: #193531; }
+.install-picker input:focus-visible + span { outline: 3px solid var(--peach); outline-offset: 4px; }
+.install-guide > p { color: var(--mist); line-height: 1.7; font-size: .9rem; }
+.install-devices { margin: 22px 0; border-top: 1px solid var(--line); }
+.install-devices details { border-bottom: 1px solid var(--line); }
+.install-devices summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 15px 0; color: var(--cream); font-weight: 600; cursor: pointer; list-style: none; }
+.install-devices summary::-webkit-details-marker { display: none; }
+.install-devices summary .icon { flex-shrink: 0; width: 18px; height: 18px; }
+.install-devices details[open] summary .icon { transform: rotate(180deg); }
+.install-devices ol { padding-left: 24px; margin: 0 0 22px; color: var(--mist); font-size: .9rem; line-height: 1.8; }
+.install-devices li { padding-left: 5px; margin: 9px 0; }
+.install-devices li::marker { color: var(--peach); font-weight: 600; }
+.install-devices strong { color: var(--cream); font-weight: 600; }
+.install-guide .install-small { font-size: .79rem; margin-top: 13px; }
+.install-offline { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: .84rem; color: var(--peach); text-decoration: underline; text-underline-offset: 4px; }
+.install-offline .icon { flex-shrink: 0; width: 15px; height: 15px; }
+.directory-note { margin-top: 22px; font-size: .88rem; }
+@media (max-width: 900px) {
+  .site-header nav { gap: 16px; }
+  .site-header nav a[href="#dinosaur-universe"] { display: none; }
+  .install-section { grid-template-columns: 1fr; gap: 22px; }
+  .install-intro h2 br { display: none; }
+  .install-intro p { max-width: 52ch; }
+  .install-symbol { margin-bottom: 18px; }
+  .install-intro .install-caption { margin-top: 16px; padding-top: 14px; }
+}
+@media (max-width: 560px) {
+  .site-header nav .nav-github { display: none; }
+  .site-header nav { gap: 14px; }
+  .hero-actions { justify-content: flex-start; gap: 10px; }
+  .hero-actions .button { padding-inline: 14px; min-height: 48px; font-size: .82rem; }
+  .hero-device-note { max-width: 33ch; font-size: .76rem; }
+  .landing-hero { padding-bottom: 54px; }
+  .catalogue-actions { flex-direction: column; }
+  .catalogue-card .catalogue-actions .button { width: 100%; }
+  .install-section { padding: 24px 20px; margin-block: 28px 44px; border-radius: 16px; }
+  .install-intro h2 { font-size: 2.8rem; }
+  .install-open { width: 100%; }
+}
