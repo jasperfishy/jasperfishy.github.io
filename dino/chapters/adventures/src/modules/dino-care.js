@@ -3,8 +3,8 @@
  * every care kind has its own sound and its own little show, a free hint points at the lowest bar, the clinic window
  * shows the weather outside, and a get-well flower garden blooms behind the desk while you work. Wrong tool? The
  * dinosaur kindly says what it really needs. */
-import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-28730ed953f5f1ae";
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-28730ed953f5f1ae";
+import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-e3e2759ce3d75cba";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-e3e2759ce3d75cba";
 
 const PATIENTS = [
   { sp: "trex", color: "green", name: "Rexy", fact: "T. rex had strong legs, tiny arms and a powerful bite." },

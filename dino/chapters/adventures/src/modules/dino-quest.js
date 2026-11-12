@@ -4,7 +4,7 @@
 // egg home to its mummy. Weather, path and torch direction change what happens, crystals are counted as
 // gems, and every finished quest is remembered on this device so the next one has something to beat.
 // Optional real photos/videos for the "real dinosaur moment" cards come from assets/real/manifest.json.
-import { attachBonus, collect, collection } from "../adv-kit.js?v=du-28730ed953f5f1ae";
+import { attachBonus, collect, collection } from "../adv-kit.js?v=du-e3e2759ce3d75cba";
 const FX = window.DUFX;
 const DINOS = [
   { id: 'raptor', name: 'Velociraptor' }, { id: 'trex', name: 'T-rex' }, { id: 'tricera', name: 'Triceratops' },

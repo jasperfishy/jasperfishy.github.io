@@ -1,7 +1,7 @@
 // render/car.js — Draws the player's car from its config.
 // config = { body, paint, name, stickers: ["⭐", ...] }
 
-import { BODIES } from "./data-cars.js?v=du-28730ed953f5f1ae";
+import { BODIES } from "./data-cars.js?v=du-e3e2759ce3d75cba";
 
 let svgUid = 0;
 

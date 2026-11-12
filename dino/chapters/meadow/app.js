@@ -1,10 +1,10 @@
-import {normalizeName,address} from './profile.js?v=du-28730ed953f5f1ae';
-import {types,themes,activities,tokens,colours,shuffle,mazeFor} from './catalog.js?v=du-28730ed953f5f1ae';
-import {dinosaurs,scenes,dinoSVG,pageSVG,heroSVG} from './art.js?v=du-28730ed953f5f1ae';
-import * as E from './engine.js?v=du-28730ed953f5f1ae';
-import {games} from './games.js?v=du-28730ed953f5f1ae';
-import * as Studio from './studio.js?v=du-28730ed953f5f1ae';
-import {artRead,artWrite,artList,artSVG,validPicture} from './studio.js?v=du-28730ed953f5f1ae';
+import {normalizeName,address} from './profile.js?v=du-e3e2759ce3d75cba';
+import {types,themes,activities,tokens,colours,shuffle,mazeFor} from './catalog.js?v=du-e3e2759ce3d75cba';
+import {dinosaurs,scenes,dinoSVG,pageSVG,heroSVG} from './art.js?v=du-e3e2759ce3d75cba';
+import * as E from './engine.js?v=du-e3e2759ce3d75cba';
+import {games} from './games.js?v=du-e3e2759ce3d75cba';
+import * as Studio from './studio.js?v=du-e3e2759ce3d75cba';
+import {artRead,artWrite,artList,artSVG,validPicture} from './studio.js?v=du-e3e2759ce3d75cba';
 const app=document.querySelector('#app');
 let profile={name:'',asked:false};
 try{const saved=JSON.parse(localStorage.getItem('dm-profile')||'null');if(saved&&normalizeName(saved.name)!==null)profile={name:normalizeName(saved.name),asked:saved.asked===true};}catch{}

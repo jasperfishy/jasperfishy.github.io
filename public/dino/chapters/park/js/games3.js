@@ -299,182 +299,250 @@
     },
   });
 
-  /* ====================================================================== 10. Dino Café */
   const PLANTS = ['🍎', '🥕', '🍓', '🍌', '🥬', '🍇', '🍉', '🍐'], MEATS = ['🍖', '🐟', '🍗', '🥩', '🍤'];
   const SPNAME = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
+  /* ---------------------------------------------------------------------------
+   * 10. Dino Café — a live world. No rounds, no "Level 3", no belt that stops
+   * between tables. Friends walk in, sit down and lose patience in real time;
+   * more arrive at the door the longer the tables take. The one thing the child
+   * is really doing all the way through is choosing *who to serve first* — the
+   * friend closest to storming out gets the food — while the tea urn runs down
+   * and only a finished table tops it back up.
+   * ------------------------------------------------------------------------- */
   window.Park.register({
-    id: 'feed', name: 'Dino Café', icon: 'raptor', color: '#e0762e', rounds: 5, helper: 'raptor', ambient: 'meadow',
-    desc: 'Catch the right food as it rolls past!',
-    round(ctx) {
-      // The belt is moved by script (not a CSS animation) so it still plays for children who use "reduce motion".
-      const R = ctx.round, two = R >= 3, three = R === 5, need = [3, 4, 3, 4, 4][R - 1], speed = [95, 115, 120, 145, 160][R - 1];
-      const hidden = R >= 4;      // the order card stays a secret until the child taps it
-      /* The plate wall: every friend you fill up leaves a washed plate on the wall for good,
-       * and the wall gets a new hook each level — so does the café, which only ever seats friends
-       * whose plate still has a place. */
+    id: 'feed', name: 'Dino Café', icon: 'raptor', color: '#e0762e', live: true, helper: 'raptor', ambient: 'meadow',
+    desc: 'Friends walk in and lose patience — serve the hungriest one first!',
+    async world(ctx) {
+      const MEALS = 2, GOAL = 10, URN_SECONDS = 110, SEATS = 3;
+      let riding = [], spawnLead = 140, last = performance.now(), speed = 92;
+      let busy = false, served = 0, walkouts = 0, waiting = 0;
+
+      /* Every friend who eats their whole meal leaves a washed plate on the wall
+       * for good — the one thing in the café that outlives the visit. */
       const plateV = ledger('cafe-plates'), plateMap = plateV.all();
-      const plateIds = SPECIES.filter((s) => s !== 'ptero').slice(0, Math.min(5, 1 + R));
-      const plateArt = (s, id) => { s.innerHTML = FX.dinoHTML(id, { color: COLORS[SPECIES.indexOf(id) % COLORS.length], state: 'happy' }); };
+      const plateIds = SPECIES.filter((s) => s !== 'ptero');
+      const plateArt = (slot, id) => { slot.innerHTML = FX.dinoHTML(id, { color: COLORS[SPECIES.indexOf(id) % COLORS.length], state: 'happy' }); };
       const wall = collectRow('cafe-wall', 'sp', plateIds, plateMap, '<i>🍽️</i>', plateArt);
-      const sps = shuffle(plateIds);
-      const plantPool = shuffle(PLANTS), meatPool = shuffle(MEATS);
-      const eaters = (three ? [0, 1, 2] : two ? [0, 1] : [0]).map((i) => ({ i, sp: sps[i], mine: (sps[i] === 'trex' || sps[i] === 'raptor') ? meatPool.slice(0, 4) : plantPool.slice(0, 5), want: null, fed: 0 }));
-      const pickWant = (e) => { const taken = eaters.filter((x) => x !== e).map((x) => x.want); return pick(e.mine.filter((f) => f !== e.want && !taken.includes(f))) || e.mine[0]; };
-      eaters.forEach((e) => { e.want = pickWant(e); });
-      const sayOrder = () => ctx.say(hidden ? 'A surprise order! Tap a card to peek at what they want.' : two ? `Two hungry friends! Catch ${eaters.filter((e) => e.fed < need).map((e) => e.want).join(' and ')} for them!` : `I'm hungry! Catch the ${eaters[0].want} for me!`);
-      sayOrder();
-      const best = rec.get('feed' + R);
-      ctx.area.append(recordBar(best === null ? 'Serve this table without a mix-up to set a Café record!' : `Fewest mix-ups here: <b>${best}</b>. Beat it for a chef\u2019s hat!`));
-      const head = statusBar([`Level ${R}`, `${eaters.length} friend${eaters.length === 1 ? '' : 's'} · ${need} plates each`,
-        best === null ? 'No record yet' : `Best ${best} mix-ups`, `Plates ${wall.dataset.got}/${plateIds.length}`], '#e0762e');
-      const plateBit = $('.du-bar-3', head);
-      ctx.area.append(head, wall);
-      const cafe = el('div', 'cafe' + (two ? ' two' : ''));
-      cafe.append(el('div', 'cafe-sign', hidden ? 'DINO CAFÉ ❓' : 'DINO CAFÉ'), el('div', 'cafe-lights', '<i></i><i></i><i></i><i></i><i></i><i></i>'));
-      eaters.forEach((e) => {
-        e.box = el('div', 'cafe-guest' + (e.i === 1 ? ' g2' : ''));
-        if (three) {   // three guests need their own inline row, as the stylesheet only knows one and two
-          e.box.style.width = '29%'; e.box.style.left = (2 + e.i * 34) + '%'; e.box.style.right = 'auto';
-        }
-        e.order = el('div', 'cafe-order', `<span>I want</span><b>${hidden ? '❓' : e.want}</b>`);
-        if (three) e.order.style.right = e.i === 2 ? '-2%' : 'auto';
-        e.order.addEventListener('pointerdown', (ev) => {
-          ev.stopPropagation();
-          if (!hidden) return;
-          $('b', e.order).textContent = e.want; FX.sfx.pop(); FX.pop(e.order);
-          clearTimeout(e._peek); e._peek = setTimeout(() => { if (ctx.alive() && e.fed < need) $('b', e.order).textContent = '❓'; }, 1700);
-        });
-        e.dinoBox = el('div', 'cafe-dino', FX.dinoHTML(e.sp, { color: pick(COLORS), state: 'idle' }));
-        e.hearts = el('div', 'cafe-hearts'); for (let i = 0; i < need; i++) e.hearts.append(el('i', '', '🤍'));
-        e.box.append(e.order, e.dinoBox, e.hearts); cafe.append(e.box);
-        e.dEl = e.dinoBox.firstElementChild;
-      });
-      const belt = el('div', 'belt'); const track = el('div', 'belt-track'); belt.append(el('div', 'belt-roller'));
-      cafe.append(belt, track); ctx.area.append(cafe);
-      const live = [];             // items riding the belt: { el, x, f, kind }
-      let spawnN = 0, sinceSpawn = 9999, busy = false, last = performance.now(), over = false, slips = 0, slow = 1;
-      let tableTwo = null;         // set by the keep-going card: the callback that closes the extra table
-      /* "One more table!" — the same café, freshly seated, inside the keep-going card. */
-      function secondTable(host) {
-        host.innerHTML = '<p style="margin:0;font-weight:800;font-size:14px">Table two is open! Catch exactly what each friend asks for.</p>';
-        eaters.forEach((e) => {
-          e.fed = 0;
-          e.sp = pick(plateIds.filter((s) => s !== e.sp)) || e.sp;
-          e.mine = (e.sp === 'trex' || e.sp === 'raptor') ? meatPool.slice(0, 4) : plantPool.slice(0, 5);
-          e.want = pickWant(e);
-          e.dinoBox.innerHTML = FX.dinoHTML(e.sp, { color: pick(COLORS), state: 'idle' });
-          e.dEl = e.dinoBox.firstElementChild;
-          $$('i', e.hearts).forEach((h) => { h.textContent = '🤍'; });
-          e.box.classList.remove('full');
-          e.order.innerHTML = `<span>I want</span><b>${hidden ? '❓' : e.want}</b>`;
-        });
-        slips = 0; spawnN = 0; sinceSpawn = 9999; slow = 1; over = false; busy = false;
-        live.slice().forEach((o) => remove(o));
-        FX.sfx.whoosh(); ctx.say('A fresh table and new hungry friends! Catch what each one asks for.');
-        last = performance.now(); requestAnimationFrame(frame);
+
+      const cafe = el('div', 'cafe');
+      cafe.append(el('div', 'cafe-sign', 'DINO CAFÉ'), el('div', 'cafe-lights', '<i></i><i></i><i></i><i></i><i></i><i></i>'));
+      const belt = el('div', 'belt'); belt.append(el('div', 'belt-roller'));
+      const track = el('div', 'belt-track');
+      const queue = el('div', 'cafe-queue'); queue.setAttribute('aria-label', 'Friends waiting at the door');
+      cafe.append(belt, track, queue);
+      ctx.area.append(wall, cafe);
+
+      const seats = [];
+      for (let i = 0; i < SEATS; i++) {
+        const box = el('div', 'cafe-guest empty');
+        box.style.width = '29%'; box.style.left = (2 + i * 34) + '%'; box.style.right = 'auto';
+        box.innerHTML = '<span class="cafe-chair">🪑</span>';
+        cafe.append(box);
+        seats.push({ i, box, guest: null });
       }
+
+      const hud = (window.Park.liveHud && Park.liveHud()) || ctx.area;
+      const queueChip = el('div', 'lv-chip', '🚪 0 waiting');
+      ctx.goal('Friends served', GOAL);
+      hud.append(queueChip, helpBtn(showMe));
+
+      const urn = ctx.drain('Tea urn', URN_SECONDS, () => {
+        if (!ctx.alive()) return;
+        ctx.say('The tea urn has run dry — the café is closing for today!');
+        ctx.end(`The café shuts up with ${served} of ${GOAL} friends served.`);
+      });
+
+      const seated = () => seats.filter((s) => s.guest && !s.guest.done);
+      const wants = () => seated().map((s) => s.guest.want);
       const beltW = () => cafe.clientWidth;
-      const wantedNow = () => eaters.filter((e) => e.fed < need).map((e) => e.want);
-      const spawn = () => {
-        spawnN++;
-        const open = eaters.filter((e) => e.fed < need);
-        let f, kind = 'food';
-        if (spawnN % 2 === 1 || spawnN === 2) f = pick(open).want;
-        else if (R >= 2 && Math.random() < .16) { f = '🌟'; kind = 'gold'; }
-        else if (Math.random() < .3) { f = '🧦'; kind = 'sock'; }
-        else { const wants = wantedNow(); const pool = [...plantPool, ...meatPool].filter((x) => !wants.includes(x)); f = pick(pool.length ? pool : plantPool); }
-        const it = el('button', 'belt-item' + (kind === 'gold' ? ' gold' : ''), f); it.dataset.f = f;
-        it.setAttribute('aria-label', kind === 'gold' ? 'Golden star' : wantedNow().includes(f) ? 'Food someone wants' : 'Food');
-        const o = { el: it, x: -90, f, kind };
-        it.onclick = () => take(o);
-        track.append(it); live.push(o); FX.pop(it);
-      };
-      const remove = (o) => { const i = live.indexOf(o); if (i >= 0) live.splice(i, 1); o.el.remove(); };
-      /* A friend who has eaten everything they ordered leaves a clean plate on the wall — once, for good. */
-      const servePlate = (e) => {
-        if (!plateIds.includes(e.sp)) return;
-        if (plateV.set(e.sp, R) && stampInto(wall, plateArt, e.sp, R, 'Plate washed!')) {
-          if (plateBit) plateBit.textContent = `Plates ${wall.dataset.got}/${plateIds.length}`;
-          ctx.say(`${SPNAME[e.sp]} is full and leaves a clean plate — ${wall.dataset.got} of ${plateIds.length} on the wall!`);
+      /* Half the time a new arrival asks for something already ordered at another
+       * table. That is the whole point of the live café: one dish on the belt, two
+       * friends who want it, and only one of them can be saved from storming out. */
+      function sharedWant(mine) {
+        const at = wants().filter((w) => mine.includes(w));
+        return at.length && Math.random() < .5 ? pick(at) : null;
+      }
+
+      function renderQueue() {
+        queue.innerHTML = '';
+        for (let i = 0; i < waiting; i++) queue.append(el('i', 'cafe-foot', '🐾'));
+        queueChip.textContent = `🚪 ${waiting} waiting`;
+        queueChip.classList.toggle('low', waiting >= 3);
+      }
+      function clearSeat(s) {
+        s.guest = null;
+        s.box.className = 'cafe-guest empty';
+        s.box.innerHTML = '<span class="cafe-chair">🪑</span>';
+        s.box.removeAttribute('aria-label');
+      }
+      function seatGuest(s, sp) {
+        const mine = (sp === 'trex' || sp === 'raptor') ? shuffle(MEATS).slice(0, 4) : shuffle(PLANTS).slice(0, 5);
+        const patMax = Math.max(17, 30 - ctx.clock() / 1000 / 4);
+        const g = { sp, mine, want: sharedWant(mine) || pick(mine), fed: 0, done: false, patience: patMax, patMax, grumbled: false };
+        s.guest = g;
+        s.box.className = 'cafe-guest arriving';
+        s.box.innerHTML = '';
+        g.order = el('div', 'cafe-order'); g.order.innerHTML = '<span>I want</span><b></b>';
+        $('b', g.order).textContent = g.want;
+        g.dinoBox = el('div', 'cafe-dino', FX.dinoHTML(sp, { color: pick(COLORS), state: 'walk' }));
+        g.hearts = el('div', 'cafe-hearts');
+        for (let i = 0; i < MEALS; i++) g.hearts.append(el('i', '', '🤍'));
+        g.patEl = el('div', 'cafe-pat', '<i></i>');
+        s.box.append(g.order, g.dinoBox, g.hearts, g.patEl);
+        g.dEl = g.dinoBox.firstElementChild;
+        s.box.setAttribute('aria-label', `${SPNAME[sp]} is sitting down and wants ${g.want}`);
+        setTimeout(() => { if (ctx.alive()) s.box.classList.remove('arriving'); }, 900);
+        FX.sfx.chirp();
+        ctx.say(`${SPNAME[sp]} walks in and sits at table ${s.i + 1} — they want ${g.want}!`);
+      }
+      function servePlate(g) {
+        if (!plateIds.includes(g.sp)) return;
+        if (plateV.set(g.sp, served) && stampInto(wall, plateArt, g.sp, served, 'Plate washed!')) {
+          ctx.say(`${SPNAME[g.sp]} is full and leaves a clean plate — ${wall.dataset.got} of ${plateIds.length} on the wall!`);
           if (wall.classList.contains('full')) { ctx.bonus(2, wall, 'The whole wall is set!'); cheer(2); }
         }
-      };
+      }
+      function finishTable(s) {
+        const g = s.guest; g.done = true;
+        served++;
+        FX.dinoState(g.dEl, 'happy', 1400); g.dEl.setAttribute('data-base', 'happy');
+        s.box.classList.add('full');
+        g.order.innerHTML = '<span>Thank you!</span><b>💖</b>';
+        servePlate(g);
+        urn.add(9);
+        ctx.good(s.box);
+        ctx.progress(1, s.box);
+        ctx.say(`${SPNAME[g.sp]} is full and happy! Table ${s.i + 1} is free.`);
+        setTimeout(() => { if (ctx.alive()) clearSeat(s); }, 1700);
+      }
+      function walkOut(s) {
+        const g = s.guest; if (!g) return;
+        walkouts++;
+        FX.shake(s.box); FX.sfx.bad();
+        ctx.bad(1, s.box);
+        ctx.say(`${SPNAME[g.sp]} waited too long and has stomped home! That is ${walkouts} walk-out today.`);
+        clearSeat(s);
+      }
+      function drainGuest(s, dt) {
+        const g = s.guest; if (!g || g.done) return;
+        g.patience -= dt;
+        const frac = Math.max(0, g.patience / g.patMax);
+        g.patEl.firstElementChild.style.width = (frac * 100) + '%';
+        s.box.classList.toggle('impatient', frac < .55);
+        s.box.classList.toggle('grumpy', frac < .25);
+        if (frac < .25 && !g.grumbled) {
+          g.grumbled = true;
+          FX.dinoState(g.dEl, 'sad', 900);
+          ctx.say(`${SPNAME[g.sp]} is getting cross! ${g.want}, please!`);
+        }
+        if (g.patience <= 0) walkOut(s);
+      }
+      function drop(o) { const i = riding.indexOf(o); if (i >= 0) riding.splice(i, 1); o.el.remove(); }
+      function spawn() {
+        const ordered = wants();
+        let f, kind = 'food';
+        const roll = Math.random();
+        if (ordered.length && roll < .58) f = pick(ordered);
+        else if (roll < .68) { f = '🌟'; kind = 'gold'; }
+        else if (roll < .78) { f = '🧦'; kind = 'sock'; }
+        else { const pool = [...PLANTS, ...MEATS].filter((x) => !ordered.includes(x)); f = pick(pool.length ? pool : PLANTS); }
+        const it = el('button', 'belt-item' + (kind === 'gold' ? ' gold' : ''), f);
+        it.dataset.f = f;
+        it.setAttribute('aria-label', kind === 'gold' ? 'A golden star' : ordered.includes(f) ? `Food somebody ordered: ${f}` : 'Food nobody has ordered');
+        const o = { el: it, x: -90, f, kind };
+        it.onclick = () => take(o);
+        track.append(it); riding.push(o); FX.pop(it);
+      }
       async function take(o) {
-        if (busy || over || !live.includes(o)) return;   // a served table takes no more clicks, and no more slips
-        const eater = eaters.find((e) => e.fed < need && e.want === o.f);
-        if (o.kind === 'gold') { remove(o); FX.sfx.sparkle(); ctx.bonus(1, o.el, 'Golden!'); return; }
-        if (!eater) {
-          // Not what anybody ordered: it hops off the belt with a kind word.
-          busy = true; live.splice(live.indexOf(o), 1); o.el.style.visibility = 'hidden';
-          const e0 = eaters.find((e) => e.fed < need);
-          slips++; ctx.bad(.5, o.el); FX.dinoState(e0.dEl, 'sad', 900);
-          ctx.say(o.kind === 'sock' ? 'Yuck, a sock! Dinosaurs do not eat socks!' : `Not that one! I wanted the ${wantedNow().join(' or the ')}!`);
-          // After two slips the belt eases off so the right food is easier to see coming.
-          if (slips === 2 && slow === 1) { slow = .68; ctx.say('No rush — the belt will go slower for a moment.'); }
+        if (busy || !ctx.alive()) return;
+        if (o.kind === 'gold') { drop(o); FX.sfx.sparkle(); ctx.bonus(1, o.el, 'Golden!'); return; }
+        busy = true;
+        const matching = seats.filter((s) => s.guest && !s.guest.done && s.guest.want === o.f);
+        drop(o);
+        o.el.style.visibility = 'hidden';
+        if (!matching.length) {
+          ctx.bad(o.kind === 'sock' ? 1 : .5, cafe);
+          ctx.say(o.kind === 'sock' ? 'Yuck, a sock! Nobody in this café eats socks!' : 'Nobody ordered that one — read the cards!');
           await Park.fly(o.el, { x: innerWidth * (Math.random() < .5 ? .05 : .95), y: -30 }, { emoji: o.f, lift: 30, duration: 520, burst: false });
           o.el.remove(); busy = false; return;
         }
-        busy = true; live.splice(live.indexOf(o), 1); o.el.style.visibility = 'hidden';
-        clearTimeout(eater._peek);
-        FX.dinoState(eater.dEl, 'eat');
-        await Park.fly(o.el, eater.dinoBox, { emoji: o.f, size: 44, duration: 520, burst: false });
-        o.el.remove(); FX.sfx.chomp(); eater.fed++;
-        $$('i', eater.hearts).forEach((h, i) => { h.textContent = i < eater.fed ? '💖' : '🤍'; });
-        const c = centreOf(eater.dinoBox); FX.burst(c.x, c.y - 30, { kind: 'hearts', n: 5 }); ctx.good(eater.dinoBox); FX.sfx.note(eater.fed * 2, .15);
-        if (eater.fed >= need && eater.fed % 2 === 0) slow = Math.min(1, slow + .18);
-        if (eater.fed >= need) servePlate(eater);
-        if (eaters.every((e) => e.fed >= need)) {
-          over = true; live.slice().forEach((o) => remove(o)); busy = false;   // the belt stands still while the table is cleared
-          eaters.forEach((e) => { FX.dinoState(e.dEl, 'happy'); e.dEl.setAttribute('data-base', 'happy'); });
-          /* The second table a "keep going" card asked for: pay the big sparkle and close the round. */
-          if (tableTwo) {
-            const fin = tableTwo; tableTwo = null;
-            ctx.bonus(2, cafe, 'A second table!'); FX.sfx.win(); FX.celebrate(); ctx.flutter(3);
-            ctx.done('Two whole tables served and every plate on the wall!', 2300); fin(); return;
-          }
-          // The café bell rings for a clean table.
-          const bell = el('div', 'cafe-sign', '🛎️ Ding!'); bell.style.cssText = 'top:44%;font-size:26px;background:#4a8f3c;color:#fff'; cafe.append(bell); FX.pop(bell);
-          FX.sfx.win(); FX.celebrate(); ctx.flutter(3);
-          const fresh = rec.lo('feed' + R, slips);
-          if (slips === 0) ctx.bonus(2, cafe, 'Perfect service!');
-          if (fresh && slips > 0) ctx.bonus(1, cafe, 'Best service yet!');
-          if (fresh || slips === 0) cheer(2);
-          const line = `${eaters.length} friends fed with only ${slips} mix-up${slips === 1 ? '' : 's'}!` + (slips === 0 ? ' Perfect service!' : '');
-          if (R === ctx.rounds && await keepGoing(ctx, 'Another table?', 'The kitchen is still warm — say yes and three fresh friends sit down.', 'One more table!', '#e0762e', (host, fin) => { tableTwo = fin; secondTable(host); })) { ctx.done(line + ' And a second table too!', 2400); return; }
-          ctx.done(line, 2100); return;
+        /* The choice the whole café turns on: whoever is closest to storming out eats
+         * first. Ranked by how much of *their own* patience is left, because that is
+         * the only thing the bar on screen can show — a friend who sat down later has
+         * a shorter fuse, and ranking by raw seconds would serve the one whose bar
+         * looks calmer and confuse every child watching. */
+        const low = (s) => s.guest.patience / s.guest.patMax;
+        const s = matching.reduce((a, b) => (low(a) <= low(b) ? a : b));
+        const g = s.guest;
+        await Park.fly(o.el, g.dinoBox, { emoji: o.f, size: 44, duration: 520, burst: false });
+        o.el.remove();
+        FX.sfx.chomp(); FX.dinoState(g.dEl, 'eat');
+        g.fed++;
+        [...g.hearts.children].forEach((h, k) => { h.textContent = k < g.fed ? '💖' : '🤍'; });
+        g.patience = Math.min(g.patMax, g.patience + g.patMax * .45);
+        g.grumbled = false;
+        s.box.classList.remove('grumpy', 'impatient');
+        const c = centreOf(g.dinoBox); FX.burst(c.x, c.y - 30, { kind: 'hearts', n: 5 });
+        if (g.fed >= MEALS) finishTable(s);
+        else {
+          const next = g.mine.filter((x) => x !== g.want);
+          g.want = sharedWant(next.length ? next : g.mine) || (next.length ? pick(next) : g.want);
+          $('b', g.order).textContent = g.want; FX.pop(g.order);
+          s.box.setAttribute('aria-label', `${SPNAME[g.sp]} now wants ${g.want}`);
+          FX.dinoState(g.dEl, 'idle', 700);
+          ctx.say(`${SPNAME[g.sp]} munches and asks for a ${g.want} next!`);
         }
-        if (eater.fed >= need) { FX.dinoState(eater.dEl, 'happy'); eater.dEl.setAttribute('data-base', 'happy'); eater.box.classList.add('full'); eater.order.innerHTML = '<span>Thank you!</span><b>💖</b>'; ctx.say('One friend is full! Now the other one!'); }
-        else { eater.want = pickWant(eater); $('b', eater.order).textContent = hidden ? '❓' : eater.want; FX.pop(eater.order); ctx.say(hidden ? 'A new order! Tap the card to peek!' : `Yum! Now I want a ${eater.want}!`); FX.dinoState(eater.dEl, 'idle'); }
-        spawnN = spawnN % 2 === 0 ? spawnN : spawnN - 1;     // make sure the next item is something they want
         busy = false;
       }
-      /* The free hint: it lights up the next right food on the belt and reads the order card
-       * out loud, even a secret one. Press it as often as you like — it never costs anything. */
-      const showMe = () => {
-        const it = live.find((o) => wantedNow().includes(o.f)); const wanted = eaters.find((e) => e.fed < need);
+      /* The free hint: it lights the food the most impatient friend wants and says
+       * who that is. It never costs anything, however often it is pressed. */
+      function showMe() {
+        if (!ctx.alive()) return;
+        const at = seated();
+        if (!at.length) { ctx.say('Every table is empty — the belt is still moving, so have a look!'); return; }
+        const urgent = at.reduce((a, b) => (a.guest.patience / a.guest.patMax <= b.guest.patience / b.guest.patMax ? a : b));
+        const it = riding.find((o) => o.f === urgent.guest.want);
         if (it) { it.el.classList.add('glow'); setTimeout(() => it.el.classList.remove('glow'), 2200); }
-        if (wanted) {
-          FX.pulse(wanted.order);
-          $('b', wanted.order).textContent = wanted.want; clearTimeout(wanted._peek);
-          wanted._peek = setTimeout(() => { if (ctx.alive() && wanted.fed < need && hidden) $('b', wanted.order).textContent = '❓'; }, 2200);
-        }
-        FX.sfx.sparkle();
-        ctx.say(it && wanted ? `Tap the glowing ${it.f} — ${SPNAME[wanted.sp]} is asking for it!` : 'Look at the cards and catch what they say!');
-      };
-      ctx.hint(showMe);
-      head.append(helpBtn(showMe));
-      function frame(now) {
-        if (!ctx.alive() || over) return;
-        const dt = Math.min(.05, (now - last) / 1000); last = now;
-        if (!busy) {
-          const dx = speed * slow * dt; sinceSpawn += dx;
-          live.forEach((o) => { o.x += dx; o.el.style.transform = `translateX(${o.x}px)`; });
-          for (let i = live.length - 1; i >= 0; i--) if (live[i].x > beltW() + 20) remove(live[i]);
-          if (sinceSpawn > 215 + (R === 4 ? -25 : 0)) { sinceSpawn = 0; spawn(); }
-        }
-        requestAnimationFrame(frame);
+        FX.pulse(urgent.guest.order); FX.sfx.sparkle();
+        ctx.say(it ? `Tap the glowing ${it.f} — ${SPNAME[urgent.guest.sp]} at table ${urgent.i + 1} is the hungriest!` : `${SPNAME[urgent.guest.sp]} wants ${urgent.guest.want} — watch the belt for it!`);
       }
-      requestAnimationFrame((t) => { last = t; frame(t); });
+      ctx.hint(showMe);
+
+      function frame(now) {
+        const dt = Math.min(.05, (now - last) / 1000); last = now;
+        if (busy) return;
+        speed = 92 + Math.min(85, ctx.clock() / 1000 * .8);
+        const dx = speed * dt; spawnLead += dx;
+        riding.forEach((o) => { o.x += dx; o.el.style.transform = `translateX(${o.x}px)`; });
+        for (let i = riding.length - 1; i >= 0; i--) if (riding[i].x > beltW() + 30) drop(riding[i]);
+        if (spawnLead > 205) { spawnLead = 0; spawn(); }
+        seats.forEach((s) => drainGuest(s, dt));
+      }
+      ctx.frame(frame);
+
+      /* Arrivals: a free table takes the next friend from the door, and a full
+       * café makes a queue that eventually gives up and goes home. */
+      ctx.every(2300, () => {
+        const free = seats.find((s) => !s.guest);
+        if (free) {
+          if (waiting > 0) waiting--;
+          else if (Math.random() > .78) { renderQueue(); return; }
+          const taken = seats.filter((s) => s.guest).map((s) => s.guest.sp);
+          seatGuest(free, pick(SPECIES.filter((sp) => !taken.includes(sp))) || pick(SPECIES));
+        } else if (waiting < 5) {
+          waiting++;
+          if (waiting === 3) ctx.say('Three friends are waiting at the door — somebody is going to give up!');
+        } else {
+          waiting = 0; walkouts++;
+          ctx.bad(.5, queue);
+          ctx.say('A friend gave up waiting outside and went home!');
+        }
+        renderQueue();
+      });
+
+      seatGuest(seats[0], pick(SPECIES));
+      renderQueue();
+      ctx.say('Welcome to the Dino Café! The belt never stops — read the cards and feed whoever is hungriest.');
     },
   });
 
