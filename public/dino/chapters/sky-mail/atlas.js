@@ -1,5 +1,6 @@
 // Generates every illustration the flight needs at boot, as canvas textures.
 // No external art, no placeholders: layered shapes, gradients and texture grain.
+import { applyPhotorealTexture } from '../../photoreal-textures.js';
 
 const TAU = Math.PI * 2;
 
@@ -33,7 +34,15 @@ function canvasTex(scene, key, w, h, draw) {
   c.lineCap = 'round'; c.lineJoin = 'round';
   draw(c);
   if (scene.textures.exists(key)) scene.textures.remove(key);
-  scene.textures.addCanvas(key, canvas);
+  const texture = scene.textures.addCanvas(key, canvas);
+  const flightMatch = key.match(/^ptero-(shadow-)?(\d+)$/);
+  if (flightMatch) {
+    const frame = Number(flightMatch[2]);
+    applyPhotorealTexture(texture, 'ptero', {
+      scaleY: frame % 2 ? 0.9 : 1.04,
+      darken: flightMatch[1] ? 0.56 : 0
+    });
+  }
   return canvas;
 }
 

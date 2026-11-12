@@ -2,7 +2,7 @@
 // The mountain wakes under your feet. Leap shelf to shelf while the lava line
 // climbs behind you. Cracked vents throw a column of steam; old shelves crumble.
 
-import { canvasTex, grain, rng, clamp, approach, W } from '../engine.js?v=du-8607dafbfd11334e';
+import { canvasTex, grain, rng, clamp, approach, W } from '../engine.js?v=du-316e7af9b57fa08e';
 
 const GOAL = 40;
 const START_A = 240;

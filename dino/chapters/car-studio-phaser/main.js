@@ -72,6 +72,7 @@ class PlayScene extends Phaser.Scene {
   constructor() { super("play"); }
 
   preload() {
+    this.load.image("photoDriver", "../../assets/prehistoric/trex-head.png");
     DUKit.textures(this);
     const g = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -249,7 +250,7 @@ class PlayScene extends Phaser.Scene {
     this.wheelB = this.add.image(-28, -13, "wheel");
     this.wheelF = this.add.image(30, -13, "wheel");
     this.carBody = this.add.image(0, -10, "carBody").setOrigin(0.5, 1);
-    this.driver = this.add.image(4, -50, "dinoHead").setOrigin(0.5, 0.7);
+    this.driver = this.add.image(4, -50, "photoDriver").setDisplaySize(42,38).setOrigin(0.5, 0.7);
     this.car.add([this.wheelB, this.wheelF, this.carBody, this.driver]);
     STUDIO.stickers.forEach((e, i) => this.car.add(this.add.text(-33 + i * 22, -23, e, { fontSize: "15px" }).setOrigin(0.5)));
     if (STUDIO.name) this.car.add(this.add.text(0, -86, STUDIO.name, { fontSize: "14px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", stroke: "#17403a", strokeThickness: 4 }).setOrigin(0.5));

@@ -1,5 +1,5 @@
-import { PREHISTORIC_CREATURES } from "./dino-discoveries.js?v=du-8607dafbfd11334e";
-import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-8607dafbfd11334e";
+import { PREHISTORIC_CREATURES, speciesFor } from "./dino-discoveries.js?v=du-316e7af9b57fa08e";
+import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-316e7af9b57fa08e";
 
 const STORY_HEROES = PREHISTORIC_CREATURES.map(function (creature) {
   return { name: creature.name, short: creature.short, icon: creature.icon, kind: creature.kind, fact: creature.fact };
@@ -129,16 +129,6 @@ const STEP_SFX = { hero: "chirp", place: "whoosh", surprise: "sparkle", twist: "
 const PLACE_THEME = { "Fern Forest": "meadow", "Moonlit Lagoon": "night", "Sunbeam Valley": "meadow", "Cloud Castle": "sky", "Dinosaur Beach": "water", "Crystal Caves": "cave", "Rainbow Marsh": "rain", "Firefly Meadow": "night" };
 const COLORS = ["green", "teal", "purple", "orange", "pink", "blue", "yellow", "red"];
 
-function speciesFor(creature) {
-  const n = creature.name;
-  if (creature.kind !== "Dinosaur" && creature.kind !== "Flying reptile") return null;
-  if (creature.kind === "Flying reptile" || n === "Archaeopteryx") return "ptero";
-  if (/Tyrannosaurus/.test(n)) return "trex";
-  if (/Triceratops|Styracosaurus|Carnotaurus/.test(n)) return "tricera";
-  if (/Stegosaurus|Ankylosaurus|Amargasaurus|Pachycephalosaurus/.test(n)) return "stego";
-  if (/Velociraptor|Deinonychus|Coelophysis|Oviraptor|Allosaurus|Spinosaurus|Baryonyx/.test(n)) return "raptor";
-  return "bronto";
-}
 function colorFor(name) { let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997; return COLORS[h % COLORS.length]; }
 
 export function mountStorybook(context) {

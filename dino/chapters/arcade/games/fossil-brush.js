@@ -2,7 +2,7 @@
 // A trench in a canyon wash. Sand is a real field of depth you lift grain by
 // grain; the bone under it dries out, and a hurried hand on dry bone cracks it.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-316e7af9b57fa08e';
 
 const TAU = Math.PI * 2;
 const PAL = MOODS.canyon;

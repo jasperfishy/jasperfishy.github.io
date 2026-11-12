@@ -1,11 +1,11 @@
 // App entry: shared progression, scene selection, garage, and navigation.
 
-import { CARS } from "./data-cars.js?v=du-8607dafbfd11334e";
-import { SCENE_LIST } from "./data-scenes.js?v=du-8607dafbfd11334e";
-import { initCustomize } from "./screens/customize.js?v=du-8607dafbfd11334e";
-import { initDrive } from "./screens/drive.js?v=du-8607dafbfd11334e";
-import { initGarage, unlockedCarCount } from "./screens/garage.js?v=du-8607dafbfd11334e";
-import { renderCarSVG } from "./render-car.js?v=du-8607dafbfd11334e";
+import { CARS } from "./data-cars.js?v=du-316e7af9b57fa08e";
+import { SCENE_LIST } from "./data-scenes.js?v=du-316e7af9b57fa08e";
+import { initCustomize } from "./screens/customize.js?v=du-316e7af9b57fa08e";
+import { initDrive } from "./screens/drive.js?v=du-316e7af9b57fa08e";
+import { initGarage, unlockedCarCount } from "./screens/garage.js?v=du-316e7af9b57fa08e";
+import { renderCarSVG } from "./render-car.js?v=du-316e7af9b57fa08e";
 
 const STORAGE_KEY = "dino-car-studio-v1";
 const EMBEDDED = window.self !== window.top;

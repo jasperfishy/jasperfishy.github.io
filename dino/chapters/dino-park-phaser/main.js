@@ -27,6 +27,7 @@ class ParkScene extends Phaser.Scene {
   constructor() { super("park"); }
 
   preload() {
+    this.load.image("rexWalkSheet", "../../assets/prehistoric/trex-walk.png");
     DUKit.textures(this);
     const g = this.make.graphics({ add: false });
 
@@ -185,6 +186,12 @@ class ParkScene extends Phaser.Scene {
     this.eye = this.add.image(58, -74, "dEye").setScale(0.9);
     this.rig.add([this.shadow, this.tail, this.legB, this.legF, this.bodyImg, this.head, this.eye]);
     this.dino.add(this.rig);
+    const sheet = this.textures.get('rexWalkSheet');
+    const source = sheet.getSourceImage();
+    for (let i=0;i<4;i++) if (!sheet.has(String(i))) sheet.add(String(i),0,(i%2)*source.width/2,Math.floor(i/2)*source.height/2,source.width/2,source.height/2);
+    this.photoDino = this.add.image(0, 0, 'rexWalkSheet', '0').setOrigin(.5,1).setDisplaySize(190,100);
+    this.rig.add(this.photoDino);
+    [this.tail,this.legB,this.legF,this.bodyImg,this.head,this.eye].forEach(p=>p.setVisible(false));
     // The magnet glows over the dino while it lasts, so a power-up you cannot see
     // is a power-up a child will never notice they had.
     this.magnetGlow = this.add.circle(0, -40, 74, 0xff6bd6, 0.18).setDepth(5).setVisible(false);
@@ -453,6 +460,8 @@ class ParkScene extends Phaser.Scene {
       this.dino.scaleX = vx < 0 ? -1 : 1;
       const swing = Math.sin(time / 70) * 30;
       this.legB.angle = swing; this.legF.angle = -swing;
+      this.photoDino.setFrame(String(Math.floor(time / 110) % 4));
+      this.photoDino.setFlipX(vx < 0);
       this.rig.y = -Math.abs(Math.sin(time / 70)) * 5;
       this.bodyImg.angle = Math.sin(time / 140) * 2;
     } else {

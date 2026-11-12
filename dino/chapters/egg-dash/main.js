@@ -1,7 +1,8 @@
 /* Dinosaur Universe — Dino Egg Dash (original Phaser chapter).
  * A baby T-rex hops over rocks and catches sparkly eggs. Ages 3–8.
  * All art is drawn on canvas at boot (no copied assets). */
-import { chapters } from "../../chapters.js?v=du-8607dafbfd11334e";
+import { chapters } from "../../chapters.js?v=du-316e7af9b57fa08e";
+import { applyPhotorealTexture } from "../../photoreal-textures.js?v=du-316e7af9b57fa08e";
 
 const W = 960, H = 540;
 const STORE_KEY = "dino-egg-dash-v1";
@@ -94,6 +95,17 @@ function dinoFrames() {
   makeTexture("dd-dino-0", 150, 110, (ctx, w, h) => drawDino(ctx, w, h, false, false));
   makeTexture("dd-dino-1", 150, 110, (ctx, w, h) => drawDino(ctx, w, h, true, false));
   makeTexture("dd-dino-duck", 150, 110, (ctx, w, h) => drawDino(ctx, w, h, false, true));
+  const g = GAME();
+  if (g) {
+    const framePoses = [
+      ["dd-dino-0", { scaleY: 1 }],
+      ["dd-dino-1", { scaleY: 0.9, offsetY: -0.035 }],
+      ["dd-dino-duck", { scaleY: 0.62 }],
+    ];
+    framePoses.forEach(([key, options]) => {
+      if (g.textures.exists(key)) applyPhotorealTexture(g.textures.get(key), "trex", options);
+    });
+  }
 }
 
 function eggTexture() {

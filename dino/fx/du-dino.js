@@ -11,6 +11,9 @@
   if (window.DUFX && window.DUFX.dinoHTML) return;
   const DUFX = window.DUFX = window.DUFX || {};
 
+  const PHOTO_BASE = new URL('../assets/prehistoric/', document.currentScript.src).href;
+  const PHOTO_SPECIES = new Set(['allosaurus', 'amargasaurus', 'ankylosaurus', 'archaeopteryx', 'baryonyx', 'brachiosaurus', 'bronto', 'carnotaurus', 'coelophysis', 'compsognathus', 'corythosaurus', 'deinonychus', 'dimetrodon', 'diplodocus', 'edmontosaurus', 'ichthyosaurus', 'iguanodon', 'maiasaura', 'mamenchisaurus', 'mosasaurus', 'oviraptor', 'pachycephalosaurus', 'parasaurolophus', 'plesiosaurus', 'ptero', 'quetzalcoatlus', 'raptor', 'raptor-hang', 'raptor-rear', 'spinosaurus', 'stego', 'styracosaurus', 'therizinosaurus', 'trex', 'trex-head', 'trex-head-rear', 'trex-walk', 'tricera']);
+  DUFX.dinoPhotoURL = species => PHOTO_SPECIES.has(species) ? PHOTO_BASE + species + '.png' : null;
   const OUT = '#236455';
   const PALETTES = {
     green:  { c1: '#91d09c', c2: '#d8f2c8', c3: '#6fb67f', c4: '#f2a46e' },
@@ -190,7 +193,7 @@
 
   /* ---------- builders ---------- */
   function resolve(species, opts) {
-    species = ART[species] ? species : 'trex';
+    species = ART[species] || PHOTO_SPECIES.has(species) ? species : 'trex';
     const color = opts && opts.color && PALETTES[opts.color] ? opts.color : DEFAULT_COLOR[species];
     return { species, color, p: PALETTES[color] };
   }
@@ -213,6 +216,23 @@
   DUFX.dinoSVG = function (species, opts) {
     const r = resolve(species, opts);
     const id = 'd' + (++uidN);
+    if (opts && (opts.template || opts.head && opts.head !== species)) {
+      const boxes = [['d-tail',0,0,85,180],['d-body',85,0,70,120],['d-head',155,0,85,120],['d-leg d-leg-b',85,120,70,60],['d-leg d-leg-f',155,120,85,60]];
+      const parts = boxes.map(([kind,x,y,w,h]) => {
+        const sp = kind === 'd-head' && PHOTO_SPECIES.has(opts.head) ? opts.head : r.species;
+        return `<g class="${kind}" data-photo-box="${x} ${y} ${w} ${h}"><svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${x} ${y} ${w} ${h}" overflow="hidden"><image href="${DUFX.dinoPhotoURL(sp)}" x="4" y="12" width="232" height="156" preserveAspectRatio="xMidYMax meet"/></svg></g>`;
+      }).join('');
+      return `<svg class="du-dino-svg du-photo-svg" viewBox="0 0 240 180" role="img" aria-label="${r.species}" focusable="false"><g class="d-all">${parts}</g></svg>`;
+    }
+    if (opts && opts.paint) {
+      const img = `<image href="${DUFX.dinoPhotoURL(r.species)}" x="4" y="12" width="232" height="156" preserveAspectRatio="xMidYMax meet"/>`;
+      const regions = Array.from({length:8}, (_,i) => `<path d="M${i%4*60} ${Math.floor(i/4)*90}h60v90h-60Z" fill="#e8e8e8" stroke="none"/>`).join('');
+      return `<svg class="du-dino-svg du-photo-svg" viewBox="0 0 240 180" role="img" aria-label="Paint a ${r.species}"><defs><mask id="${id}mask" mask-type="alpha">${img}</mask></defs><g class="d-all" mask="url(#${id}mask)">${regions}<g style="mix-blend-mode:luminosity;opacity:.8;pointer-events:none">${img}</g></g></svg>`;
+    }
+    if (!(opts && opts.template) && !(opts && opts.head && opts.head !== species)) {
+      const tint = opts && opts.color && PALETTES[opts.color];
+      return `<svg class="du-dino-svg du-photo-svg" viewBox="0 0 240 180" role="img" aria-label="${r.species}" focusable="false"><defs><filter id="${id}t"><feFlood flood-color="${tint ? tint.c1 : '#ffffff'}" flood-opacity=".32"/><feComposite in2="SourceAlpha" operator="in"/><feBlend in2="SourceGraphic" mode="color"/></filter></defs><ellipse class="d-shadow" cx="120" cy="170" rx="90" ry="5" fill="#143c3a" opacity=".12"/><g class="d-all"${tint ? ` filter="url(#${id}t)"` : ''}><image href="${DUFX.dinoPhotoURL(r.species)}" x="4" y="12" width="232" height="156" preserveAspectRatio="xMidYMax meet"/>${tint ? `<rect x="4" y="12" width="232" height="156" fill="${tint.c1}" opacity="0"/>` : ''}</g></svg>`;
+    }
     let art = ART[r.species](r.p, id);
     if (opts && opts.head && opts.head !== r.species && ART[opts.head]) {
       const hp = PALETTES[opts.headColor] || r.p, sb = splitHead(art), sh = splitHead(ART[opts.head](hp, id + 'h'));

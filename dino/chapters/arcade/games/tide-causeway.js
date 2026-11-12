@@ -1,7 +1,7 @@
 // Tide Causeway — the road the sea takes twice a day.
 // Ribbed stones, one rising tide, and a hatchling a long hop behind you.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-316e7af9b57fa08e';
 
 const LOW = 398, NEAR_TOP = 348, OUTER_TOP = 372, BEACH_TOP = 288, ASHORE_TOP = 280;
 const BEACH_X = 104, ASHORE_X = 898, REACH_MIN = 34, REACH_MAX = 190, SHORE_REACH = 140;

@@ -46,6 +46,7 @@ class FlightScene extends Phaser.Scene {
   constructor() { super("flight"); }
 
   preload() {
+    this.load.image("hangingDino", "../../assets/prehistoric/raptor-hang.png");
     DUKit.textures(this);
     // Textures belong to the game, not the scene: a "play again" restart baked
     // them a second time and Phaser logged "Texture key already in use".
@@ -60,15 +61,6 @@ class FlightScene extends Phaser.Scene {
     g.lineStyle(2, 0x7a5a3a, 1);
     g.lineBetween(40, 62, 36, 90);
     g.lineBetween(40, 62, 56, 90);
-    g.fillStyle(0x58c26a, 1);
-    g.fillEllipse(46, 106, 40, 30);
-    g.fillCircle(66, 94, 14);
-    g.fillStyle(0x439f54, 1);
-    g.fillTriangle(22, 108, 30, 100, 30, 116);
-    g.fillStyle(0xffffff, 1);
-    g.fillCircle(70, 90, 4);
-    g.fillStyle(0x222222, 1);
-    g.fillCircle(72, 90, 2);
     g.generateTexture("flyer", 86, 126);
 
     // Cloud pillar segment (tiled to build gates).
@@ -189,7 +181,14 @@ class FlightScene extends Phaser.Scene {
     this.add.rectangle(W / 2, H - 10, W, 30, 0x4a9f4c);
 
     this.physics.world.gravity.y = 1100;
-    this.player = this.physics.add.sprite(220, H / 2, "flyer");
+    if (!this.textures.exists('photoFlyer')) {
+      const tex=this.textures.createCanvas('photoFlyer',86,126),c=tex.getContext();
+      c.drawImage(this.textures.get('flyer').getSourceImage(),0,0);
+      const img=this.textures.get('hangingDino').getSourceImage();
+      const scale=Math.min(72/img.width,58/img.height);
+      c.drawImage(img,43-img.width*scale/2,68,img.width*scale,img.height*scale);tex.refresh();
+    }
+    this.player = this.physics.add.sprite(220, H / 2, "photoFlyer");
     this.player.body.setSize(54, 100).setOffset(16, 10);
     this.player.body.setAllowGravity(false);
 

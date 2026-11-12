@@ -48,7 +48,7 @@ export function heroScene() {
     <svg viewBox="0 0 120 190" class="hs-palm" style="left:2%"><path d="M60 190 Q54 120 62 56" class="hs-trunk"/><g class="hs-fronds" style="transform-origin:62px 56px"><path d="M62 56 Q20 30 4 62 Q32 44 62 56Z"/><path d="M62 56 Q100 24 118 58 Q92 42 62 56Z"/><path d="M62 56 Q40 4 14 14 Q42 18 62 56Z"/><path d="M62 56 Q86 0 112 10 Q84 16 62 56Z"/><path d="M62 56 Q62 8 62 -4 Q70 24 62 56Z"/></g></svg>
     <svg viewBox="0 0 120 190" class="hs-palm hs-palm2" style="right:30%"><path d="M60 190 Q66 130 58 66" class="hs-trunk"/><g class="hs-fronds" style="transform-origin:58px 66px;animation-delay:-1.2s"><path d="M58 66 Q18 42 2 72 Q30 56 58 66Z"/><path d="M58 66 Q98 36 116 68 Q90 52 58 66Z"/><path d="M58 66 Q36 16 12 26 Q38 28 58 66Z"/><path d="M58 66 Q82 12 108 22 Q80 26 58 66Z"/></g></svg>
   </div>
-  <div class="hs-rex" data-pet>${D('trex', { color: 'green', state: 'idle', size: '100%' })}</div>
+  <button class="hs-rex" type="button" aria-label="Make Rex roar"><span class="du-dino rex-photo" data-state="idle"><img src="assets/rex/rex-photoreal.png" alt="" width="1776" height="864" draggable="false"></span></button>
   <div class="hs-bubble" aria-live="polite"><span id="hsSay"></span></div>
   <div class="hs-fore" aria-hidden="true">${Array.from({ length: 16 }, (_, i) => `<i style="left:${(i * 6.4 + (i % 3) * 1.3).toFixed(1)}%;--d:${(i % 5) * -.5}s;--h:${14 + (i % 4) * 6}px"></i>`).join('')}<em style="left:18%">🌼</em><em style="left:46%">🌷</em><em style="left:71%">🌸</em><em style="left:90%">🌼</em></div>`;
 }

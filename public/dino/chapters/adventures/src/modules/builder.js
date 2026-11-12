@@ -29,6 +29,13 @@ function kindOf(node) {
   if (node.querySelector && node.querySelector(":scope > .d-head")) return "head";   // a head swapped from another species
   return null;
 }
+function partBounds(group) {
+  const pieces = Array.from(group.querySelectorAll('[data-photo-box]'));
+  if (!pieces.length) return group.getBBox();
+  const boxes = pieces.map(n => n.getAttribute('data-photo-box').split(' ').map(Number));
+  const x=Math.min(...boxes.map(b=>b[0])), y=Math.min(...boxes.map(b=>b[1]));
+  return {x,y,width:Math.max(...boxes.map(b=>b[0]+b[2]))-x,height:Math.max(...boxes.map(b=>b[1]+b[3]))-y};
+}
 function stripClasses(node) {
   node.removeAttribute("class"); node.removeAttribute("style");
   node.querySelectorAll("*").forEach(function (n) { n.removeAttribute("class"); n.removeAttribute("style"); });
@@ -96,7 +103,7 @@ export function mountBuilder(context) {
       const probe = document.createElementNS(SVGNS, "svg");
       probe.style.cssText = "position:absolute;visibility:hidden;width:10px;height:10px"; probe.appendChild(g);
       document.body.appendChild(probe);
-      const b = g.getBBox(); probe.remove();
+      const b = partBounds(g); probe.remove();
       const holder = document.createElementNS(SVGNS, "svg");
       holder.setAttribute("viewBox", [b.x - 3, b.y - 3, b.width + 6, b.height + 6].join(" "));
       holder.appendChild(g); holder.setAttribute("class", "bd-pc-svg");
@@ -252,7 +259,7 @@ export function mountBuilder(context) {
   function stageSkin() {
     setStep(1);
     dinoHost.classList.remove("bd-bones");
-    dinoHost.innerHTML = F.dinoHTML(species, { color: color, state: "idle", head: mixHead || undefined, headColor: mixHead ? ["pink", "yellow", "blue", "orange"][context.level % 4] : undefined });
+    dinoHost.innerHTML = F.dinoHTML(species, { template: true, color: color, state: "idle", head: mixHead || undefined, headColor: mixHead ? ["pink", "yellow", "blue", "orange"][context.level % 4] : undefined });
     const flash = document.createElement("div"); flash.className = "bd-flash"; dinoHost.appendChild(flash);
     window.setTimeout(function () { flash.remove(); }, 600);
     const svg = dinoHost.querySelector("svg"), all = svg.querySelector(".d-all");
@@ -269,13 +276,13 @@ export function mountBuilder(context) {
     for (let i = 0; i < decoyCount; i++) {
       const other = others[(context.level + i * 2) % others.length];
       const host = document.createElement("div");
-      host.innerHTML = F.dinoHTML(other, { color: "pink" }); host.style.cssText = "position:absolute;left:-999px;top:0;width:240px";
+      host.innerHTML = F.dinoHTML(other, { template: true, color: "pink" }); host.style.cssText = "position:absolute;left:-999px;top:0;width:240px";
       document.body.appendChild(host);
       const found = Array.prototype.slice.call(host.querySelector(".d-all").children).filter(function (n) { const kk = kindOf(n); return kk === "head" || kk === "wing" || kk === "plates" || kk === "spikes"; });
       if (found[0]) {
         const g = document.createElementNS(SVGNS, "g"); g.appendChild(stripClasses(found[0].cloneNode(true)));
         const probe = document.createElementNS(SVGNS, "svg"); probe.style.cssText = "position:absolute;visibility:hidden;width:10px;height:10px"; probe.appendChild(g); document.body.appendChild(probe);
-        const b = g.getBBox(); probe.remove();
+        const b = partBounds(g); probe.remove();
         const holder = document.createElementNS(SVGNS, "svg"); holder.setAttribute("viewBox", [b.x - 3, b.y - 3, b.width + 6, b.height + 6].join(" ")); holder.appendChild(g); holder.setAttribute("class", "bd-pc-svg"); holder.dataset.w = String(b.width + 6);
         spare.push({ svg: holder, from: NAMES[other] });
       }

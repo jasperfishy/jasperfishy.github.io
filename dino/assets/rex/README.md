@@ -1,0 +1,4 @@
+# Rex title-screen assets
+
+- `rex-photoreal.png`: generated using the built-in image generation tool, 2026-11-12. Prompt: photorealistic full-body olive/earth-brown Tyrannosaurus rex, three-quarter side view facing right, mouth open roaring, natural-history reconstruction, realistic scales, family-game suitable, no gore, transparent background, full tail and feet visible. Original generation retained in Codex generated_images; this copy is the production asset.
+- `rex-roar.mp3`: SFXMint **Deep Bellow Dinosaur Roar 02**, CC0 1.0. Source: https://sfxmint.com/sounds/dinosaur-roar-02 ; original: https://sfxmint.com/dl/dinosaur-roar-02.mp3 . Downloaded 2026-11-12. AI-generated cinematic creature effect, not a scientific recording. Adaptation: +4 dB, 25 ms fade-in, final 250 ms fade-out, encoded at 160 kbps MP3. Original measured peak -8.3 dB; playback also respects sound/calm settings.

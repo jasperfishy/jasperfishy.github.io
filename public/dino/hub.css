@@ -128,6 +128,16 @@ body.in-stage #hubbar { display: none; }
 
 .hs-rex { position: absolute; left: 4%; bottom: 1%; width: clamp(140px, 24vw, 230px); cursor: pointer; filter: drop-shadow(0 8px 6px rgba(0,60,40,.25)); z-index: 4; }
 .hs-rex .du-dino { display: block; }
+/* Photoreal Rex: a true button, with a grounded silhouette and gentle breathing. */
+button.hs-rex { width: clamp(235px, 38vw, 390px); left: 2%; bottom: 3%; padding: 0; border: 0; background: transparent; border-radius: 12px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button.hs-rex:focus-visible { outline: 3px solid #fff2a7; outline-offset: 5px; }
+.rex-photo { transform-origin: 60% 93%; animation: rex-breathe 4.5s ease-in-out infinite; }
+.rex-photo img { display: block; width: 100%; height: auto; pointer-events: none; }
+.rex-photo[data-state="roar"] { animation: rex-roar 3.3s ease-out both; }
+.rex-photo[data-state="sleep"] { filter: brightness(.76); }
+@keyframes rex-breathe { 50% { transform: scaleY(1.015) rotate(-.35deg); } }
+@keyframes rex-roar { 0%,100% { transform: none; } 12% { transform: rotate(-3deg) scale(1.045); } 22%,34%,46% { transform: rotate(-2deg) translateX(2px) scale(1.035); } 28%,40%,52% { transform: rotate(-1deg) translateX(-2px) scale(1.03); } 72% { transform: rotate(-1deg) scale(1.015); } }
+@media (max-width:560px) { button.hs-rex { width: 68%; max-width: 270px; } }
 .hs-bubble { position: absolute; left: clamp(150px, 25vw, 270px); top: 31%; max-width: min(330px, 62%); background: #fff; color: #143c3a; border-radius: 22px; padding: 12px 18px; font-weight: 800; font-size: clamp(1rem, 2.4vw, 1.35rem); line-height: 1.25; box-shadow: 0 8px 22px rgba(0,50,50,.25); z-index: 5; transform-origin: 0 100%; animation: hs-bubble 5s ease-in-out infinite; }
 .hs-bubble::before { content: ""; position: absolute; left: -12px; bottom: 16px; border: 12px solid transparent; border-right-color: #fff; border-left: 0; }
 @keyframes hs-bubble { 0%,100% { transform: translateY(0) rotate(-.6deg); } 50% { transform: translateY(-5px) rotate(.6deg); } }

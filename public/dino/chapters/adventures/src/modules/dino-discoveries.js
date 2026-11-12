@@ -38,14 +38,9 @@ export const PREHISTORIC_CREATURES = [
  * Trips grow with the level: more friends to meet and trickier questions (what kind, what it ate, "was it really a
  * dinosaur?", which fact belongs to whom). A free hint crosses out one wrong answer instead of giving the game away. */
 export function speciesFor(creature) {
-  const n = creature.name;
-  if (creature.kind !== "Dinosaur" && creature.kind !== "Flying reptile") return null;
-  if (creature.kind === "Flying reptile" || n === "Archaeopteryx") return "ptero";
-  if (/Tyrannosaurus/.test(n)) return "trex";
-  if (/Triceratops|Styracosaurus|Carnotaurus/.test(n)) return "tricera";
-  if (/Stegosaurus|Ankylosaurus|Amargasaurus|Pachycephalosaurus/.test(n)) return "stego";
-  if (/Velociraptor|Deinonychus|Coelophysis|Oviraptor|Allosaurus|Spinosaurus|Baryonyx/.test(n)) return "raptor";
-  return "bronto";
+  const aliases = {'Tyrannosaurus rex':'trex',Velociraptor:'raptor',Triceratops:'tricera',Stegosaurus:'stego',Pteranodon:'ptero'};
+  const key = aliases[creature.name] || creature.name.toLowerCase();
+  return window.DUFX.dinoPhotoURL(key) ? key : null;
 }
 const TINTS = ["green", "teal", "purple", "orange", "pink", "blue", "yellow", "red"];
 function tintFor(name) { let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997; return TINTS[h % TINTS.length]; }

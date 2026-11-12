@@ -2,7 +2,7 @@
 // A finite sprint: reach the nesting grounds before the light fails, leaping
 // logs, ducking branches and gathering shed feathers for a tailwind.
 
-import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-8607dafbfd11334e';
+import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-316e7af9b57fa08e';
 
 const GROUND = 430;
 const TARGET = 9600;

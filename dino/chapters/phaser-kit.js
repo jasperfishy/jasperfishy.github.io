@@ -4,6 +4,20 @@
 (function () {
   "use strict";
   const Kit = (window.DUKit = {});
+  const photoBase = new URL('../assets/prehistoric/', document.currentScript.src).href;
+  Kit.photo = (scene, key, species, width, height) => {
+    if (scene.textures.exists(key)) return;
+    const tex = scene.textures.createCanvas(key, width, height);
+    const img = new Image();
+    img.onload = () => {
+      if (!tex.context || !scene.textures.exists(key)) return;
+      const ctx = tex.getContext(), scale = Math.min(width / img.width, height / img.height);
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(img, (width - img.width * scale) / 2, height - img.height * scale, img.width * scale, img.height * scale);
+      tex.refresh();
+    };
+    img.src = photoBase + species + '.png';
+  };
   const FX = () => window.DUFX;
   const EMBEDDED = window.self !== window.top;
   const motionOK = () => !(FX() && FX().settings && FX().settings.reduce);
@@ -60,6 +74,10 @@
 
   Kit.emoji = (scene, key, emoji, size) => {
     if (scene.textures.exists(key)) return;
+    if (emoji === '🦖' || emoji === '🦕') {
+      Kit.photo(scene, key, emoji === '🦖' ? 'trex' : 'bronto', Math.ceil(size * 1.4), Math.ceil(size));
+      return;
+    }
     const t = scene.add.text(0, 0, emoji, { fontSize: size + "px", fontFamily: "sans-serif" });
     t.setPadding(4);
     const rt = scene.make.renderTexture({ width: Math.ceil(t.width), height: Math.ceil(t.height), add: false });
@@ -144,7 +162,12 @@
     const c = scene.add.container(W / 2, H / 2).setDepth(100);
     const veil = scene.add.rectangle(0, 0, W, H, 0x10243a, 0.55);
     const card = scene.add.rectangle(0, 0, 560, 270, 0xffffff, 0.95).setStrokeStyle(5, o.color || 0x2ecc71, 1);
-    const icon = scene.add.text(0, -78, o.emoji || "🦖", { fontSize: "64px" }).setOrigin(0.5);
+    const iconEmoji = o.emoji || "🦖";
+    let icon;
+    if (iconEmoji === '🦖' || iconEmoji === '🦕') {
+      Kit.emoji(scene, 'kit-title-' + iconEmoji, iconEmoji, 74);
+      icon = scene.add.image(0, -78, 'kit-title-' + iconEmoji).setOrigin(0.5);
+    } else icon = scene.add.text(0, -78, iconEmoji, { fontSize: "64px" }).setOrigin(0.5);
     const title = scene.add.text(0, -8, o.title, { fontSize: "44px", fontFamily: FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0.5);
     const say = String(o.hint || "");
     const hint = scene.add.text(0, 0, say, { fontSize: say.length > 92 ? "18px" : "20px", fontFamily: FONT, color: "#52627f", align: "center", wordWrap: { width: 500 } }).setOrigin(0.5);

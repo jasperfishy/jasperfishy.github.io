@@ -115,7 +115,7 @@
       const wrap = el('div', 'col-wrap');
       const gal = el('div', 'col-gallery');
       for (let i = 0; i < ctx.rounds; i++) { const f = el('span', 'cg-frame' + (colGallery[i] ? ' full' : '')); if (colGallery[i]) f.append(colGallery[i].cloneNode(true)); gal.append(f); }
-      const stage = el('div', 'col-stage', FX.dinoHTML(sp, { color: 'green', state: 'idle' }));
+      const stage = el('div', 'col-stage', FX.dinoHTML(sp, { paint: true, color: 'green', state: 'idle' }));
       const dino = stage.firstElementChild;
       const skip = ['#fff', '#ffffff', '#163f42', '#ff8fa3', '#fff4d6'];
       const regions = $$('.d-all path, .d-all ellipse, .d-all circle', dino).filter((n) => {

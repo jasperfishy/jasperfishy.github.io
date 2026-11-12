@@ -1,28 +1,15 @@
+const photoSpecies=['bronto','tricera','stego','trex','spinosaurus','edmontosaurus','ankylosaurus','parasaurolophus','compsognathus','pachycephalosaurus','oviraptor','therizinosaurus'];
+let photoId=0;
+function photoDino(type,colour,colouring){
+ const id='meadow-photo-'+(++photoId),url=new URL('../../assets/prehistoric/'+photoSpecies[type%12]+'.png',import.meta.url).href;
+ const img=`<image href="${url}" x="8" y="12" width="404" height="320" preserveAspectRatio="xMidYMax meet"/>`;
+ const regions=Array.from({length:8},(_,i)=>`<path data-fill="d-photo${i}" d="M${(i%4)*105} ${Math.floor(i/4)*180}h105v180h-105Z" fill="${colouring?'#ffffff':colour}" stroke="none"/>`).join('');
+ return `<defs><mask id="${id}" mask-type="alpha">${img}</mask></defs><g mask="url(#${id})">${regions}<g style="mix-blend-mode:luminosity;opacity:.8;pointer-events:none">${img}</g></g>`;
+}
 export const dinosaurs=['Long-neck','Three-horns','Spiky-back','Little rex','Sail-back','Duck-bill','Armour-tail','Crest-head','Tiny runner','Dome-head','Feather-tail','Big-claw'];
 export const scenes=['Flower meadow','Volcano valley','Moonlit lake','Birthday picnic','Rainbow garden','Snowy hills','Fossil beach','Jungle waterfall','Starry camp','Orchard adventure'];
 const ink='#285357';
-export function dino(type=0,colour='#73c9a2',colouring=false){
- const p=(id,shape,fill=colour)=>`<path data-fill="d-${id}" d="${shape}" fill="${colouring?'#fff':fill}" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/>`;
- const long=type===0, runner=[3,8,10,11].includes(type);
- let s=p('tail',runner?'M160 265Q55 260 20 180Q75 210 175 205Z':'M150 250Q65 245 25 185Q100 220 175 210Z');
- if(type===2)for(let i=0;i<5;i++)s+=p('plate'+i,`M${115+i*34} 203l12 -52l28 48Z`,'#e7a65c');
- if(type===4)s+=p('sail','M120 210Q135 75 180 125Q230 60 260 205Z','#efa27c');
- s+=p('body','M105 235C90 150 285 145 310 230Q325 300 245 295L235 330L195 330L191 286L160 288L155 330L116 330L125 278Z');
- if(long)s+=p('neck','M235 227L252 80Q255 35 310 40Q368 40 364 85Q359 122 300 105L300 240Z');
- else if(runner)s+=p('head','M235 240L241 135Q245 94 303 95L365 111Q382 147 356 168L290 170L294 230Z');
- else s+=p('head','M258 185Q265 118 326 130Q367 133 372 183Q369 225 310 220L274 242Z');
- if(type===1){s+=p('frill','M274 201Q207 150 267 104Q314 92 323 135L300 208Z','#9bb9f0');s+=p('horn1','M330 153L344 106L349 166Z','#ffe2aa');s+=p('horn2','M300 151L308 112L317 162Z','#ffe2aa');s+=p('horn3','M361 180L395 168L371 196Z','#ffe2aa');}
- if(type===5)s+=p('bill','M340 176Q404 166 400 192Q380 210 343 201Z','#f3bd68');
- if(type===6){s+=p('shell','M110 219Q135 133 252 182L281 233Z','#73a7ba');s+=p('club','M53 214Q-3 232 10 185Q41 157 66 192Z','#b49ad6');}
- if(type===7)s+=p('crest','M294 139Q298 64 251 71Q271 38 321 85L334 143Z','#e89a7e');
- if(type===9)s+=p('dome','M280 144Q281 85 333 106Q356 114 359 153Z','#a791d7');
- if(type===10)for(let i=0;i<3;i++)s+=p('feather'+i,`M105 232Q${10+i*15} ${110+i*25} ${30+i*25} 241Z`,'#eaa27a');
- if(type===11)s+=p('claw','M262 232L324 234L347 271L324 258L310 262L292 248L259 250Z','#f7dc85');
- s+=`<circle cx="${long?330:339}" cy="${long?70:158}" r="6" fill="${ink}"/><circle cx="${long?332:341}" cy="${long?68:156}" r="2" fill="white"/><path d="M${long?'331 94q15 8 24-5':'340 193q13 8 24-5'}" fill="none" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>`;
- s+=`<ellipse data-fill="d-cheek" cx="${long?310:318}" cy="${long?91:185}" rx="12" ry="8" fill="${colouring?'white':'#f19b9f'}" stroke="${ink}" stroke-width="2"/>`;
- for(let i=0;i<3;i++)s+=`<ellipse data-fill="d-spot${i}" cx="${155+i*33}" cy="${215+(i%2)*20}" rx="12" ry="9" fill="${colouring?'white':'#c5e8b2'}" stroke="${ink}" stroke-width="2"/>`;
- return s;
-}
+export function dino(type=0,colour='#73c9a2',colouring=false){return photoDino(type,colour,colouring);}
 export function dinoSVG(type=0,colour='#73c9a2'){return `<svg viewBox="0 0 420 360" role="img" aria-label="${dinosaurs[type%12]} dinosaur">${dino(type%12,colour)}</svg>`;}
 export function pageSVG(index=0,paint={}){
  const type=index%12,scene=Math.floor(index/12)%10;

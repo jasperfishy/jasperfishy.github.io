@@ -123,3 +123,6 @@
   .du-dino .d-eye { animation: none !important; }
   #du-ambient, #du-fx-layer { display: none; }
 }
+
+/* Photographic assembly sections move together to keep their seams closed. */
+.du-photo-svg .d-tail, .du-photo-svg .d-head, .du-photo-svg .d-leg { animation: none !important; transform: none; }

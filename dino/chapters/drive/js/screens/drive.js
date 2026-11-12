@@ -1,9 +1,10 @@
+import { drawPhotoreal } from "../../../../photoreal-textures.js?v=du-316e7af9b57fa08e";
 // Dino Car Studio driving engine: a curving, hilly pseudo-3D road shared by every
 // world and both play modes. The road is a loop of short segments; each frame the
 // segments in front of the camera are projected to the screen, far to near.
 
-import { SCENES } from "../data-scenes.js?v=du-8607dafbfd11334e";
-import { drawCarRear } from "../render-car.js?v=du-8607dafbfd11334e";
+import { SCENES } from "../data-scenes.js?v=du-316e7af9b57fa08e";
+import { drawCarRear } from "../render-car.js?v=du-316e7af9b57fa08e";
 
 const RACE_LAPS = 3;
 const EXPLORE_GOAL = 20;
@@ -494,7 +495,9 @@ export function initDrive(root, state, goHome, onComplete) {
       if (size < 4) return;
       ctx.fillStyle = "rgba(0,0,0,.14)"; ctx.beginPath(); ctx.ellipse(px, sy, size * 0.32, size * 0.08, 0, 0, Math.PI * 2); ctx.fill();
       ctx.font = Math.round(size) + "px sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "#000";
-      ctx.fillText(sp.e, px, sy);
+      if (sp.e === '🦖' || sp.e === '🦕') {
+        drawPhotoreal(ctx, sp.e === '🦖' ? 'trex' : 'bronto', px - size * .7, sy - size, size * 1.4, size);
+      } else ctx.fillText(sp.e, px, sy);
     } else if (sp.kind === "arch") {
       const left = sx - sw * 1.12, right = sx + sw * 1.12, top = sy - sc * 1250 * W / 2, post = Math.max(3, sw * 0.05);
       ctx.fillStyle = "#e8473c"; ctx.fillRect(left - post / 2, top, post, sy - top); ctx.fillRect(right - post / 2, top, post, sy - top);

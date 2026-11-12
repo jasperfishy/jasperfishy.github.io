@@ -1,7 +1,8 @@
 // Dinosaur Universe — hub shell.
 // Shared state: child name and parent preferences. Chapters receive them via postMessage.
-import { chapters, activities } from './chapters.js?v=du-8607dafbfd11334e';
-import { heroScene, chapterArt } from './hub-art.js?v=du-8607dafbfd11334e';
+import { chapters, activities } from './chapters.js?v=du-316e7af9b57fa08e';
+import { heroScene, chapterArt } from './hub-art.js?v=du-316e7af9b57fa08e';
+import { playRexRoar, stopRexRoar } from './rex-audio.js?v=du-316e7af9b57fa08e';
 
 const FX = window.DUFX;
 const hub = document.querySelector('#hub');
@@ -49,6 +50,7 @@ function saveSettings() {
   soundButton.textContent = settings.sound ? '🔊' : '🔇';
   soundButton.setAttribute('aria-label', settings.sound ? 'Turn sound off' : 'Turn sound on');
   FX.configure({ sound: settings.sound, calm: settings.calmCelebrations });
+  if (!settings.sound) stopRexRoar();
   broadcast();
 }
 function broadcast() {
@@ -497,7 +499,7 @@ function wireHero() {
   const hero = document.querySelector('.hero-scene');
   if (!hero) return;
   const rex = hero.querySelector('.hs-rex .du-dino');
-  FX.dinoTrack(rex);
+  // Photographic Rex uses a whole-body breathing and roar animation.
   const say = (text) => {
     const bubble = hero.querySelector('.hs-bubble'), out = hero.querySelector('#hsSay');
     clearInterval(sayTimer);
@@ -512,8 +514,8 @@ function wireHero() {
   let li = 0;
   say(lines[li++ % lines.length]);
   clearInterval(hero._say); hero._say = setInterval(() => { if (!hero.isConnected) return clearInterval(hero._say); if (stage.hidden && !document.hidden) say(lines[li++ % lines.length]); }, 7500);
-  hero.querySelector('.hs-rex').addEventListener('pointerdown', (e) => {
-    FX.dinoState(rex, 'roar', 1200); FX.sfx.roar(); FX.shakeScreen(4);
+  hero.querySelector('.hs-rex').addEventListener('click', (e) => {
+    FX.dinoState(rex, 'roar', 3300); playRexRoar(); FX.shakeScreen(4);
     const r = rex.getBoundingClientRect(); FX.burst(r.left + r.width * .8, r.top + r.height * .3, { kind: 'dust', n: 10 });
     say(['ROOOAR!!', 'Rawr! That was a big one!', 'I am a mighty T-rex!'][li++ % 3]);
     e.stopPropagation();
@@ -581,6 +583,7 @@ function openChapter(c, e) {
   const go = () => {
     pauseWonder();
     hub.hidden = true;
+    stopRexRoar();
     stage.hidden = false;
     document.body.classList.add('in-stage');
     FX.ambient(null);

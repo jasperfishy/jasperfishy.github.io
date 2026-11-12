@@ -1,3 +1,4 @@
+import { drawPhotoreal } from "../../../photoreal-textures.js";
 // render/car.js — Draws the player's car from its config.
 // config = { body, paint, name, stickers: ["⭐", ...] }
 
@@ -138,14 +139,10 @@ export function drawCarRear(ctx, config, x, y, scale = 1, tilt = 0, extra = {}) 
   ctx.beginPath(); ctx.moveTo(-18, -8); ctx.lineTo(-12, -24); ctx.lineTo(-6, -24); ctx.lineTo(-12, -8); ctx.closePath(); ctx.fill();
   // dino driver, seen from behind, peeking over the roof
   const bob = Math.sin(t * 5) * 1.8;
-  const head = extra.head || "#58c26a";
-  ctx.fillStyle = extra.spike || "#439f54";
-  ctx.beginPath(); ctx.moveTo(-9, -36 + bob); ctx.lineTo(-5, -50 + bob); ctx.lineTo(-1, -36 + bob); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(1, -36 + bob); ctx.lineTo(5, -52 + bob); ctx.lineTo(9, -36 + bob); ctx.fill();
-  ctx.fillStyle = head;
-  ctx.beginPath(); ctx.arc(0, -22 + bob, 15, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = shade(head, 0.35);
-  ctx.beginPath(); ctx.arc(-5, -26 + bob, 4, 0, Math.PI * 2); ctx.fill();
+  if (!drawPhotoreal(ctx, 'trex-head-rear', -18, -55 + bob, 36, 38)) {
+    ctx.fillStyle = extra.head || '#58c26a';
+    ctx.beginPath(); ctx.arc(0, -22 + bob, 15, 0, Math.PI * 2); ctx.fill();
+  }
   // tail lights (brighter when braking), number plate, bumper
   ctx.fillStyle = extra.brake ? "#ff5a5a" : "#d82d2d";
   roundRect(ctx, -47, 6, 20, 11, 4); ctx.fill(); roundRect(ctx, 27, 6, 20, 11, 4); ctx.fill();

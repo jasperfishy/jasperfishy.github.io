@@ -2,6 +2,7 @@
 // One stage, one audio ensemble, one set of hand-painted procedural layers, so
 // every little game inherits the same finish as Sky Mail without shipping any
 // image or sound files.
+import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-316e7af9b57fa08e';
 
 export const W = 960;
 export const SAVE_KEY = 'du-arcade-v1';
@@ -131,6 +132,30 @@ export function canvasTex(scene, key, w, h, draw) {
   const c = tex.getContext();
   draw(c, w, h);
   tex.refresh();
+  const pose = key.split('-').at(-1);
+  const poseOptions = ['duck', 'crouch', 'slide', 'tuck', 'hang'].includes(pose)
+    ? { scaleY: 0.72, offsetY: 0.1 }
+    : ['jump', 'leap', 'hop', 'lunge', 'charge', 'flap'].includes(pose)
+      ? { scaleY: 0.9, offsetY: -0.04 }
+      : {};
+  const match = key.match(/^(?:bb-walker|mh-(?:lead|calf)-|rm-longneck-)/);
+  if (match) applyPhotorealTexture(tex, 'bronto', poseOptions);
+  else if (/^(?:dc-raptor|rr-raptor-|ss-raptor-|sl-hero-)/.test(key)) applyPhotorealTexture(tex, 'raptor', poseOptions);
+  else if (/^rm-shellback-/.test(key)) applyPhotorealTexture(tex, 'ankylosaurus', poseOptions);
+  else if (/^ss-stego-/.test(key)) applyPhotorealTexture(tex, 'stego', poseOptions);
+  else if (/^tc-trike-|^tc-calf$/.test(key)) applyPhotorealTexture(tex, 'tricera', poseOptions);
+  else if (/^(?:pp-ptero-|ts-soar-)/.test(key)) applyPhotorealTexture(tex, 'ptero', poseOptions);
+  else if (/^(?:gl-keeper-|tc-keeper-|ve-player-|ng-builder-|bs-digger-|lw-hunter-|vc-hatch-|tc-hatch-|rb-hatch-|tp-hatch$)/.test(key)) applyPhotorealTexture(tex, 'trex', poseOptions);
+  else if (/^rm-nibbler-/.test(key)) applyPhotorealTexture(tex, 'parasaurolophus', poseOptions);
+  if (/^fh-(?:mother|hatch)-/.test(key)) applyPhotorealTexture(tex, 'oviraptor', poseOptions);
+  else if (/^sl-hunter-/.test(key)) applyPhotorealTexture(tex, 'trex', { ...poseOptions, scaleY: key.endsWith('sleep') ? .65 : 1 });
+  else if (key === 'ac-herder') applyPhotorealTexture(tex, 'raptor', poseOptions);
+  else if (key === 'tc-raider') applyPhotorealTexture(tex, 'raptor', poseOptions);
+  else if (key === 'dc-herd') applyPhotorealTexture(tex, 'parasaurolophus', {flipX:true});
+  else if (/^pd-side-/.test(key)) applyPhotorealTexture(tex, 'raptor', poseOptions);
+  else if (/^pd-rear-/.test(key)) applyPhotorealTexture(tex, 'raptor-rear', poseOptions);
+  else if (key === 'tp-hang') applyPhotorealTexture(tex, 'raptor-hang');
+  else if (key === 'tp-glide') applyPhotorealTexture(tex, 'archaeopteryx');
   return tex;
 }
 
