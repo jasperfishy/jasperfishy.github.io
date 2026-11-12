@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e2027">
+<title>Prehistoric Sky Mail · Dinosaur Universe</title>
+<link rel="stylesheet" href="flight.css?v=du-a1454ea5250e1aa0">
+</head>
+<body data-mode="title">
+<main id="deck" aria-label="Prehistoric Sky Mail, a pterosaur courier flight">
+  <div id="air" aria-hidden="true"></div>
+  <div id="shade" aria-hidden="true"></div>
+
+  <header>
+    <a id="back" href="../adventures/index.html?v=du-a1454ea5250e1aa0"><span aria-hidden="true">‹</span> Dino Adventures</a>
+    <div class="tools">
+      <button id="mute" type="button" aria-pressed="true">Sound on</button>
+      <button id="pause" type="button" hidden>Pause</button>
+    </div>
+  </header>
+
+  <section id="cover">
+    <div class="rule">
+      <span>Mesozoic postal service</span><i></i><span>Flight no. <b id="flightNo">01</b></span>
+    </div>
+    <h1>Prehistoric<br><em>Sky Mail</em></h1>
+    <p id="copy"></p>
+    <div class="routes" id="routeLine" role="group" aria-label="Choose a route"></div>
+    <button class="launch" id="launch" type="button"><span>Take flight</span><b aria-hidden="true">→</b></button>
+    <div id="best"></div>
+  </section>
+
+  <div id="instruments" hidden aria-live="off">
+    <div class="inst-left">
+      <div class="route-tag" id="route">Flight 01</div>
+      <div class="route-name" id="routeName">Dawn Ridge</div>
+      <div class="meter" aria-hidden="true"><i id="meterFill"></i></div>
+      <div class="stamina" aria-hidden="true"><i id="staminaFill"></i></div>
+    </div>
+    <div class="inst-right">
+      <div class="hearts" aria-label="Feathers remaining">
+        <svg id="heart1" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 3.6c-6.2-.6-11.8 3.4-13.2 9.5-.5 2.2-.2 4.4.8 6.2l-2.7 2.7 1.8 1.8 2.6-2.6c1.9 1 4.1 1.1 6.2.5 6-1.7 9.7-7.5 9-13.7-.2-1.5-.8-2.9-1.7-4l-2.8 2.4z"/></svg>
+        <svg id="heart2" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 3.6c-6.2-.6-11.8 3.4-13.2 9.5-.5 2.2-.2 4.4.8 6.2l-2.7 2.7 1.8 1.8 2.6-2.6c1.9 1 4.1 1.1 6.2.5 6-1.7 9.7-7.5 9-13.7-.2-1.5-.8-2.9-1.7-4l-2.8 2.4z"/></svg>
+        <svg id="heart3" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 3.6c-6.2-.6-11.8 3.4-13.2 9.5-.5 2.2-.2 4.4.8 6.2l-2.7 2.7 1.8 1.8 2.6-2.6c1.9 1 4.1 1.1 6.2.5 6-1.7 9.7-7.5 9-13.7-.2-1.5-.8-2.9-1.7-4l-2.8 2.4z"/></svg>
+      </div>
+      <div class="pips" aria-label="Letters delivered">
+        <svg id="pip1" viewBox="0 0 28 20" aria-hidden="true"><rect x="1" y="1" width="26" height="18" rx="2.5"/><path d="M1.8 2.4 14 11.6 26.2 2.4M3.6 18.2 11 11.4M24.4 18.2 17 11.4"/></svg>
+        <svg id="pip2" viewBox="0 0 28 20" aria-hidden="true"><rect x="1" y="1" width="26" height="18" rx="2.5"/><path d="M1.8 2.4 14 11.6 26.2 2.4M3.6 18.2 11 11.4M24.4 18.2 17 11.4"/></svg>
+        <svg id="pip3" viewBox="0 0 28 20" aria-hidden="true"><rect x="1" y="1" width="26" height="18" rx="2.5"/><path d="M1.8 2.4 14 11.6 26.2 2.4M3.6 18.2 11 11.4M24.4 18.2 17 11.4"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="notice" role="status" aria-live="polite"></div>
+  <p id="hint">Steer with the pointer or arrow keys · hold to catch the wind · Esc rests your wings</p>
+
+  <section id="pausePanel" hidden>
+    <small>Air post · flight hold</small>
+    <h2>Wings at rest</h2>
+    <p>The letters are safe in the satchel. The sky will keep.</p>
+    <button class="launch" id="resume" type="button"><span>Resume flight</span><b aria-hidden="true">→</b></button>
+    <button class="quiet" id="leave" type="button">Return to the cover</button>
+  </section>
+
+  <section id="results" hidden>
+    <small id="resultKicker">Flight 01 · logged</small>
+    <h2 id="resultTitle">Dawn Ridge</h2>
+    <div id="resultStars" aria-label="Stars earned"></div>
+    <p id="resultLine"></p>
+    <div class="result-actions">
+      <button class="launch" id="again" type="button"><span>Fly it again</span><b aria-hidden="true">→</b></button>
+      <button class="quiet" id="next" type="button" hidden></button>
+      <button class="quiet" id="home" type="button">All flights</button>
+    </div>
+  </section>
+</main>
+<script src="../../lib/phaser.min.js?v=du-a1454ea5250e1aa0"></script>
+<script type="module" src="flight.js?v=du-a1454ea5250e1aa0"></script>
+</body>
+</html>

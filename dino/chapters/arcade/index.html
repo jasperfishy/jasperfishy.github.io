@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10262a">
+<title>Prehistoric Arcade · Dinosaur Universe</title>
+<link rel="stylesheet" href="arcade.css?v=du-a1454ea5250e1aa0">
+</head>
+<body data-mode="menu" data-tod="dusk">
+<main id="deck" aria-label="Prehistoric Arcade, ten games in the Dinosaur Universe">
+  <div id="world-backdrop" aria-hidden="true">
+    <i class="wb-sun"></i>
+    <i class="wb-cloud wb-c1"></i><i class="wb-cloud wb-c2"></i><i class="wb-cloud wb-c3"></i>
+    <svg class="wb-ridge wb-far" viewBox="0 0 1000 320" preserveAspectRatio="xMidYMax slice">
+      <path d="M0 240 L90 150 L170 215 L260 120 L360 220 L450 165 L560 245 L650 180 L760 235 L870 160 L1000 225 L1000 320 L0 320Z"/>
+    </svg>
+    <svg class="wb-ridge wb-near" viewBox="0 0 1000 320" preserveAspectRatio="xMidYMax slice">
+      <path d="M0 268 Q120 218 250 256 T520 246 T780 258 T1000 240 L1000 320 L0 320Z"/>
+    </svg>
+    <svg class="wb-fern" viewBox="0 0 200 260" preserveAspectRatio="xMidYMax meet"><g><path d="M100 260 C96 180 92 110 70 60"/><path d="M92 190 C60 176 34 150 26 120"/><path d="M90 154 C118 138 142 112 150 82"/><path d="M86 118 C58 104 42 80 38 54"/><path d="M80 84 C104 68 120 48 126 26"/></g></svg>
+    <i class="wb-spore" style="--x:12%;--d:0s"></i><i class="wb-spore" style="--x:28%;--d:-3s"></i>
+    <i class="wb-spore" style="--x:47%;--d:-6s"></i><i class="wb-spore" style="--x:66%;--d:-1.5s"></i>
+    <i class="wb-spore" style="--x:83%;--d:-4.5s"></i>
+  </div>
+  <div id="grain" aria-hidden="true"></div>
+
+  <header>
+    <a id="back" href="../index.html?v=du-a1454ea5250e1aa0"><span aria-hidden="true">‹</span> Dinosaur Universe</a>
+    <div class="tools">
+      <button id="mute" type="button" aria-pressed="true">Sound on</button>
+      <button id="pause" type="button" hidden>Pause</button>
+    </div>
+  </header>
+
+  <section id="menu">
+    <div class="menu-head">
+      <span class="kicker">Prehistoric Arcade <i></i> Ten small worlds</span>
+      <h1>The wild planet,<br><em>ten ways</em></h1>
+      <p>Each one a living place with its own weather, its own creatures and its own way to be brave. Pick a world and stay a while.</p>
+    </div>
+    <div id="gameGrid"></div>
+    <p class="menu-foot">Every world is free, works offline, and remembers your best run.</p>
+  </section>
+
+  <section id="cover" hidden>
+    <div class="rule"><span>Prehistoric Arcade</span><i></i><span>World no. <b id="coverNo">01</b></span></div>
+    <span class="cover-kicker" id="coverMood">Jungle</span>
+    <h1 id="coverTitle">Raptor Run</h1>
+    <p id="coverCopy" class="cover-copy"></p>
+    <div class="cover-notes">
+      <div><small>How to play</small><p id="coverHow"></p></div>
+      <div><small>Controls</small><p id="coverControls"></p></div>
+      <div><small>Best</small><p id="coverBest">Not yet flown</p></div>
+    </div>
+    <button id="startBtn" class="launch" type="button"><span>Enter the world</span><b aria-hidden="true">→</b></button>
+    <button id="coverBack" class="quiet" type="button">All ten worlds</button>
+  </section>
+
+  <div id="air" aria-hidden="true"></div>
+  <div id="shade" aria-hidden="true"></div>
+
+  <div id="instruments" hidden aria-live="off">
+    <div class="inst-left">
+      <span class="inst-kicker" id="instGame">Raptor Run</span>
+      <span class="inst-score"><b id="instScore">0</b> <small id="instUnit">paces</small></span>
+      <span class="meter" aria-hidden="true"><i id="instBar"></i></span>
+    </div>
+    <div class="inst-right">
+      <span class="hearts" id="instHearts" aria-label="Feathers remaining"></span>
+      <span class="inst-extra" id="instExtra"></span>
+    </div>
+  </div>
+
+  <div id="notice" role="status" aria-live="polite"></div>
+  <p id="hint">Move to play · tap or Space to act · Esc rests the world</p>
+
+  <section id="pausePanel" hidden>
+    <small>Prehistoric Arcade</small>
+    <h2>The world holds its breath</h2>
+    <p>Everything is exactly where you left it.</p>
+    <button id="resume" class="launch" type="button"><span>Continue</span><b aria-hidden="true">→</b></button>
+    <button id="leave" class="quiet" type="button">All ten worlds</button>
+  </section>
+
+  <section id="results" hidden>
+    <small id="resultKicker">World cleared</small>
+    <h2 id="resultTitle">Raptor Run</h2>
+    <div id="resultStars" aria-label="Stars earned"></div>
+    <p id="resultLine"></p>
+    <div class="result-actions">
+      <button id="again" class="launch" type="button"><span>Run it again</span><b aria-hidden="true">→</b></button>
+      <button id="next" class="quiet" type="button"></button>
+      <button id="home" class="quiet" type="button">All ten worlds</button>
+    </div>
+  </section>
+</main>
+<script src="../../fx/du-journey.js?v=du-a1454ea5250e1aa0"></script>
+<script src="../../lib/phaser.min.js?v=du-a1454ea5250e1aa0"></script>
+<script type="module" src="main.js?v=du-a1454ea5250e1aa0"></script>
+</body>
+</html>
