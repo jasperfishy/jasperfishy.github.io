@@ -2,7 +2,7 @@
  * Drag (or tap) the right food. Requests grow from names ("berries!") to kinds, colours, feels, drinks and puddings,
  * so a long table wants a dish, a sip and a sweet finish. The weather changes the table each round, a wrong dish
  * earns a teaching nudge, a free hint glows the right plate, and a fed table can unlock a dessert dash. */
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-28730ed953f5f1ae";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-a6930f78f9a4718b";
 
 const FOODS = [
   { icon: "🥬", label: "leafy greens", color: "green", feel: "leafy", kind: "plants" },

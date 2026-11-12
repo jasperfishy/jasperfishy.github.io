@@ -392,6 +392,7 @@ const AMBIENT = { constellations: "night", moonbeam: "night", fossil: "desert", 
 function roundsFor(level) { return Math.min(5, 3 + Math.floor((level - 1) / 2)); }
 
 function openActivity(id) {
+  if (id === "skymail") { window.location.href = "../sky-mail/index.html"; return; }
   const activity = ACTIVITIES.find(function (item) { return item.id === id; });
   if (!activity) return;
   leaveStage();

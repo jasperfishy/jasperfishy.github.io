@@ -4,7 +4,7 @@
  * notebook (saved, so notes pile up across the whole journey); a live moves/time tally sets a medal budget you can
  * beat; and when the last pair is found ONE friend hides under a basket — you deduce who from the fact clue, and a
  * wrong guess costs a star while the free clue button only helps you look again. */
-import { createPlay, shuffle, enter, getExtras, collect, collection } from "../adv-kit.js?v=du-28730ed953f5f1ae";
+import { createPlay, shuffle, enter, getExtras, collect, collection } from "../adv-kit.js?v=du-a6930f78f9a4718b";
 
 const NOTE_KEY = "memory-notes"; // saved inside du-adv-extras-v1 via collect()
 const RUNS_KEY = "memory-runs";

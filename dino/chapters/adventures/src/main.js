@@ -1,26 +1,26 @@
-import { registerModule, getModule } from "./module-registry.js?v=du-28730ed953f5f1ae";
-import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-28730ed953f5f1ae";
-import { mountBuilder } from "./modules/builder.js?v=du-28730ed953f5f1ae";
-import { mountJigsaw } from "./modules/jigsaw.js?v=du-28730ed953f5f1ae";
-import { mountFossil } from "./modules/fossil.js?v=du-28730ed953f5f1ae";
-import { mountMemory } from "./modules/memory.js?v=du-28730ed953f5f1ae";
-import { mountPicnic } from "./modules/picnic.js?v=du-28730ed953f5f1ae";
-import { mountTrail } from "./modules/trail.js?v=du-28730ed953f5f1ae";
-import { mountHatchling } from "./modules/hatchling.js?v=du-28730ed953f5f1ae";
-import { mountShapeSafari } from "./modules/shape-safari.js?v=du-28730ed953f5f1ae";
-import { mountDinoBeat } from "./modules/dino-beat.js?v=du-28730ed953f5f1ae";
-import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-28730ed953f5f1ae";
-import { mountStorybook } from "./modules/storybook.js?v=du-28730ed953f5f1ae";
-import { mountDinoDiscoveries, PREHISTORIC_CREATURES } from "./modules/dino-discoveries.js?v=du-28730ed953f5f1ae";
-import { mountDinoCare } from "./modules/dino-care.js?v=du-28730ed953f5f1ae";
-import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-28730ed953f5f1ae";
-import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-28730ed953f5f1ae";
-import { mountDinoParade } from "./modules/dino-parade.js?v=du-28730ed953f5f1ae";
-import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-28730ed953f5f1ae";
-import { mountDinoQuest } from "./modules/dino-quest.js?v=du-28730ed953f5f1ae";
-import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-28730ed953f5f1ae";
-import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-28730ed953f5f1ae";
-import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-28730ed953f5f1ae";
+import { registerModule, getModule } from "./module-registry.js?v=du-a6930f78f9a4718b";
+import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-a6930f78f9a4718b";
+import { mountBuilder } from "./modules/builder.js?v=du-a6930f78f9a4718b";
+import { mountJigsaw } from "./modules/jigsaw.js?v=du-a6930f78f9a4718b";
+import { mountFossil } from "./modules/fossil.js?v=du-a6930f78f9a4718b";
+import { mountMemory } from "./modules/memory.js?v=du-a6930f78f9a4718b";
+import { mountPicnic } from "./modules/picnic.js?v=du-a6930f78f9a4718b";
+import { mountTrail } from "./modules/trail.js?v=du-a6930f78f9a4718b";
+import { mountHatchling } from "./modules/hatchling.js?v=du-a6930f78f9a4718b";
+import { mountShapeSafari } from "./modules/shape-safari.js?v=du-a6930f78f9a4718b";
+import { mountDinoBeat } from "./modules/dino-beat.js?v=du-a6930f78f9a4718b";
+import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-a6930f78f9a4718b";
+import { mountStorybook } from "./modules/storybook.js?v=du-a6930f78f9a4718b";
+import { mountDinoDiscoveries, PREHISTORIC_CREATURES } from "./modules/dino-discoveries.js?v=du-a6930f78f9a4718b";
+import { mountDinoCare } from "./modules/dino-care.js?v=du-a6930f78f9a4718b";
+import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-a6930f78f9a4718b";
+import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-a6930f78f9a4718b";
+import { mountDinoParade } from "./modules/dino-parade.js?v=du-a6930f78f9a4718b";
+import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-a6930f78f9a4718b";
+import { mountDinoQuest } from "./modules/dino-quest.js?v=du-a6930f78f9a4718b";
+import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-a6930f78f9a4718b";
+import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-a6930f78f9a4718b";
+import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-a6930f78f9a4718b";
 
 const STORAGE_KEY = "dinosaur-universe-player-v1";
 const EMBEDDED = window.self !== window.top;
@@ -392,6 +392,7 @@ const AMBIENT = { constellations: "night", moonbeam: "night", fossil: "desert", 
 function roundsFor(level) { return Math.min(5, 3 + Math.floor((level - 1) / 2)); }
 
 function openActivity(id) {
+  if (id === "skymail") { window.location.href = "../sky-mail/index.html"; return; }
   const activity = ACTIVITIES.find(function (item) { return item.id === id; });
   if (!activity) return;
   leaveStage();

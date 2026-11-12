@@ -1,6 +1,6 @@
 /* Fossil Explorer — a real dig site. Brush the soil away with your finger or mouse (it is a scratch-off canvas),
  * find every bone, spot the hidden treasures, then watch the skeleton wake up as the dinosaur it belonged to. */
-import { createPlay, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-28730ed953f5f1ae";
+import { createPlay, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-a6930f78f9a4718b";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const W = 360, H = 240;
