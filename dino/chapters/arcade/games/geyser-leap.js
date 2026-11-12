@@ -2,7 +2,7 @@
 // You do not climb this wall. You stand on a vent, wait for the breath, and
 // let it throw you up the terraces. Read the cycle or the water reads you.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const STAR = [10, 18, 28];
 const STEP = 78;

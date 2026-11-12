@@ -1,7 +1,9 @@
 /* Dino Park — core framework.
- * Games are small "round" machines: each game says how many rounds it has and how to play one round;
- * the framework runs the rounds, counts mistakes, awards 1–3 stars, grows the egg meter, hatches new
- * dinosaurs into the Dino Den and keeps everything in localStorage. */
+ * Two shapes of game live here. "Round" games say how many rounds they have and how to play one;
+ * the framework runs them in a row, counts mistakes and awards 1–3 stars. "Live" games (live:true,
+ * world(ctx)) never clear their stage and are never told a round number: the world keeps moving on
+ * its own clock — arrivals, patience, weather, a resource that drains — and the run ends when the
+ * world's own goal is met. Both shapes share the star, egg, den, jar and localStorage rewards. */
 (function () {
   'use strict';
   const FX = window.DUFX;
@@ -90,6 +92,7 @@
   Park.fly = (a, b, o) => Promise.race([FX.flyTo(a, b, o), sleep(((o && o.duration) || 650) + 500)]);
 
   let run = null;
+  let live = null;
   const area = () => $('#gameArea');
 
   /* ---------- life: friends who wander in, flowers that pop up, butterflies ---------- */
@@ -190,7 +193,11 @@
     h.onclick = () => { FX.dinoState(run.helper, 'roar', 900); FX.sfx.roar(); if (run.hintFn) run.hintFn(); };
     hideWin(); life.reset();
     FX.ambient(game.ambient || 'meadow');
-    // After a quiet moment the helper gently points the way.
+    // After a quiet moment the helper gently points the way. Any real input —
+    // even a brush stroke mid-sentence — resets the quiet clock, so the helper
+    // never talks over a child who is busy playing.
+    start._idleInput = () => { if (run) run.idle = 0; };
+    ['pointerdown', 'pointermove', 'keydown'].forEach((t) => document.addEventListener(t, start._idleInput, true));
     start._idle = setInterval(() => {
       if (!run || $('#game').classList.contains('hidden') || !$('#winOverlay').classList.contains('hidden')) return;
       if (++run.idle >= 10 && run.hintFn) { run.idle = 4; try { run.hintFn(); } catch (e) { /* hint is optional */ } }
@@ -199,7 +206,7 @@
     const intro = storyLine(game, 'intro') || ('Let us play ' + game.name + '!');
     say(intro, 'happy');
     greet(intro);
-    nextRound();
+    if (game.live) liveStart(); else nextRound();
   }
 
   async function nextRound() {
@@ -210,9 +217,13 @@
     a.className = 'game-area';
     pips();
     const mine = run.token;
+    /* alive() is identity-based on purpose: every game restarts token at 0, so a
+     * stale timer from a game left mid-countdown would otherwise read the NEXT
+     * game's round-1 token as its own and speak over it. */
+    const myRun = run;
     const ctx = {
       area: a, round: run.round, rounds: run.game.rounds, level: run.round,
-      alive: () => run && run.token === mine,
+      alive: () => run === myRun && run.token === mine,
       say, helper: run.helper, life,
       /* A wrong move: a gentle sound, a sad little face and, after a second slip, a hint. */
       bad(n, at) {
@@ -240,7 +251,7 @@
       },
       hint(fn) { run.hintFn = fn; },
       flutter: (n) => life.flutter(n),
-      done(msg, delay) { if (run && run.token === mine && !ctx._d) { ctx._d = true; roundDone(msg, delay); } },
+      done(msg, delay) { if (run === myRun && run.token === mine && !ctx._d) { ctx._d = true; roundDone(msg, delay); } },
     };
     a.animate && FX.motionOK() && a.animate([{ opacity: 0, transform: 'translateX(40px)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'ease-out' });
     if (run.game.rounds > 1) banner(run.round === run.game.rounds ? 'Last round!' : `Round ${run.round}`, run.round === 1 ? run.game.name : '');
@@ -265,13 +276,173 @@
     if (last) finish(); else nextRound();
   }
 
+  /* ---------- live worlds ----------
+   * A live game owns one stage that is never wiped, because there are no rounds to
+   * wipe it between. Everything the world needs arrives through ctx: its own clock
+   * (every/frame), one visible goal counted in things rather than rounds (goal/
+   * progress), and a resource that drains whether the child acts or not (drain).
+   * The run ends when the world says so — ctx.win() or ctx.end(). */
+  function liveStop() {
+    if (!live) return;
+    live.timers.forEach((t) => clearInterval(t));
+    live.frames.forEach((stop) => stop());
+    live = null;
+    const h = $('#liveHud'); if (h) h.remove();
+  }
+
+  function liveHud() {
+    let h = $('#liveHud');
+    if (!h) { h = el('div', 'du-live-hud'); h.id = 'liveHud'; $('#game').append(h); }
+    return h;
+  }
+
+  async function liveStart() {
+    const g = run.game, a = area();
+    liveStop();
+    run.token++; run.idle = 0; run.hintFn = null;
+    a.innerHTML = '';
+    a.className = 'game-area du-live';
+    const box = $('#pips'); if (box) box.innerHTML = '';
+    const mine = run.token;
+    const myRun = run;
+    live = { timers: [], frames: [], goal: null, ended: false };
+    const ctx = {
+      area: a, live: true,
+      alive: () => run === myRun && run.token === mine && !!live,
+      say, helper: run.helper, life,
+      clock: () => Date.now() - run.startedAt,
+      bad(n, at) {
+        if (!ctx.alive()) return;
+        run.mistakes += n || 1; run.streak = 0; run.idle = 0;
+        FX.sfx.bad(); FX.dinoState(run.helper, 'sad', 900);
+        const p = where(at || run.helper);
+        FX.floatText(p.x, p.y - 10, pick(['Try again!', 'Nearly!', 'You can do it!', 'Have another go!']), { size: 20, color: '#ffffff' });
+        /* Same contract as round games: the helper offers a hint after a second
+         * slip, once per streak — never a giveaway right after the first one. */
+        if (run.mistakes >= 2 && run.hintFn && !ctx._hinted) { ctx._hinted = true; setTimeout(() => { if (ctx.alive() && run.hintFn) { say('Here is a little help!'); run.hintFn(); } }, 600); }
+      },
+      good(at) {
+        if (!ctx.alive()) return;
+        FX.sfx.good(); FX.dinoState(run.helper, 'happy', 900); run.idle = 0; ctx._hinted = false;
+        run.streak++; run.best = Math.max(run.best, run.streak);
+        life.flower(); if (run.streak === 1 || run.streak % 2 === 0) life.visit(); else life.cheerAll();
+        const s = run.streak;
+        if (s === 3 || s === 5 || s === 8 || (s > 8 && s % 4 === 0)) {
+          ctx.bonus(s === 8 ? 3 : s === 5 ? 2 : 1, where(at), `${s} in a row!`);
+          life.flutter(Math.min(5, s - 1)); FX.sfx.note(Math.min(11, s));
+        }
+      },
+      bonus(n, at, label) {
+        if (!ctx.alive()) return;
+        run.bonus += n; const p = where(at);
+        FX.floatText(p.x, p.y - 24, label ? `${label} +${n}⭐` : `+${n}⭐`, { size: 24 });
+        FX.burst(p.x, p.y, { kind: 'stars', n: 6 + n * 3, scale: .8 }); FX.sfx.star();
+        const sc = $('#sparkChip'); if (sc) { sc.textContent = `⭐ ${run.bonus}`; FX.pop(sc); }
+      },
+      hint(fn) { run.hintFn = fn; },
+      flutter: (n) => life.flutter(n),
+      /* Something the world does again and again, on its own schedule. */
+      every(ms, fn) {
+        const t = setInterval(() => {
+          if (!ctx.alive()) { clearInterval(t); return; }
+          try { fn(Date.now() - run.startedAt); } catch (e) { console.error('live tick failed', e); clearInterval(t); }
+        }, ms);
+        live.timers.push(t);
+        return t;
+      },
+      /* Something the world does every single frame — walking, wobbling, falling. */
+      frame(fn) {
+        let on = true, id = 0;
+        const step = (t) => {
+          if (!on || !ctx.alive()) return;
+          try { fn(t); } catch (e) { console.error('live frame failed', e); on = false; return; }
+          id = requestAnimationFrame(step);
+        };
+        id = requestAnimationFrame(step);
+        const stop = () => { on = false; cancelAnimationFrame(id); };
+        live.frames.push(stop);
+        return stop;
+      },
+      goal(text, need) {
+        const bar = el('div', 'lv-goal');
+        const t = el('b'); t.textContent = text;
+        const num = el('span', 'lv-num', `0/${need}`);
+        const track = el('i', 'lv-track'); const fill = el('i', 'lv-fill');
+        track.append(fill); bar.append(t, num, track);
+        liveHud().append(bar);
+        live.goal = { text, need, got: 0, el: bar, num, fill };
+        return live.goal;
+      },
+      progress(n, at) {
+        const gl = live && live.goal; if (!gl) return;
+        gl.got = Math.min(gl.need, gl.got + (n || 1));
+        gl.num.textContent = `${gl.got}/${gl.need}`;
+        gl.fill.style.width = (gl.got / gl.need * 100) + '%';
+        if (at) { const p = where(at); FX.burst(p.x, p.y, { kind: 'stars', n: 5, scale: .7 }); }
+        if (gl.got >= gl.need) liveFinish('Brilliant!', true);
+      },
+      /* A thing that runs down by itself: the tea urn, the tide, the last bus. */
+      drain(label, seconds, onEmpty) {
+        const bar = el('div', 'lv-drain');
+        const t = el('b'); t.textContent = label;
+        const track = el('i', 'lv-track'); const fill = el('i', 'lv-fill');
+        fill.style.width = '100%'; track.append(fill); bar.append(t, track);
+        liveHud().append(bar);
+        let endsAt = Date.now() + seconds * 1000, fired = false;
+        ctx.frame(() => {
+          const left = (endsAt - Date.now()) / (seconds * 1000);
+          fill.style.width = (Math.max(0, Math.min(1, left)) * 100) + '%';
+          bar.classList.toggle('low', left < .3);
+          if (left <= 0 && !fired) { fired = true; try { onEmpty && onEmpty(); } catch (e) { console.error('drain failed', e); } }
+        });
+        return { el: bar, add(sec) { endsAt += sec * 1000; fired = false; }, stop() { endsAt = 0; } };
+      },
+      win(msg) { liveFinish(msg || 'Brilliant!', true); },
+      end(msg) { liveFinish(msg || 'That was fun — see you soon!', false); },
+    };
+    const sc = $('#sparkChip'); if (sc) sc.textContent = `⭐ ${run.bonus}`;
+    // Park.liveState() hands the context back: the same door ctx.done already is
+    // for a round game's test, and nothing in the shipped games reads it.
+    live.ctx = ctx;
+    try { await g.world(ctx); } catch (e) { console.error('world failed', e); }
+  }
+
+  async function liveFinish(msg, won) {
+    if (!live || live.ended || !run) return;
+    live.ended = true;
+    run.won = !!won;
+    run.goalFrac = live.goal && live.goal.need ? live.goal.got / live.goal.need : 0;
+    say(msg, won ? 'happy' : 'idle');
+    const r = area().getBoundingClientRect();
+    if (won) {
+      FX.burst(r.left + r.width / 2, r.top + r.height * .35, { kind: 'stars', n: 18 });
+      FX.sfx.star(); life.cheerAll(); life.flutter(6);
+    }
+    run.hintFn = null;
+    await sleep(won ? 1300 : 700);
+    if (!run) return;
+    liveStop();
+    finish();
+  }
+
+  /* Live worlds are rated on what they achieved and how often they slipped while
+   * doing it — a half-minute of play, not a round, is the yardstick. */
+  function liveRating() {
+    const secs = Math.max(1, (Date.now() - run.startedAt) / 1000);
+    const per = run.mistakes / (secs / 30);
+    if (!run.won) return run.goalFrac >= .5 && per <= 2 ? 2 : 1;
+    return per <= .5 ? 3 : per <= 1.5 ? 2 : 1;
+  }
+
   function rating() {
     const per = run.mistakes / run.game.rounds;
     return per <= .35 ? 3 : per <= 1.4 ? 2 : 1;
   }
 
   function finish() {
-    const g = run.game, got = rating();
+    /* Live games have no round count, so the old per-round yardstick would divide
+     * by undefined and hand back 1 star for every single visit. */
+    const g = run.game, got = g.live ? liveRating() : rating();
     stars.set(g.id, got);
     // Also remember it where the campaign map can see, not only in this world.
     if (window.DUJourney) DUJourney.record(ledgerKey(g), { stars: got });
@@ -332,7 +503,9 @@
   function hideWin() { const o = $('#winOverlay'); if (o) o.classList.add('hidden'); const h = $('#hatch'); if (h) h.classList.add('hidden'); }
 
   function toMenu() {
-    clearInterval(start._idle); run = null; hideWin();
+    clearInterval(start._idle);
+    ['pointerdown', 'pointermove', 'keydown'].forEach((t) => document.removeEventListener(t, start._idleInput, true));
+    liveStop(); run = null; hideWin();
     document.querySelectorAll('.butterfly').forEach((b) => b.remove());
     try { speechSynthesis.cancel(); } catch (e) { /* no speech */ }
     $('#game').classList.add('hidden');
@@ -341,6 +514,7 @@
     if (Park.renderMenu) Park.renderMenu();
   }
   Park.start = start; Park.toMenu = toMenu; Park.say = say; Park.hideWin = hideWin;
+  Park.isLive = () => !!live; Park.liveState = () => live; Park.liveHud = liveHud;
   Park.again = () => { if (run) start(run.game.id); };
   Park.nextGame = () => {
     const i = run ? Park.games.findIndex((g) => g.id === run.game.id) : -1;

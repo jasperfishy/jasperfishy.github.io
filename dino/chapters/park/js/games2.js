@@ -84,181 +84,223 @@
   }
 
   /* ====================================================================== 5. Dino Memory */
-  /* The "keep going" bonus: a tiny all-golden board that pays a big sparkle. */
-  function bonusBoard(ctx, host, done) {
-    const two = shuffle(SPECIES).slice(0, 2), deck = shuffle([...two, ...two]);
-    host.innerHTML = '<p style="margin:0;font-weight:800;font-size:14px">Four cards, both pairs golden! +2⭐</p>';
-    const found = el('div', 'bm-found'), grid = el('div', 'bm-grid');
-    two.forEach((s) => { const f = el('span', 'bm-slot'); f.dataset.k = s; f.innerHTML = '<i>🥇</i>'; found.append(f); });
-    let first = null, locked = true, got = 0;
-    // As on the main board: a card says what it is showing, and goes back to anonymous when hidden.
-    const showB = (x) => { x.classList.add('flipped'); x.setAttribute('aria-label', `${SP[x.dataset.k]}, the golden one`); };
-    const hideB = (x) => { x.classList.remove('flipped'); x.setAttribute('aria-label', 'Golden card'); };
-    deck.forEach((s) => {
-      const b = el('button', 'bm-card flipped');
-      b.dataset.k = s; showB(b);
-      b.innerHTML = `<span class="mc-inner"><span class="mc-face mc-back"><i></i><i></i><i></i><em>⭐</em></span><span class="mc-face mc-front">${FX.dinoHTML(s, { color: COLORS[SPECIES.indexOf(s) % COLORS.length], state: 'happy' })}</span></span>`;
-      b.onclick = async () => {
-        if (locked || b.classList.contains('flipped') || b.classList.contains('matched')) return;
-        showB(b); FX.sfx.pop();
-        if (!first) { first = b; return; }
-        const a = first; first = null; locked = true;
-        await sleep(480); if (!ctx.alive()) return;
-        if (a.dataset.k === b.dataset.k) {
-          [a, b].forEach((x) => { x.classList.add('matched'); hideB(x); x.setAttribute('aria-label', `${SP[x.dataset.k]}, matched`); });
-          const slot = [...found.children].find((q) => q.dataset.k === a.dataset.k && !q.classList.contains('got'));
-          if (slot) { slot.classList.add('got'); slot.innerHTML = FX.dinoHTML(a.dataset.k, { color: COLORS[SPECIES.indexOf(a.dataset.k) % COLORS.length], state: 'happy' }); FX.pop(slot); }
-          ctx.good(b); FX.sfx.coin();
-          if (++got === 2) { ctx.bonus(2, grid, 'Golden board!'); FX.celebrate(); await sleep(950); if (ctx.alive()) done(); return; }
-          locked = false;
-        } else {
-          ctx.bad(.34, b); FX.shake(a); FX.shake(b); FX.sfx.bad();
-          ctx.say('Not a pair — look at the two pictures again!');
-          await sleep(650); if (!ctx.alive()) return;
-          hideB(a); hideB(b); locked = false;
-        }
-      };
-      grid.append(b);
-    });
-    host.append(found, grid);
-    setTimeout(() => { if (ctx.alive()) $$('.bm-card', grid).forEach(hideB); }, 1500);
-  }
-
+  /* The live paddock: the friends play hide and seek all visit long. Every beat a
+   * handful of them stroll in plain sight into the bushes, the HUD chip names the
+   * one to find, and remembering which bush that friend took is the whole game —
+   * later on the hiders swap bushes in front of you, so you have to keep watching.
+   * No rounds and no board that clears: the picnic basket runs down on its own,
+   * a friend who waits too long stomps home, and the visit ends when the basket
+   * is empty or enough friends have been found. */
   window.Park.register({
-    id: 'memory', name: 'Dino Memory', icon: 'trex', color: '#e08a2e', rounds: 5, helper: 'trex', ambient: 'meadow',
-    desc: 'Remember where the dinosaurs hide!',
-    round(ctx) {
-      const pairs = [3, 4, 6, 8, 10][ctx.round - 1], peek = [2600, 2400, 3000, 3600, 4200][ctx.round - 1], mixUp = ctx.round >= 3, maxMix = ctx.round === 5 ? 2 : 1;
-      // Each card front gets a soft colour wash of its dinosaur colour, so pairs read differently at a glance.
-      const TINT = { green: '#f0fbe8', teal: '#e6fafa', purple: '#f2e9fd', orange: '#fdf0e0', pink: '#fdeaf2', blue: '#e8f1fd', yellow: '#fef8dd', red: '#fceaea' };
-      // The board only uses species that have a trophy-case slot, so every match stamps the shelf.
-      const caseIds = SPECIES.slice(0, Math.min(SPECIES.length, 2 + ctx.round));
-      const combos = shuffle(caseIds.flatMap((s) => shuffle(COLORS).slice(0, 2).map((c) => ({ s, c })))).slice(0, pairs);
-      combos[rnd(pairs)].star = true;      // one golden pair hides extra sparkles
-      const deck = shuffle([...combos, ...combos].map((d, i) => ({ ...d, k: d.s + d.c, id: i })));
-      ctx.say('Look carefully! Remember where each dinosaur hides. One pair is golden!');
-      const best = rec.get('memory' + pairs);
-      ctx.area.append(recordBar(best === null ? `Find ${pairs} pairs to set your first Memory record!` : `Your best for ${pairs} pairs is <b>${best}</b> tries. Beat it!`));
-      /* The trophy case: every dinosaur species you have ever matched keeps a place on it, for good. */
+    id: 'memory', name: 'Dino Memory', icon: 'trex', color: '#e08a2e', live: true, helper: 'trex', ambient: 'meadow',
+    desc: 'Watch who hides where, then find them — hide and seek in the paddock!',
+    async world(ctx) {
+      const GOAL = 10, BASKET_SECONDS = 110;
+      const SPOTS = [[8, 30], [30, 12], [52, 30], [74, 12], [16, 64], [62, 66]];
+
+      /* Every kind of friend ever found takes a permanent place on the trophy case. */
       const caseV = ledger('memory-case'), caseMap = caseV.all();
+      const caseIds = SPECIES.filter((s) => s !== 'ptero');
       const caseArt = (s, id) => { s.innerHTML = FX.dinoHTML(id, { color: COLORS[SPECIES.indexOf(id) % COLORS.length], state: 'happy' }); };
       const mmCase = collectRow('mm-case', 'sp', caseIds, caseMap, '<i>❔</i>', caseArt);
-      const head = statusBar([`Level ${ctx.round}`, `${pairs} pairs · ${pairs * 2} cards`,
-        best === null ? 'No record yet' : `Best ${best} tries`, `Trophy case ${mmCase.dataset.got}/${caseIds.length}`], '#e08a2e');
-      ctx.area.append(head, mmCase);
-      const caseBit = $('.du-bar-3', head);
-      const wrap = el('div', 'mem-wrap');
-      const found = el('div', 'mem-found');
-      for (let i = 0; i < pairs; i++) found.append(el('span', 'mf-slot', '<i>🥚</i>'));
-      const bar = el('div', 'mem-timer', '<i></i><b>Remember!</b>');
-      const grid = el('div', 'mem-grid'); grid.style.setProperty('--cols', pairs === 3 ? 3 : pairs >= 8 ? 5 : 4);
-      let first = null, locked = true, matched = 0, combo = 0, tries = 0, slips = 0, mixes = 0, taught = false;
-      /* A card's accessible name follows what is actually face-up. Without this a child
-       * using a screen reader, or the Parents read-aloud mode, hears six identical
-       * "Hidden dinosaur card" and cannot follow the game at all. */
-      const faceUp = (x) => { x.classList.add('flipped'); x.setAttribute('aria-label', SP[x.dataset.s] + (x.dataset.star === '1' ? ', the golden one' : '')); };
-      const faceDown = (x) => { x.classList.remove('flipped'); x.setAttribute('aria-label', 'Hidden dinosaur card'); };
-      const cards = deck.map((d, ci) => {
-        const b = el('button', 'mem-card flipped');
-        b.dataset.k = d.k; b.dataset.s = d.s; b.dataset.c = d.c; b.dataset.star = d.star ? '1' : '';
-        faceUp(b);
-        b.innerHTML = `<span class="mc-inner"><span class="mc-face mc-back" style="${d.star ? 'background:radial-gradient(circle at 50% 34%,#fff3c0,#e0a42a 78%)' : ''}"><i></i><i></i><i></i><em>${d.star ? '⭐' : '🐾'}</em></span><span class="mc-face mc-front" style="background:radial-gradient(circle at 50% 38%,${TINT[d.c] || '#fff'},#ffffff 78%)">${FX.dinoHTML(d.s, { color: d.c, state: 'idle' })}</span></span>`;
-        b.onclick = async () => {
-          if (locked || b.classList.contains('flipped') || b.classList.contains('matched')) return;
-          faceUp(b); FX.sfx.pop(); FX.sfx.note(b.dataset.s === 'trex' ? 0 : SPECIES.indexOf(b.dataset.s) * 2 + 2, .12);
-          if (!first) { first = b; return; }
-          const a = first; first = null; locked = true; tries++;
-          await sleep(520);
+
+      const pad = el('div', 'pad');
+      pad.innerHTML = '<div class="pad-sky"><i class="pad-sun"></i><i class="pad-cloud"></i></div>' +
+        '<div class="pad-pond"><span>💧</span></div>';
+      const bushes = SPOTS.map(([l, t]) => {
+        const b = el('button', 'pad-bush');
+        b.style.left = l + '%'; b.style.top = t + '%';
+        b.innerHTML = '<span class="pad-leaf"></span><span class="pad-badge hidden">❓</span><span class="pad-bar"><i></i></span>';
+        b.setAttribute('aria-label', 'A bush in the paddock');
+        pad.append(b);
+        return b;
+      });
+      ctx.area.append(mmCase, pad);
+
+      const hud = (window.Park.liveHud && Park.liveHud()) || ctx.area;
+      const wantedChip = el('div', 'lv-chip', '👀 watch the paddock…');
+      ctx.goal('Friends found', GOAL);
+      hud.append(wantedChip, helpBtn(showMe));
+      ctx.hint(showMe);
+      const basket = ctx.drain('Picnic basket', BASKET_SECONDS, () => {
+        if (!ctx.alive()) return;
+        ctx.say('The picnic basket is empty — the friends all wander home. What a lovely afternoon!');
+        ctx.end(`The picnic ends with ${found} of ${GOAL} friends found.`);
+      });
+
+      let found = 0, busy = false, settled = false, resolveBeat = null;
+      let hiders = [];            // [{ sp, gold, dino, bush, pat, patMax, gone }] — hiders[0] is the wanted one
+      const free = () => bushes.filter((b) => !b.classList.contains('taken'));
+      const wanted = () => hiders[0] || null;
+
+      const setBush = (b, on) => {
+        b.classList.toggle('taken', on);
+        b.querySelector('.pad-badge').classList.toggle('hidden', !on);
+        b.setAttribute('aria-label', on ? 'Somebody is hiding in this bush' : 'A bush in the paddock');
+      };
+      const bushSpot = (b) => ({ x: b.offsetLeft + b.offsetWidth / 2, y: b.offsetTop + b.offsetHeight / 2 });
+      const spawnDino = (h) => {
+        const d = el('div', 'pad-dino' + (h.gold ? ' gold' : ''));
+        d.dataset.sp = h.sp;
+        if (h.gold) d.dataset.gold = '1';
+        d.innerHTML = FX.dinoHTML(h.sp, { color: COLORS[SPECIES.indexOf(h.sp) % COLORS.length], state: 'idle' });
+        const p = { x: pad.clientWidth * .1 + 30, y: pad.clientHeight - 46 };
+        d.style.left = (p.x - 29) + 'px'; d.style.top = (p.y - 29) + 'px';
+        pad.append(d);
+        return d;
+      };
+      const walkTo = (d, b, ms) => {
+        const e = bushSpot(b);
+        const sx = parseFloat(d.style.left), sy = parseFloat(d.style.top);
+        const dx = e.x - 29 - sx, dy = e.y - 29 - sy;
+        d.style.left = (e.x - 29) + 'px'; d.style.top = (e.y - 29) + 'px';
+        // The layout position is the final one; the walk animates from the offset
+        // back to rest, so nothing snaps back when the animation is over.
+        return FX.anim(d, [
+          { transform: `translate(${-dx}px, ${-dy}px)` },
+          { transform: `translate(${-dx * .5}px, ${-dy * .5 - 16}px)`, offset: .5 },
+          { transform: 'none' },
+        ], { duration: ms || 1150, easing: 'cubic-bezier(.4,.1,.4,1)' });
+      };
+      const hopOff = (h, mood) => {
+        if (!h.dino) return;
+        FX.dinoState(h.dino.firstChild || h.dino, mood, 1200);
+        const d = h.dino;
+        const a = FX.anim(d, [{ transform: 'none', opacity: 1 }, { transform: 'translate(-40px,-20px)', opacity: 0 }], { duration: 1100, easing: 'ease-in' });
+        if (a) a.onfinish = () => d.remove();
+        setTimeout(() => { if (d.isConnected) d.remove(); }, 1400);
+        h.dino = null;
+        if (h.bush) { setBush(h.bush, false); h.bush.classList.remove('urgent'); }
+      };
+
+      /* One round of hide and seek: friends walk in, hide, and wait. */
+      async function beat() {
+        settled = false;
+        const n = Math.min(free().length, 2 + (found >= 4 ? 1 : 0) + (found >= 7 ? 1 : 0));
+        if (n < 2) { await sleep(1500); return; }
+        const spots = shuffle(free()).slice(0, n);
+        const pool = shuffle(caseIds);
+        const gold = Math.random() < .15;
+        const patMax = Math.max(9, 15 - found * .5);
+        hiders = spots.map((b, i) => ({ sp: pool[i % pool.length], gold: gold && i === 0, dino: null, bush: b, pat: patMax, patMax, gone: false }));
+        const w = wanted();
+        wantedChip.textContent = (w.gold ? '⭐ Find the golden ' : '👀 Find the ') + SP[w.sp] + '!';
+        ctx.say(w.gold ? `A golden ${SP[w.sp]} is playing hide and seek — watch where it hides!` : `Hide and seek! The ${SP[w.sp]} is hiding — watch where it goes!`);
+        FX.sfx.whoosh();
+        for (const h of hiders) {
           if (!ctx.alive()) return;
-          if (a.dataset.k === b.dataset.k) {
-            combo++; matched++;
-            [a, b].forEach((x) => { x.classList.add('matched'); x.setAttribute('aria-label', `${SP[x.dataset.s]}, matched`); FX.dinoState(x.querySelector('.du-dino'), 'happy'); });
-            ctx.good(b);
-            const c = centreOf(b); FX.burst(c.x, c.y, { kind: 'hearts', n: 8 }); if (combo > 1) FX.floatText(c.x, c.y - 30, combo + ' in a row!');
-            (a.dataset.s === 'trex' ? FX.sfx.roar : FX.sfx.chirp)();
-            if (a.dataset.star === '1') { FX.sfx.coin(); ctx.bonus(2, b, 'Golden pair!'); FX.burst(c.x, c.y, { kind: 'stars', n: 16 }); }
-            // The pair flies up into the "found" row with its name.
-            const slot = found.children[matched - 1];
-            if (slot) { await Park.fly(b, slot, { emoji: '⭐', size: 30, duration: 600, burst: false }); slot.classList.add('got'); slot.innerHTML = `${FX.dinoHTML(a.dataset.s, { color: a.dataset.c, state: 'happy' })}<small>${SP[a.dataset.s]}</small>`; FX.pop(slot); }
-            ctx.say(combo > 1 ? `${combo} in a row! You are amazing!` : `A match! That is the ${SP[a.dataset.s]}!`);
-            // A species you have never met before takes a permanent place in the trophy case.
-            if (caseV.set(a.dataset.s, ctx.round) && stampInto(mmCase, caseArt, a.dataset.s, ctx.round, 'New trophy!')) {
-              if (caseBit) caseBit.textContent = `Trophy case ${mmCase.dataset.got}/${caseIds.length}`;
-              ctx.say(`${SP[a.dataset.s]} joins your trophy case for good — ${mmCase.dataset.got} of ${caseIds.length} dinosaurs found!`);
+          h.dino = spawnDino(h);
+          walkTo(h.dino, h.bush);
+          await sleep(430);
+        }
+        await sleep(850);
+        if (!ctx.alive()) return;
+        hiders.forEach((h) => setBush(h.bush, true));
+        settled = true;
+        await new Promise((res) => { resolveBeat = res; });
+      }
+
+      function settleUp(msg) {
+        if (msg) ctx.say(msg);
+        settled = false; busy = false;
+        hiders.forEach((h) => { if (!h.gone) hopOff(h, 'happy'); });
+        hiders = [];
+        wantedChip.textContent = '👀 watch the paddock…';
+        const r = resolveBeat; resolveBeat = null;
+        if (r) r();
+      }
+
+      bushes.forEach((b) => {
+        b.onclick = () => {
+          if (busy || !ctx.alive()) return;
+          const h = hiders.find((x) => x.bush === b && !x.gone);
+          if (!settled || !hiders.length) { FX.sfx.tap(); return; }
+          if (!h) {
+            ctx.bad(.5, b); FX.sfx.bad(); FX.shake(b);
+            ctx.say('Just a bush! Where did the ' + SP[wanted().sp] + ' go?');
+            return;
+          }
+          if (h === wanted()) {
+            busy = true;
+            setBush(b, false); b.classList.remove('urgent');
+            FX.dinoState(h.dino.firstChild || h.dino, 'happy', 1500);
+            const c = bushSpot(b);
+            FX.burst(c.x, c.y - 20, { kind: 'hearts', n: 10 });
+            (h.sp === 'trex' ? FX.sfx.roar : FX.sfx.chirp)();
+            found++;
+            ctx.good(b); ctx.progress(1, b);
+            basket.add(9);
+            if (h.gold) { ctx.bonus(2, b, 'Golden friend!'); FX.sfx.coin(); FX.burst(c.x, c.y - 30, { kind: 'stars', n: 16 }); }
+            if (caseV.set(h.sp, found) && stampInto(mmCase, caseArt, h.sp, found, 'New trophy!')) {
+              ctx.say(`${SP[h.sp]} joins your trophy case — ${mmCase.dataset.got} of ${caseIds.length} friends met!`);
               if (mmCase.classList.contains('full')) { ctx.bonus(2, mmCase, 'Case complete!'); cheer(2); }
+            } else {
+              ctx.say(`You found the ${SP[h.sp]}! ${found} of ${GOAL} friends found.`);
             }
-            if (matched === pairs) {
-              FX.celebrate(); ctx.flutter(4);
-              if (tries <= pairs) ctx.bonus(2, grid, 'Super memory!'); else if (tries <= pairs + 2) ctx.bonus(1, grid, 'Great memory!');
-              const fresh = rec.lo('memory' + pairs, tries);
-              if (fresh) { ctx.bonus(2, grid, 'Best ever!'); cheer(2); }
-              const line = `${tries} ${tries === 1 ? 'try' : 'tries'} for ${pairs} pairs!` + (fresh ? ' A brand-new record!' : '');
-              const last = ctx.round === ctx.rounds;
-              if (last && await keepGoing(ctx, 'Keep going?', 'A tiny golden board, two pairs, just for fun.', 'One more board!', '#e08a2e', (host2, fin) => bonusBoard(ctx, host2, fin))) {
-                ctx.done(line + ' And the golden board too!', 2100); return;
-              }
-              ctx.done(line, 2100); return;
-            }
-            // Later rounds: the hidden dinosaurs swap places, twice at the top level.
-            if (mixUp && mixes < maxMix && matched >= Math.ceil(pairs * (mixes + 1) / (maxMix + 1))) { mixes++; await sleep(300); await mixRemaining(); }
-            locked = false;
+            if (found >= GOAL) { setTimeout(() => { if (ctx.alive()) ctx.win('Everyone was found — best hide and seek ever!'); }, 900); return; }
+            setTimeout(() => { if (ctx.alive()) settleUp(); }, 1500);
           } else {
-            combo = 0; slips++; FX.shake(a); FX.shake(b); FX.sfx.bad();
-            if (slips < 2 || taught) { ctx.bad(.34, b); ctx.say('Not a match. Remember where they are!'); }
-            else {
-              // No scolding: the board offers a second peek instead.
-              taught = true; ctx.bad(.16, b); ctx.say('Nearly! Let us look at your friends one more time.');
-              const rem = cards.filter((x) => !x.classList.contains('matched'));
-              rem.forEach(faceUp); FX.sfx.sparkle();
-              await sleep(1200); if (!ctx.alive()) return;
-              rem.forEach(faceDown);
-            }
-            await sleep(750);
-            if (!ctx.alive()) return;
-            faceDown(a); faceDown(b); FX.sfx.tap();
-            locked = false;
+            busy = true;
+            ctx.bad(.5, b);
+            FX.dinoState(h.dino.firstChild || h.dino, 'happy', 1200);
+            ctx.say(`Peek-a-boo! It is the ${SP[h.sp]} — keep looking for the ${SP[wanted().sp]}!`);
+            setTimeout(() => { if (ctx.alive()) { busy = false; } }, 1300);
           }
         };
-        grid.append(b); return b;
       });
-      // The face-down dinosaurs shuffle places while the child watches.
-      async function mixRemaining() {
-        const rem = cards.filter((c) => !c.classList.contains('matched'));
-        if (rem.length < 3) return;
-        ctx.say('Mix-up! The dinosaurs are swapping places!');
-        FX.sfx.whoosh(); FX.shakeScreen(2);
-        const before = rem.map((c) => c.getBoundingClientRect());
-        const dom = [...grid.children], idx = dom.map((c, i) => (c.classList.contains('matched') ? -1 : i)).filter((i) => i >= 0), order = shuffle(rem), next = dom.slice();
-        idx.forEach((di, k) => { next[di] = order[k]; });
-        next.forEach((c) => grid.append(c));
-        rem.forEach((c, i) => { const a = before[i], n = c.getBoundingClientRect(); FX.anim(c, [{ transform: `translate(${a.left - n.left}px,${a.top - n.top}px) rotate(${rnd(30) - 15}deg)` }, { transform: 'none' }], { duration: 900, easing: 'cubic-bezier(.3,.9,.4,1.15)' }); });
-        await sleep(950);
-        if (ctx.alive()) ctx.say('Now where is each one hiding?');
-      }
-      // After two slips the helper peeks at a pair for a moment — free, as many times as you like.
-      const showMe = () => {
-        const left = cards.filter((c) => !c.classList.contains('matched') && !c.classList.contains('flipped')); if (left.length < 2 || locked) return;
-        const k = left[0].dataset.k, pair = left.filter((c) => c.dataset.k === k).slice(0, 2);
-        pair.forEach((c) => c.classList.add('hint'));
-        setTimeout(() => pair.forEach((c) => c.classList.remove('hint')), 1600);
-        pair.forEach(faceUp); FX.sfx.sparkle();
-        ctx.say(`This ${SP[pair[0].dataset.s]} has a twin — one of these two holds it!`);
-        setTimeout(() => pair.forEach((c) => { if (!c.classList.contains('matched') && c !== first) faceDown(c); }), 1100);
-      };
-      ctx.hint(showMe);
-      head.append(helpBtn(showMe));
-      wrap.append(found, bar, grid); ctx.area.append(wrap);
-      cards.forEach((c, i) => FX.anim(c, [{ opacity: 0, transform: 'translateY(-30px) rotate(-12deg) scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: i * 60, easing: 'cubic-bezier(.2,.9,.3,1.3)', fill: 'backwards' }));
-      (async () => {
-        await sleep(300 + cards.length * 60);
-        const fill = $('i', bar); fill.style.transition = `width ${peek}ms linear`; fill.style.width = '100%'; requestAnimationFrame(() => { fill.style.width = '0%'; });
-        await sleep(peek);
+
+      /* Patience, the mix-up, and the walk home, on the world's own clock. */
+      let lastT = 0, mixed = false;
+      ctx.frame((t) => {
+        const dt = Math.min(.12, (t - lastT) / 1000 || 0); lastT = t;
+        if (!settled || busy || !hiders.length) return;
+        const w = wanted();
+        for (const h of hiders) {
+          if (h.gone) continue;
+          h.pat -= dt;
+          const bar = h.bush.querySelector('.pad-bar i');
+          if (bar) bar.style.width = Math.max(0, h.pat / h.patMax * 100) + '%';
+          h.bush.classList.toggle('urgent', h.pat / h.patMax < .3);
+          if (h.pat <= 0) {
+            h.gone = true;
+            if (h === w) { ctx.bad(1, h.bush); hopOff(h, 'sad'); settleUp(`The ${SP[h.sp]} waited too long and stomped off!`); }
+            else { hopOff(h, 'sad'); ctx.say(`The ${SP[h.sp]} got bored and wandered home.`); }
+            return;
+          }
+        }
+        if (!mixed && found >= 5 && hiders.length >= 3 && w && w.pat < w.patMax * .6) {
+          mixed = true;
+          ctx.say('Mix-up! The friends are swapping bushes — keep watching!');
+          FX.sfx.whoosh(); FX.shakeScreen(2);
+          const pair = shuffle(hiders.filter((h) => !h.gone)).slice(0, 2);
+          const a = pair[0], c = pair[1];
+          if (a && c) {
+            const da = a.dino, dc = c.dino, ea = bushSpot(a.bush), ec = bushSpot(c.bush);
+            const sa = { x: parseFloat(da.style.left), y: parseFloat(da.style.top) }, sc = { x: parseFloat(dc.style.left), y: parseFloat(dc.style.top) };
+            da.style.left = (ec.x - 29) + 'px'; da.style.top = (ec.y - 29) + 'px';
+            dc.style.left = (ea.x - 29) + 'px'; dc.style.top = (ea.y - 29) + 'px';
+            FX.anim(da, [{ transform: `translate(${sa.x - ec.x + 29}px, ${sa.y - ec.y + 29}px)` }, { transform: 'none' }], { duration: 900, easing: 'cubic-bezier(.3,.9,.4,1.1)' });
+            FX.anim(dc, [{ transform: `translate(${sc.x - ea.x + 29}px, ${sc.y - ea.y + 29}px)` }, { transform: 'none' }], { duration: 900, easing: 'cubic-bezier(.3,.9,.4,1.1)' });
+            const ba = a.bush; a.bush = c.bush; c.bush = ba;
+          }
+        }
+      });
+
+      /* The free hint: the wanted friend peeks out for a moment. Costs nothing, press as often as you like. */
+      function showMe() {
         if (!ctx.alive()) return;
-        bar.classList.add('off');
-        cards.forEach((c, i) => setTimeout(() => faceDown(c), i * 70)); FX.sfx.whoosh();
-        ctx.say('Now find the matching pairs!');
-        await sleep(450 + cards.length * 70);
-        locked = false;
+        const w = wanted();
+        if (!settled || !w) { ctx.say('Watch the friends walk to their bushes — remember who goes where!'); return; }
+        w.bush.classList.add('glow');
+        setTimeout(() => w.bush.classList.remove('glow'), 1500);
+        FX.dinoState(w.dino.firstChild || w.dino, 'happy', 1000);
+        FX.sfx.sparkle();
+        ctx.say(`Peek! The ${SP[w.sp]} is hiding in the glowing bush!`);
+      }
+
+      (async () => {
+        await sleep(900);
+        while (ctx.alive()) { await beat(); if (!ctx.alive()) break; await sleep(1200); mixed = false; }
       })();
     },
   });

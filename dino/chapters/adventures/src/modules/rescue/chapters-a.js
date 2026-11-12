@@ -1,5 +1,5 @@
 // Chapters 1–3 of The Great Dino Rescue: The Call, the Whispering Forest, the Rickety Bridge.
-import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js?v=du-f652baf3e7fda2b1';
+import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js?v=du-8607dafbfd11334e';
 const FX = window.DUFX;
 
 const HILLS = tile('<path d="M0 100 L0 60 Q50 10 100 55 T200 50 T300 58 T400 60 L400 100Z" fill="#9ed7a6"/>', 400, 100);

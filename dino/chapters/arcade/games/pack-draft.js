@@ -2,7 +2,7 @@
 // Eight runners, one trail, a wind that will not hold still, and a body that only
 // gets its legs back inside somebody else's slipstream.
 
-import { W, canvasTex, grain, rng, clamp, lerp, hashSeed, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { W, canvasTex, grain, rng, clamp, lerp, hashSeed, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const COURSE = 460;                 // metres of trail
 const DROP_M = 58;                  // this far off the leader and the run is over

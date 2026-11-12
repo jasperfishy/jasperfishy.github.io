@@ -3,7 +3,7 @@
 // equal, it cuts where it runs and pools where it is dammed. You cannot wall a
 // mountain, so you choose the two or three decisions that matter.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const STAR = [6, 11, 17];
 

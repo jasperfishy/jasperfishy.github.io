@@ -2,7 +2,7 @@
 // A hatchling goes downstream and may only spend breath where the water spends
 // it for them: the dark deep threads, and the lee of anything that drifts.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const STAR = [9, 16, 25];
 const BENDS = 25;

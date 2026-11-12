@@ -1,5 +1,5 @@
-import { CARS } from "../data-cars.js?v=du-f652baf3e7fda2b1";
-import { renderCarSVG } from "../render-car.js?v=du-f652baf3e7fda2b1";
+import { CARS } from "../data-cars.js?v=du-8607dafbfd11334e";
+import { renderCarSVG } from "../render-car.js?v=du-8607dafbfd11334e";
 
 export function carUnlockCost(index) {
   return index === 0 ? 0 : index * 3;

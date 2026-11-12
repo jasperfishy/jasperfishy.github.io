@@ -1,7 +1,7 @@
 // Spear Cast — the bright shallows.
 // The water lies about where the fish is. Draw, lead, and cast at the shadow.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const SURFACE = 62;
 const FLOOR = 496;

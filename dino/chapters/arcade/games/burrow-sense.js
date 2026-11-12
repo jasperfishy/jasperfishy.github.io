@@ -2,7 +2,7 @@
 // An alvarezsaur digs for a colony it cannot see. The ground answers when the
 // snout is pressed to the wall; the air in the tunnel does not wait.
 
-import { canvasTex, grain, rng, clamp, lerp, MOODS, W } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { canvasTex, grain, rng, clamp, lerp, MOODS, W } from '../engine.js?v=du-8607dafbfd11334e';
 
 const SURFACE = 84;
 const CELL = 40;

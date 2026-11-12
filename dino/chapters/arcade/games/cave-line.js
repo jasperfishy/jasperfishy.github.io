@@ -2,7 +2,7 @@
 // One continuous line per animal. Lift the charcoal early and the pigment smears;
 // rush it and the ochre runs; creep and the flame stalls and eats itself.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const STAR = [4, 7, 11];
 const NIGHT = MOODS.night;

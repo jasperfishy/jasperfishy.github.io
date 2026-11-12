@@ -2,7 +2,7 @@
 // Everything weighs something. The nest shows, in its own rim, what it still
 // lacks; the sky keeps its own time and does not negotiate.
 
-import { canvasTex, grain, rng, clamp, lerp, W, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { canvasTex, grain, rng, clamp, lerp, W, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const STAR = [10, 18, 27];
 const KINDS = ['twig', 'fern', 'stone'];

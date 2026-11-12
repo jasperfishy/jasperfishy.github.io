@@ -1,5 +1,5 @@
 /* Wonder activities: Prehistoric Sky Mail and the Dino Weather Workshop. */
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-f652baf3e7fda2b1";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-8607dafbfd11334e";
 
 const SKY_ROUTES = [
   { creature: "Pteranodon", icon: "🪽", place: "Cloud Nest", placeIcon: "☁️", parcel: "Shiny shell", parcelIcon: "🐚", clue: "I live in a fluffy cloud nest.", sky: "day" },

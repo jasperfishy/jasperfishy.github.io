@@ -1,7 +1,7 @@
 /* Dino Park games 1–4: Puzzle, Dig, Footprint Match, Dino Mixer. */
 (function () {
   'use strict';
-  const { $, $$, rnd, pick, shuffle, sleep, el, drag, hit, den, NAMES, SPECIES, COLORS, FX } = window.Park;
+  const { $, $$, rnd, pick, shuffle, sleep, el, drag, hit, den, store, NAMES, SPECIES, COLORS, FX } = window.Park;
   const SPEC_NAME = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
   window.Park.SPEC_NAME = SPEC_NAME;
   const centreOf = (e) => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
@@ -17,6 +17,45 @@
     return { was, best: all[round], isNew: !!was };
   };
   const bestLine = (id, round) => { const b = Number(bestMap(id)[round]) || 0; return b ? 'Best ⏱ ' + b + 's' : 'No time yet'; };
+
+  /* ---------- premium furniture shared with games2/games3 (same copies, same behaviour) ---------- */
+  /* A few collectible stars drift in when the child does something wonderful. */
+  const cheer = (n) => { if (window.DUWONDER && DUWONDER.mote) DUWONDER.mote(n); };
+  /* A free hint button on the board itself: a hint costs nothing, take as many as you like. */
+  const helpBtn = (showMe) => { const b = el('button', 'btn small', '💡 Show me'); b.setAttribute('aria-label', 'Show me a hint'); b.onclick = () => showMe(); return b; };
+  /* A collecting surface that outlives the tab: id -> the level it was first earned at.
+     Hyphenated key, so the hub's /^dino_[a-z]+$/ star count never mistakes it for a game. */
+  const ledger = (key) => ({
+    all() { const m = store.get('dino_x-' + key, null); return m && typeof m === 'object' && !Array.isArray(m) ? m : {}; },
+    earned() { return Object.keys(this.all()); },
+    set(id, lvl) { const m = this.all(); if (m[id]) return false; m[id] = lvl; store.set('dino_x-' + key, m); return true; },
+  });
+  /* One row of wall slots. `attr` is the data-* name a test asserts, `map` what is already earned. */
+  function collectRow(cls, attr, ids, map, empty, decorate) {
+    const row = el('div', 'x-wall ' + cls);
+    row.__ids = ids; row.dataset.cap = ids.length; row.dataset.got = 0;
+    ids.forEach((id) => {
+      const s = el('span', 'x-slot'); s.dataset[attr] = id;
+      if (map[id]) { s.classList.add('got'); s.dataset.lvl = map[id]; row.dataset.got = Number(row.dataset.got) + 1; decorate(s, id); }
+      else s.innerHTML = empty;
+      row.append(s);
+    });
+    if (Number(row.dataset.got) >= ids.length) row.classList.add('full');
+    return row;
+  }
+  /* Stamp a freshly earned collectible into its slot, with a pop and a sparkle. */
+  function stampInto(row, decorate, id, lvl, label) {
+    if (!row || !row.__ids) return false;
+    const i = row.__ids.indexOf(id), slot = row.children[i];
+    if (!slot || slot.classList.contains('got')) return false;
+    slot.classList.add('got'); slot.dataset.lvl = lvl; decorate(slot, id);
+    row.dataset.got = Number(row.dataset.got || 0) + 1;
+    if (Number(row.dataset.got) >= row.__ids.length) row.classList.add('full');
+    FX.pop(slot); FX.sfx.sparkle();
+    const c = centreOf(slot); FX.burst(c.x, c.y, { kind: 'stars', n: 12 });
+    if (label) FX.floatText(c.x, c.y - 26, label, { size: 22 });
+    return true;
+  }
 
   /* The little status bar every game in this file hangs over its board: level, contents, best time. */
   function statusBar(bits, color) {
@@ -272,12 +311,13 @@
   });
 
   /* ====================================================================== 2. Dig a Dino */
-  /* Four strata, each deeper, wider and harder than the last: more mounds, more finds, more taps to break in. */
+  /* The soils the trench cuts through, top to bottom: each has its own name, its
+   * depth mark and its own band of colour, and the dig cycles through them. */
   const STRATA = [
-    { name: 'Soft sand', cells: 20, cols: 5, hits: 2, depth: 2, band: ['#f6e0af', '#e3bb7d', '#c99a5c'] },
-    { name: 'Red clay', cells: 24, cols: 6, hits: 2, depth: 7, band: ['#eec49a', '#cf8a60', '#a05f3f'] },
-    { name: 'Old rock', cells: 28, cols: 7, hits: 3, depth: 15, band: ['#cbbfb0', '#a2978a', '#7a6f61'] },
-    { name: 'Dinosaur bed', cells: 30, cols: 6, hits: 3, depth: 24, band: ['#c4aee0', '#9479bd', '#645096'] },
+    { name: 'Soft sand', depth: 2, band: ['#f6e0af', '#e3bb7d', '#c99a5c'] },
+    { name: 'Red clay', depth: 7, band: ['#eec49a', '#cf8a60', '#a05f3f'] },
+    { name: 'Old rock', depth: 15, band: ['#cbbfb0', '#a2978a', '#7a6f61'] },
+    { name: 'Dinosaur bed', depth: 24, band: ['#c4aee0', '#9479bd', '#645096'] },
   ];
   const BONE_PARTS = ['the skull', 'the backbone', 'the ribs', 'the tail', 'a hip', 'a strong leg', 'a foot', 'a claw'];
   const FINDS = {
@@ -291,167 +331,251 @@
     beetle: { e: '🪲', sfx: 'chirp', puff: 'dust', n: 6 },
     lizard: { e: '🦎', sfx: 'jump', puff: 'dust', n: 6 },
     rock: { e: '🪨', sfx: 'thud', puff: 'dust', n: 8 },
-    gold: { e: '🦴', sfx: 'coin', puff: 'stars', n: 16 },
     dirt: { e: '✨', sfx: 'tap', puff: 'dust', n: 5 },
   };
-  /* After the last trench: a quick golden-bone dig for children who want more. */
-  function bonusTrench(ctx, host, done) {
-    const field = el('div', 'dig-field');
-    field.style.cssText = 'grid-template-columns:repeat(3,minmax(0,1fr));width:min(92vw,300px);gap:8px;padding:8px';
-    const shelf = el('div', 'dig-slots'); for (let i = 0; i < 3; i++) shelf.append(el('span', 'dig-slot', '🦴'));
-    host.innerHTML = '<p style="margin:0;font-weight:800;font-size:14px">Three golden bones are hiding. Tap each mound twice!</p>';
-    host.append(shelf, field);
-    const pool = shuffle(['gold', 'gold', 'gold', 'gem', 'dirt', 'dirt', 'rock', 'dirt', 'shell']);
-    let got = 0;
-    pool.forEach((kind) => {
-      const m = el('button', 'mound'); m.setAttribute('aria-label', 'Deep mound');
-      m.innerHTML = '<span class="dome"></span><span class="prize"></span>';
-      let hits = 0;
-      m.onclick = async () => {
-        if (m.classList.contains('open') || m.classList.contains('busy')) return;
-        const c = centreOf(m), F = FINDS[kind];
-        hits++; FX.sfx.thud(); FX.burst(c.x, c.y, { kind: 'dust', n: 6 }); FX.shake(m);
-        if (hits < 2) { m.classList.add('cracked'); return; }
-        m.classList.add('open', 'busy');
-        const prize = $('.prize', m); prize.textContent = F.e; prize.classList.add('rise'); FX.sfx[F.sfx]();
-        FX.burst(c.x, c.y, { kind: F.puff, n: F.n });
-        if (kind === 'gold') {
-          const slot = $$('.dig-slot:not(.got)', shelf)[0];
-          await sleep(200); await Park.fly(prize, slot, { emoji: '🦴', size: 32, duration: 620 });
-          slot.classList.add('got'); prize.textContent = ''; ctx.bonus(1, m, 'Gold!');
-          if (++got === 3) { ctx.bonus(2, shelf, 'Deep dig!'); FX.celebrate(); setTimeout(done, 1000); }
-        } else if (kind === 'rock') ctx.say('Rocks are heavy — bones are white and knobbly!', 'sad');
-        else ctx.say(F.e + ' down here!');
-        m.classList.remove('busy');
-      };
-      field.append(m);
-    });
-  }
-  let museum = [], digSpecies = [], digOff = 0;
+  /* The live excavation: one dig face that never resets between finds. The child
+   * brushes the dust away with real strokes (hold and scrub — a tap helps too),
+   * lifts every bone they uncover into the tray, and when a skeleton is complete
+   * the whole stratum peels away and the dig goes deeper, new soil and all. The
+   * world works while they play: scuttlers cross the trench, gusts of wind re-dust
+   * the parts nobody took, and the day's light runs down — every bone found buys
+   * the afternoon back a little. */
   window.Park.register({
-    id: 'dig', name: 'Dig a Dino', icon: 'stego', color: '#c98b4f', rounds: 4, helper: 'stego', helperColor: 'orange', ambient: 'desert',
-    desc: 'Dig up the fossil bones, gems and eggs!',
-    round(ctx) {
-      if (ctx.round === 1) { museum = []; digSpecies = shuffle(SPECIES.filter((s) => s !== 'ptero')); digOff = rnd(digSpecies.length); }
-      const S = STRATA[ctx.round - 1], bones = [4, 5, 6, 7][ctx.round - 1], sp = digSpecies[(ctx.round - 1 + digOff) % digSpecies.length], dcol = pick(COLORS);
-      const cells = S.cells, gems = [0, 1, 2, 2][ctx.round - 1], eggs = ctx.round >= 3 ? 1 : 0, lizards = ctx.round >= 3 ? 1 : 0;
-      const shells = ctx.round >= 2 ? 1 : 0, ferns = ctx.round >= 2 ? 1 : 0, amber = ctx.round >= 4 ? 1 : 0;
-      const specials = [...Array(bones).fill('bone'), ...Array(gems).fill('gem'), ...Array(eggs).fill('egg'), ...Array(lizards).fill('lizard'),
-        ...Array(shells).fill('shell'), ...Array(ferns).fill('fern'), ...Array(amber).fill('amber'), 'worm', 'worm', 'beetle', 'rock', 'rock'];
-      const items = shuffle([...specials, ...Array(cells - specials.length).fill('dirt')]);
-      const t0 = Date.now(); let digs = 0, slips = 0;
-      ctx.say(ctx.round === 1 ? 'Tap a dirt mound twice to dig. Find ' + bones + ' bones!' : `${S.name} again! ${bones} bones, ${cells} mounds and ${S.depth} metres down.`);
-      const top = el('div', 'dig-top');
-      const head = statusBar([`Level ${ctx.round} · ${S.name}`, `${bones} bones · ${cells} mounds`, `Depth ${S.depth} m`, bestLine('dig', ctx.round)], '#c98b4f');
-      const mus = el('div', 'dig-museum');
-      for (let i = 0; i < ctx.rounds; i++) { const m = el('span', 'mus-slot' + (museum[i] ? ' full' : '')); m.innerHTML = museum[i] ? FX.dinoHTML(museum[i].s, { color: museum[i].c, state: 'idle' }) : '<i>🦕</i>'; mus.append(m); }
-      const ghost = el('div', 'dig-ghost', FX.dinoHTML(sp, { color: dcol, state: 'idle' }));
-      const slots = el('div', 'dig-slots');
-      for (let i = 0; i < bones; i++) {
-        const s = el('span', 'dig-slot', '🦴');
-        const lab = el('small'); lab.style.cssText = 'display:block;font-size:9px;font-weight:900;opacity:.7;letter-spacing:0'; lab.textContent = '?';
-        s.append(lab); slots.append(s);
-      }
-      top.append(mus, ghost, slots);
-      const field = el('div', 'dig-field');
-      field.style.gridTemplateColumns = `repeat(${S.cols}, minmax(0, 1fr))`;
-      // Strata bands so a child can see how deep the trench has gone.
-      field.style.background = `linear-gradient(${S.band[0]}, ${S.band[1]} 55%, ${S.band[2]})`;
-      field.style.boxShadow = 'inset 0 4px 12px rgba(80,40,0,.25), inset 0 -10px 0 rgba(0,0,0,.12)';
-      let found = 0;
-      const ghostEl = ghost.firstElementChild;
-      const setReveal = () => { ghost.style.setProperty('--rev', found / bones); };
-      setReveal();
-      const mounds = [];
-      const reveal = (m, kind) => {
-        const prize = $('.prize', m);
-        const c = centreOf(m);
-        prize.textContent = FINDS[kind].e; prize.classList.add('rise');
-        return c;
+    id: 'dig', name: 'Dig a Dino', icon: 'stego', color: '#c98b4f', live: true, helper: 'stego', helperColor: 'orange', ambient: 'desert',
+    desc: 'Brush the dust away and excavate whole dinosaurs!',
+    async world(ctx) {
+      const GOAL = 12, DAY_SECONDS = 140, COLS = 9, ROWS = 6;
+      const day = ctx.drain('Daylight', DAY_SECONDS, () => {
+        if (!ctx.alive()) return;
+        ctx.say('The sun sets on the trench. The bones will keep until tomorrow!');
+        ctx.end(`The sun set on ${skeletons} whole skeleton${skeletons === 1 ? '' : 's'} and ${found} bones — what a dig!`);
+      });
+
+      /* Every dinosaur ever dug up takes a permanent place in the museum wall. */
+      const musV = ledger('dig-museum'), musMap = musV.all();
+      const musIds = SPECIES.filter((s) => s !== 'ptero');
+      const musArt = (s, id) => { s.innerHTML = FX.dinoHTML(id, { color: COLORS[SPECIES.indexOf(id) % COLORS.length], state: 'happy' }); };
+      const museum = collectRow('dg-museum', 'sp', musIds, musMap, '<i>🦕</i>', musArt);
+
+      const chip = el('div', 'lv-chip', '⛏ Soft sand · 2 m');
+      ctx.goal('Bones found', GOAL);
+      const hud = (window.Park.liveHud && Park.liveHud()) || ctx.area;
+      hud.append(chip, helpBtn(showMe));
+      ctx.hint(showMe);
+
+      const wrap = el('div', 'exc');
+      const ghost = el('div', 'dig-ghost');
+      const tray = el('div', 'dig-slots');
+      wrap.append(ghost, tray);
+      const face = el('div', 'exc-face');
+      ctx.area.append(museum, wrap, face);
+
+      let found = 0, skeletons = 0, depth = 0, stratumBones = 0, stratumGot = 0, flying = false;
+      let bonesHere = [];        // [{ cell }] — the bone cells of the current stratum
+      let species = 'trex', dcol = '#8fd964';
+      ghost.innerHTML = FX.dinoHTML(species, { color: dcol, state: 'idle' });
+      ghost.style.setProperty('--rev', 0);
+
+      const openCell = (cell) => {
+        if (cell.classList.contains('brushed')) return;
+        cell.classList.add('brushed');
+        const dust = $('.exc-dust', cell); if (dust) dust.remove();
+        const kind = cell.dataset.kind, F = FINDS[kind] || FINDS.dirt;
+        cell.setAttribute('aria-label', ({ bone: 'A bone! Tap to lift it out', rock: 'A heavy rock', gem: 'Something sparkly', egg: 'Something oval', dirt: 'Brushed dust' })[kind] || 'A find');
+        if (kind === 'bone' || kind === 'gem' || kind === 'amber') FX.burst(centreOf(cell).x, centreOf(cell).y, { kind: kind === 'bone' ? 'sparkle' : 'stars', n: 6 });
+        else FX.burst(centreOf(cell).x, centreOf(cell).y, { kind: 'dust', n: 4 });
       };
-      ctx.hint(() => {
-        const m = mounds.find((q) => q.dataset.kind === 'bone' && !q.classList.contains('open')); if (!m) return;
-        m.classList.add('glint'); FX.sfx.sparkle(); const c = centreOf(m); FX.burst(c.x, c.y, { kind: 'sparkle', n: 8 });
-        ctx.say('Something is shining over here!'); setTimeout(() => m.classList.remove('glint'), 3200);
-      });
-      const help = el('button', 'btn small', '💡 Show me');
-      help.onclick = () => { ctx.say('Hints are free! Look for the shine.'); const f = mounds.find((q) => q.dataset.kind === 'bone' && !q.classList.contains('open')); if (f) { f.classList.add('glint'); FX.sfx.sparkle(); setTimeout(() => f.classList.remove('glint'), 3200); } };
-      items.forEach((kind, i) => {
-        const m = el('button', 'mound'); m.dataset.kind = kind; m.dataset.i = i; m.setAttribute('aria-label', 'Dirt mound');
-        m.style.setProperty('--tone', (rnd(5) - 2) * 4 + '%');
-        m.innerHTML = '<span class="dome"></span><span class="prize"></span>';
-        const F = FINDS[kind];
-        FX.anim(m, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 360, delay: i * 22, easing: 'cubic-bezier(.2,.9,.3,1.3)', fill: 'backwards' });
-        let hits = 0;
-        m.onclick = async () => {
-          if (m.classList.contains('open') || m.classList.contains('busy')) return;
-          const c = centreOf(m);
-          hits++; digs++; FX.sfx[S.hits > 2 && hits === 1 ? 'scrape' : 'thud']; FX.burst(c.x, c.y, { kind: 'dust', n: 6 }); FX.shake(m);
-          if (hits < S.hits) {
-            m.classList.add('cracked');
-            ctx.say(pick(['Keep digging…', 'Dig dig dig!', 'Something is down there!', 'One more shove!']));
-            FX.anim($('.dome', m), [{ transform: 'translateY(0)' }, { transform: 'translateY(6px)' }], { duration: 220 });
-            return;
+
+      const collect = async (cell) => {
+        if (flying || cell.classList.contains('gone')) return;
+        flying = true;
+        cell.classList.add('gone');
+        cell.setAttribute('aria-label', 'Lifted out');
+        const slot = $$('.dig-slot:not(.got)', tray)[0];
+        FX.sfx.star(); FX.burst(centreOf(cell).x, centreOf(cell).y, { kind: 'sparkle', n: 12 });
+        if (slot) {
+          await sleep(220); if (!ctx.alive()) { flying = false; return; }
+          await Park.fly($('.exc-thing', cell), slot, { emoji: '🦴', size: 32, duration: 640 });
+          if (!ctx.alive()) { flying = false; return; }
+          slot.classList.add('got'); $('small', slot).textContent = BONE_PARTS[stratumGot % BONE_PARTS.length];
+        }
+        found++; stratumGot++; ctx.good(cell); ctx.progress(1, cell); day.add(7);
+        ghost.style.setProperty('--rev', stratumGot / stratumBones);
+        if (found >= GOAL) {
+          FX.celebrate(); FX.sfx.roar();
+          setTimeout(() => { if (ctx.alive()) ctx.win(`${GOAL} bones in one day — the museum is proud of you!`); }, 700);
+          flying = false; return;
+        }
+        ctx.say(stratumGot < stratumBones ? `${BONE_PARTS[(stratumGot - 1) % BONE_PARTS.length]}! ${stratumBones - stratumGot} more in this layer.` : 'That is the whole skeleton!');
+        if (stratumGot === stratumBones) { flying = false; peel(); return; }
+        flying = false;
+      };
+
+      const tapCell = (cell) => {
+        if (!ctx.alive() || cell.classList.contains('gone')) return;
+        const kind = cell.dataset.kind;
+        if (!cell.classList.contains('brushed')) {
+          const dust = $('.exc-dust', cell);
+          if (dust) {
+            const op = Math.max(0, Number(dust.style.opacity || 1) - .5);
+            dust.style.opacity = String(op);
+            if (op <= .12) openCell(cell);
           }
-          m.classList.add('open', 'busy');
-          const prize = $('.prize', m);
-          if (kind === 'bone') {
-            reveal(m, kind); FX.sfx.star(); FX.burst(c.x, c.y, { kind: 'sparkle', n: 14 });
-            await sleep(250);
-            const slot = $$('.dig-slot:not(.got)', slots)[0];
-            await Park.fly(prize, slot, { emoji: '🦴', size: 34, duration: 700 });
-            slot.classList.add('got'); prize.textContent = '';
-            $('small', slot).textContent = BONE_PARTS[found] || 'a bone';
-            found++; setReveal(); ctx.good(slot);
-            FX.burst(centreOf(slot).x, centreOf(slot).y, { kind: 'bones', n: 3, scale: .6 });
-            ctx.say(found < bones ? `${BONE_PARTS[found - 1]}! ${bones - found} more bones to go!` : 'That is every bone!');
-            if (found === bones) {
-              ghost.classList.add('alive'); FX.dinoState(ghostEl, 'roar', 1400); FX.sfx.roar(); FX.celebrate();
-              museum[ctx.round - 1] = { s: sp, c: dcol };
-              const slotM = mus.children[ctx.round - 1];
-              if (slotM) { slotM.innerHTML = FX.dinoHTML(sp, { color: dcol, state: 'happy' }); slotM.classList.add('full'); FX.pop(slotM); }
-              mounds.forEach((q) => { if (!q.classList.contains('open')) q.classList.add('relax'); });
-              await finishDig();
-            }
-          } else if (kind === 'gem') {
-            reveal(m, kind); FX.sfx.sparkle(); FX.burst(c.x, c.y, { kind: 'stars', n: 12 }); ctx.say('A sparkly gem! Bonus star!');
-            ctx.bonus(1, m, 'Gem!');
-          } else if (kind === 'amber') {
-            reveal(m, kind); FX.sfx.coin(); FX.burst(c.x, c.y, { kind: 'stars', n: 16 });
-            ctx.say('Golden amber — there is a tiny gnat stuck inside!'); ctx.bonus(2, m, 'Amber!');
-          } else if (kind === 'shell') {
-            reveal(m, kind); FX.sfx.splash(); FX.burst(c.x, c.y, { kind: 'bubbles', n: 12 });
-            ctx.say('A sea shell! The beach was here long ago.'); ctx.bonus(1, m, 'Shell!');
-          } else if (kind === 'fern') {
-            reveal(m, kind); prize.classList.add('scuttle'); FX.sfx.whoosh(); FX.burst(c.x, c.y, { kind: 'leaves', n: 12 });
-            ctx.say('A leaf fossil! Something leafy grew here.'); ctx.bonus(1, m, 'Fern!');
-          } else if (kind === 'egg') {
-            reveal(m, kind); prize.classList.add('wiggle'); FX.sfx.drum(0); ctx.say('A dinosaur egg! It is wobbling…');
-            await sleep(900); if (!ctx.alive()) return;
-            prize.classList.remove('wiggle'); prize.textContent = '🐣'; FX.sfx.chirp(); FX.burst(c.x, c.y, { kind: 'hearts', n: 8 });
-            ctx.say('It hatched! Hello, baby!'); ctx.bonus(1, m, 'Egg!'); ctx.life.visit();
-          } else if (kind === 'worm') { reveal(m, kind); prize.classList.add('wiggle'); FX.sfx.boing(); ctx.say('Wiggly worm! He says hello.'); }
-          else if (kind === 'beetle') { reveal(m, kind); prize.classList.add('scuttle'); FX.sfx.chirp(); ctx.say('A beetle zooms away!'); }
-          else if (kind === 'lizard') { reveal(m, kind); prize.classList.add('scuttle'); FX.sfx.jump(); ctx.say('A little lizard dashes off!'); }
-          else if (kind === 'rock') { reveal(m, kind); FX.sfx.thud(); slips++; ctx.bad(.34, m); ctx.say('Rocks are round and heavy. A bone is white with knobbly ends!'); }
-          else { reveal(m, kind); ctx.say(pick(['Only dirt here. Try a mound near a bone shadow!', 'Empty sand — the bones are deeper in.', 'Nothing here, but you dug nicely!'])); }
-          m.classList.remove('busy');
-        };
-        mounds.push(m); field.append(m);
-      });
-      const finishDig = async () => {
-        const secs = (Date.now() - t0) / 1000, last = ctx.round === ctx.rounds;
-        const rec = beatBest('dig', ctx.round, secs);
-        if (rec.isNew) { const q = centreOf(ghost); FX.floatText(q.x, q.y - 40, `New best dig! ${rec.best}s`, { size: 24 }); FX.sfx.coin(); }
-        if (!slips && secs < bones * 14) ctx.bonus(1, ghost, 'Speedy dig!');
-        if (window.DUWONDER && DUWONDER.running && DUWONDER.running()) DUWONDER.mote(last ? 3 : 1);
-        if (last && await keepGoing(ctx, 'Keep going?', 'Three golden bones are deeper down still.', 'One more trench!', '#c98b4f', (host, done) => bonusTrench(ctx, host, done))) {
-          ctx.done(`You dug ${museum.length} whole dinosaurs and a golden bone haul — ${digs} shoves of the spade!`, 2200);
+          FX.sfx.tap();
           return;
         }
-        ctx.done(last ? `Your museum is full of dinosaurs — ${bones} bones made a ${SPEC_NAME[sp]}!` : `The fossil is a real ${SPEC_NAME[sp]}! Roar!`, 2400);
+        if (kind === 'bone') { collect(cell); return; }
+        if (kind === 'rock') {
+          cell.classList.add('gone'); cell.setAttribute('aria-label', 'Broken rock');
+          FX.sfx.thud(); FX.shake(cell); FX.burst(centreOf(cell).x, centreOf(cell).y, { kind: 'dust', n: 10 });
+          ctx.bad(.34, cell);
+          ctx.say('Rocks are round and heavy. A bone is white with knobbly ends!');
+          return;
+        }
+        cell.classList.add('gone'); cell.setAttribute('aria-label', 'Taken');
+        const c = centreOf(cell);
+        if (kind === 'gem') { FX.sfx.sparkle(); FX.burst(c.x, c.y, { kind: 'stars', n: 12 }); ctx.say('A sparkly gem! Bonus star!'); ctx.bonus(1, cell, 'Gem!'); }
+        else if (kind === 'amber') { FX.sfx.coin(); FX.burst(c.x, c.y, { kind: 'stars', n: 16 }); ctx.say('Golden amber — there is a tiny gnat stuck inside!'); ctx.bonus(2, cell, 'Amber!'); }
+        else if (kind === 'shell') { FX.sfx.splash(); FX.burst(c.x, c.y, { kind: 'bubbles', n: 12 }); ctx.say('A sea shell! This desert was under water once.'); ctx.bonus(1, cell, 'Shell!'); }
+        else if (kind === 'fern') { FX.sfx.whoosh(); FX.burst(c.x, c.y, { kind: 'leaves', n: 12 }); ctx.say('A leaf fossil! Something leafy grew here.'); ctx.bonus(1, cell, 'Fern!'); }
+        else if (kind === 'egg') {
+          if (cell.dataset.hatched) return;
+          cell.dataset.hatched = '1';
+          FX.sfx.drum(0); ctx.say('A dinosaur egg! It is wobbling…');
+          setTimeout(() => {
+            if (!ctx.alive()) return;
+            const t = $('.exc-thing', cell); if (t) t.textContent = '🐣';
+            FX.sfx.chirp(); FX.burst(centreOf(cell).x, centreOf(cell).y, { kind: 'hearts', n: 8 });
+            ctx.say('It hatched! Hello, baby!'); ctx.bonus(1, cell, 'Egg!'); ctx.life.visit();
+          }, 850);
+        } else if (kind === 'worm' || kind === 'beetle' || kind === 'lizard') {
+          const F = FINDS[kind]; FX.sfx[F.sfx]();
+          ctx.say(kind === 'worm' ? 'Wiggly worm! He says hello.' : kind === 'beetle' ? 'A beetle zooms away!' : 'A little lizard dashes off!');
+        } else { FX.sfx.tap(); FX.burst(c.x, c.y, { kind: 'dust', n: 4 }); ctx.say(pick(['Only dust here — keep brushing!', 'Empty sand. The bones are somewhere close!', 'Nothing this time. Brush on!'])); }
       };
-      ctx.area.append(top, head, field, help);
+
+      let brushing = false;
+      const scrub = (e) => {
+        const cell = e.target && e.target.closest && e.target.closest('.exc-cell');
+        if (!cell || !cell.isConnected || cell.classList.contains('brushed') || cell.classList.contains('gone')) return;
+        const dust = $('.exc-dust', cell);
+        if (!dust) return;
+        const op = Math.max(0, Number(dust.style.opacity || 1) - .24);
+        dust.style.opacity = String(op);
+        if (op <= .12) openCell(cell);
+      };
+      face.addEventListener('pointerdown', (e) => { brushing = true; scrub(e); });
+      face.addEventListener('pointermove', (e) => { if (brushing) scrub(e); });
+      window.addEventListener('pointerup', () => { brushing = false; });
+      face.addEventListener('click', (e) => { const cell = e.target && e.target.closest && e.target.closest('.exc-cell'); if (cell) tapCell(cell); });
+
+      /* One stratum: build the soil, hide the finds, and let the brushing begin. */
+      const STRATUM_BONES = [4, 5, 6];
+      async function stratum() {
+        const S = STRATA[depth % STRATA.length];
+        species = musIds[(depth + 1) % musIds.length];
+        dcol = pick(COLORS);
+        ghost.innerHTML = FX.dinoHTML(species, { color: dcol, state: 'idle' });
+        ghost.style.setProperty('--rev', 0);
+        chip.textContent = `⛏ ${S.name} · ${S.depth} m`;
+        stratumBones = STRATUM_BONES[depth % STRATUM_BONES.length] + (depth >= STRATA.length ? 1 : 0);
+        stratumGot = 0; bonesHere = [];
+        const gems = 1 + (depth % 2), rocks = 4 + (depth % 3);
+        const specials = [...Array(stratumBones).fill('bone'), ...Array(gems).fill('gem'), ...Array(depth % 2 === 0 ? 1 : 0).fill('egg'),
+          ...Array(depth % 4 === 3 ? 1 : 0).fill('amber'), ...Array(depth % 2).fill('shell'), ...Array((depth + 1) % 2).fill('fern'),
+          'worm', 'beetle', ...Array(rocks).fill('rock')];
+        const cells = Math.max(specials.length, COLS * ROWS);
+        const items = shuffle([...specials, ...Array(Math.max(0, cells - specials.length)).fill('dirt')]);
+        face.style.background = `linear-gradient(${S.band[0]}, ${S.band[1]} 55%, ${S.band[2]})`;
+        face.innerHTML = '';
+        face.style.gridTemplateColumns = `repeat(${COLS}, minmax(0, 1fr))`;
+        items.forEach((kind, i) => {
+          const cell = el('button', 'exc-cell');
+          cell.dataset.kind = kind;
+          cell.setAttribute('aria-label', 'Dust');
+          cell.style.setProperty('--tone', (rnd(5) - 2) * 5 + '%');
+          const F = FINDS[kind] || FINDS.dirt;
+          cell.innerHTML = `<span class="exc-thing">${F.e}</span><span class="exc-dust"></span>`;
+          FX.anim(cell, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 300, delay: i * 12, easing: 'cubic-bezier(.2,.9,.3,1.3)', fill: 'backwards' });
+          if (kind === 'bone') bonesHere.push({ cell });
+          face.append(cell);
+        });
+        tray.innerHTML = '';
+        for (let i = 0; i < stratumBones; i++) {
+          const s = el('span', 'dig-slot', '🦴');
+          const lab = el('small'); lab.style.cssText = 'display:block;font-size:9px;font-weight:900;opacity:.7;letter-spacing:0'; lab.textContent = '?';
+          s.append(lab); tray.append(s);
+        }
+        ctx.say(depth === 0 ? 'Hold and brush the dust away. Lift every bone you find!' : `Deeper! The ${S.name} layer hides another ${SPEC_NAME[species]}.`);
+        if (depth > 0) FX.sfx.whoosh();
+      }
+
+      /* When a skeleton is complete the layer peels away and the dig goes deeper. */
+      async function peel() {
+        skeletons++;
+        ghost.classList.add('alive'); FX.dinoState(ghost.firstChild, 'roar', 1500); FX.sfx.roar(); FX.celebrate();
+        if (musV.set(species, skeletons) && stampInto(museum, musArt, species, skeletons, 'Dug up!')) {
+          ctx.say(`${SPEC_NAME[species]} joins the museum — ${museum.dataset.got} of ${musIds.length} dug up!`);
+          if (museum.classList.contains('full')) { ctx.bonus(2, museum, 'Every dinosaur dug!'); cheer(2); }
+        }
+        await sleep(1500); if (!ctx.alive()) return;
+        const a = FX.anim(face, [{ transform: 'none', opacity: 1 }, { transform: 'translateY(60%) scale(.92)', opacity: 0 }], { duration: 750, easing: 'ease-in' });
+        await sleep(a ? 760 : 120); if (!ctx.alive()) return;
+        depth++;
+        const b = FX.anim(face, [{ transform: 'translateY(-40%) scale(.94)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 620, easing: 'ease-out' });
+        stratum(); await sleep(b ? 640 : 120);
+      }
+
+      /* Gusts re-dust the brushed sand nobody has taken anything from — gentle, no cost. */
+      ctx.every(21000, () => {
+        if (!ctx.alive() || !face.isConnected) return;
+        const calm = $$('.exc-cell.brushed:not(.gone)', face).filter((c) => c.dataset.kind === 'dirt');
+        if (!calm.length) return;
+        const picked = shuffle(calm).slice(0, Math.min(5, calm.length));
+        picked.forEach((c) => {
+          const d = el('span', 'exc-dust');
+          d.style.opacity = '1';
+          c.classList.remove('brushed');
+          c.setAttribute('aria-label', 'Dust');
+          c.append(d);
+        });
+        if (picked.length) { FX.sfx.whoosh(); ctx.say('A gust of wind! Dust everywhere again.'); }
+      });
+
+      /* Scuttlers cross the trench on their own errands. */
+      ctx.every(9000, () => {
+        if (!ctx.alive() || !face.isConnected) return;
+        const kind = pick(['worm', 'beetle', 'lizard']);
+        const F = FINDS[kind];
+        const s = el('span', 'exc-scuttler', F.e);
+        s.setAttribute('aria-label', 'A little friend crossing the trench');
+        const y = 12 + rnd(70);
+        s.style.top = y + '%';
+        face.append(s);
+        const a = FX.anim(s, [{ left: '-8%' }, { left: '106%' }], { duration: 6500 + rnd(3000), easing: 'linear' });
+        if (a) a.onfinish = () => s.remove(); else setTimeout(() => s.remove(), 9000);
+        s.onclick = (e) => { e.stopPropagation(); FX.sfx[F.sfx](); FX.pop(s); a ? a.finish() : s.remove(); };
+      });
+
+      function showMe() {
+        if (!ctx.alive()) return;
+        const hidden = $$('.exc-cell:not(.brushed):not(.gone)', face).find((c) => c.dataset.kind === 'bone') ||
+          [...bonesHere].map((b) => b.cell).find((c) => c.isConnected && !c.classList.contains('gone'));
+        if (hidden) {
+          hidden.classList.add('glint');
+          setTimeout(() => hidden.classList.remove('glint'), 3200);
+          const c = centreOf(hidden); FX.burst(c.x, c.y, { kind: 'sparkle', n: 8 });
+          ctx.say('Something is shining over there!');
+        } else if (bonesHere.length === 0) {
+          ctx.say('Brush anywhere — the bones are close!');
+        } else {
+          const waiting = bonesHere.map((b) => b.cell).find((c) => c.isConnected && !c.classList.contains('gone'));
+          if (waiting) { waiting.classList.add('glint'); setTimeout(() => waiting.classList.remove('glint'), 3200); ctx.say('That bone is ready — tap it to lift it out!'); }
+          else ctx.say('Keep brushing — another skeleton is near!');
+        }
+      }
+
+      await stratum();
     },
   });
 

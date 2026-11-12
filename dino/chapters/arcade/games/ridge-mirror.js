@@ -4,7 +4,7 @@
 // face's own normal, so a face that leans a little differently lands the flash
 // a long way off, and only a narrow tilt puts the light at a beast's feet.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-f652baf3e7fda2b1';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-8607dafbfd11334e';
 
 const PAL = MOODS.dawn;
 const TAU = Math.PI * 2;
