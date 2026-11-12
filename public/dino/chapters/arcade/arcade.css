@@ -588,7 +588,17 @@ body[data-mode="menu"] #shade, body[data-mode="cover"] #shade { display: none; }
   #instruments { top: calc(60px + env(safe-area-inset-top)); left: 20px; right: 20px; }
   .inst-score b { font-size: 28px; }
   .meter { width: 112px; }
-  #notice { bottom: 14vh; max-width: 92vw; white-space: normal; text-align: center; }
+  /* on a phone the field is the whole screen, so the caption that was a strip of
+     chrome in landscape would sit on top of the pack and hide the very thing it is
+     announcing. it lives in the sky now, over the art and never over the actors. */
+  #notice {
+    top: calc(196px + env(safe-area-inset-top));
+    bottom: auto;
+    max-width: 86vw;
+    white-space: normal;
+    text-align: center;
+    background: color-mix(in srgb, var(--panel) 74%, transparent);
+  }
   #hint {
     bottom: calc(14px + env(safe-area-inset-bottom));
     width: 90%;

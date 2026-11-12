@@ -181,7 +181,7 @@ export const CATALOG = [
     id: 'pack-draft', title: 'Pack Draft', no: 26,
     tagline: 'Run at the back. Finish at the front.',
     how: 'Ease the pace and let the fast runners break the wind for you. Surge only when the gap is yours to take.',
-    controls: 'Move to weave · hold to surge · release to settle',
+    controls: 'Move to weave · press, or set a second thumb down, to surge · release to settle',
     mood: 'dusk', accent: '#ff8f5e', emblem: 'trail', unit: 'paces led', stars: [12, 22, 34]
   },
   {

@@ -593,7 +593,20 @@ export function makeScene(def) {
         fontFamily: "'Iowan Old Style','Palatino Linotype',Georgia,serif",
         fontSize: '30px', fontStyle: 'bold', color, stroke: '#12262a', strokeThickness: 6
       }).setOrigin(0.5).setDepth(60);
-      this.tweens.add({ targets: t, y: y - 56, alpha: 0, scale: 1.2, duration: 760, ease: 'cubic.out', onComplete: () => t.destroy() });
+      /* one flash can answer several beasts at once and their labels land on the
+         same pixels, where they read as one garbled word: each new label climbs
+         until it has clear air. */
+      const live = this.__pops || (this.__pops = []);
+      const half = Math.max(46, t.width * 0.62);
+      let dy = 0, guard = 0;
+      while (guard++ < 6 && live.some((p) => Math.abs(p.x - x) < half && Math.abs(p.y - (y + dy)) < 30)) dy -= 30;
+      if (dy) t.setY(y + dy);
+      const rec = { x, y: y + dy };
+      live.push(rec);
+      this.tweens.add({
+        targets: t, y: y + dy - 56, alpha: 0, scale: 1.2, duration: 760, ease: 'cubic.out',
+        onComplete: () => { t.destroy(); const i = live.indexOf(rec); if (i >= 0) live.splice(i, 1); }
+      });
     }
 
     shake(ms = 140, amount = 0.006) { this.cameras.main.shake(ms, amount); }

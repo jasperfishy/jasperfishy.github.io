@@ -348,8 +348,13 @@ function create(scene) {
     pad.aimX = clamp(target.x - pad.dir * 0.1 * target.flat, 42, W - 42);
     const dh = Math.max(42, target.h - pad.h + 24);
     const d = Math.abs(pad.aimX - pad.x);
+    // clearing the next terrace is only half the promise: the jet has to stay in
+    // the air long enough to cross the gap at the fastest horizontal it will ever
+    // give, so a wide zigzag is planned taller instead of falling short into the water
+    const reach = Math.max(0.34, d / 296);
+    const vh = (dh + 0.5 * GRAV * reach * reach) / reach;
     pad.dh = dh;
-    pad.apex = dh + 30 + Math.min(58, d * 0.26);
+    pad.apex = Math.max(dh + 30 + Math.min(58, d * 0.26), (vh * vh) / (2 * GRAV));
     const v0 = Math.sqrt(2 * GRAV * pad.apex);
     pad.tRef = (v0 + Math.sqrt(Math.max(0, v0 * v0 - 2 * GRAV * dh))) / GRAV;
     pad.vxRef = clamp((pad.aimX - pad.x) / pad.tRef, -296, 296);
@@ -655,7 +660,7 @@ function create(scene) {
       if (st.ashT <= 0) startAsh();
     }
 
-    st.flood += (9 + st.best * 0.22) * dt;
+    st.flood += (8.6 + st.best * 0.19) * dt;
     if (st.flood >= RIM * STEP) { finish(st.best >= STAR[0]); return; }
 
     me = padUnder();
@@ -696,7 +701,10 @@ function create(scene) {
 
     if (st.mode === 'ground') {
       if (st.shelter) {
-        st.heat += 0.17 * dt;
+        // the lip keeps the ash off you, but it sits on the same terrace: water
+        // reaches it just as it reaches you
+        st.heat += 0.028 * dt;
+        if (p.h <= waterH() && st.invuln <= 0) drown();
         if (st.heat >= 1) scald();
       } else {
         if (steerKey) { p.x += steerKey * 196 * dt; p.face = steerKey; st.walkTo = null; }
@@ -707,8 +715,11 @@ function create(scene) {
         }
         p.x = onPlate(t0, p.x);
         p.pose = 'wait';
-        if (st.ash > 0) st.heat += 0.035 * dt;
-        if (p.h - waterH() < 130) st.heat += 0.05 * dt;
+        // the steam only lays on while the mountain is shedding it: out of the ash
+        // and clear of the water line, the wind off the caldera shakes it off again
+        const soak = (st.ash > 0 ? 0.1 : 0) + (p.h - waterH() < 110 ? 0.045 : 0);
+        if (soak > 0) st.heat = Math.min(1.15, st.heat + soak * dt);
+        else st.heat = Math.max(0, st.heat - 0.08 * dt);
         if (st.heat >= 1) scald();
       }
     } else if (st.mode === 'fly') {
@@ -955,6 +966,7 @@ function create(scene) {
       const pad = padUnder();
       return {
         terraces: st.best, best: st.best, at: st.at, hearts: st.hearts,
+        time: Number(st.time.toFixed(1)),
         heat: Number(st.heat.toFixed(3)), mode: st.mode, shelter: st.shelter,
         ash: Number(st.ash.toFixed(2)), ashT: Number(st.ashT.toFixed(2)),
         flood: Math.round(st.flood), waterH: Math.round(waterH()),
@@ -1020,7 +1032,7 @@ function create(scene) {
     climbUp: () => startClimb(),
     shelterOn: (on) => setShelter(!!on),
     walkTo: (x) => { st.walkTo = Number(x); },
-    floodLeft: () => Math.max(0, Math.round((RIM * STEP - st.flood) / Math.max(1, 9 + st.best * 0.22)))
+    floodLeft: () => Math.max(0, Math.round((RIM * STEP - st.flood) / Math.max(1, 8.6 + st.best * 0.19)))
   };
 }
 

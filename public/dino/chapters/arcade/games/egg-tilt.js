@@ -522,7 +522,8 @@ function create(scene) {
     n: 1, salt: 1, score: 0, hearts: 3, warmth: 1, cracks: 0,
     over: false, busy: 0, phase: 'roll', braced: false,
     wind: 0, gust: 0, gustT: 6, gustLife: 0, windLock: null,
-    landV: 0, losses: 0, lastLine: '', spin: 0, coldWarn: 0, slowT: 0, lastEnd: 'bank', told: {}
+    landV: 0, losses: 0, lastLine: '', spin: 0, coldWarn: 0, slowT: 0, airT: 0,
+    lastEnd: 'bank', told: {}
   };
   const e = { x: 0, y: 0, vx: 0, vy: 0, lx: 0, ly: 0, vt: 0, kind: 'ice' };
   const tilt = { th: 0, target: 0, manual: false, key: 0, ptr: 0 };
@@ -783,6 +784,7 @@ function create(scene) {
     const s = sampleAt(model, e.lx);
     if (!s) {
       st.phase = 'air';
+      st.airT += dt;
       e.vt = e.vx * c + e.vy * sn;
       return true;
     }
@@ -790,6 +792,7 @@ function create(scene) {
     const pen = R * Math.min(1.9, L) - (s.y - e.ly);
     if (pen <= 0) {
       st.phase = 'air';
+      st.airT += dt;
       e.vt = e.vx * c + e.vy * sn;
       return true;
     }
@@ -800,10 +803,14 @@ function create(scene) {
     let vt = (lvx + lvy * s.k) / L;
     let vn = (lvx * s.k - lvy) / L;
     if (st.phase === 'air') {
-      land(-vn);
+      // only a real leave-and-return is a landing: the 0.1 restitution bounce
+      // lifts the egg for a step or two and re-grazes the same surface, and a
+      // graze must not record itself as the impact you arrived with
+      if (st.airT > 0.05) land(-vn);
       if (st.over || st.busy > 0) return false;
     }
     st.phase = 'roll';
+    st.airT = 0;
     e.kind = s.kind;
     if (vn < 0) vn = -vn * 0.1;
     const kk = KIND[e.kind] || KIND.ice;
@@ -865,7 +872,9 @@ function create(scene) {
     if (keys.left.isDown) tilt.key = clamp(tilt.key - dt * 0.4, -MAX_TILT, MAX_TILT);
     else if (keys.right.isDown) tilt.key = clamp(tilt.key + dt * 0.4, -MAX_TILT, MAX_TILT);
     else tilt.key = lerp(tilt.key, tilt.ptr, Math.min(1, dt * 1.4));
-    const want = clamp(tilt.manual ? tilt.target : tilt.ptr + tilt.key, -MAX_TILT, MAX_TILT);
+    // the claw carries the egg in level: a lean still held through the hand-off
+    // would set it down on a slope already sliding toward the edge
+    const want = st.busy > 0 ? 0 : clamp(tilt.manual ? tilt.target : tilt.ptr + tilt.key, -MAX_TILT, MAX_TILT);
     tilt.th = lerp(tilt.th, want, Math.min(1, dt * 6.4));
     ridge.rotation = tilt.th;
 
@@ -1028,6 +1037,18 @@ function create(scene) {
       return Number(worst.toFixed(1));
     },
     placeOn: (lx, vt) => restOn(lx, vt || 0),
+    // probe hook: re-surface one stretch of the ridge that is already built, so
+    // two surfaces can be raced over identical ground instead of two similar hills
+    setSurface: (x0, x1, kindName) => {
+      if (!KIND[kindName]) return 0;
+      let n = 0;
+      for (let i = Math.floor((x0 + HS) / STEP); i <= Math.ceil((x1 + HS) / STEP); i++) {
+        if (i < 0 || i >= model.N || !model.solid[i]) continue;
+        model.kind[i] = kindName;
+        n++;
+      }
+      return n;
+    },
     dropFrom: (lx, height, vy) => {
       const q = sampleAt(model, clamp(lx, -HS + 4, model.nestX + 40));
       if (!q) return false;
