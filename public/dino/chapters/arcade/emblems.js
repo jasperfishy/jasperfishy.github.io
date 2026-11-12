@@ -74,7 +74,80 @@ export const EMBLEMS = {
     <path d="M12 33c0-6 9-10 20-10s20 4 20 10v12c0 6-9 10-20 10s-20-4-20-10z" />
     <path d="M12 33c0 6 9 10 20 10s20-4 20-10" />
     <path d="M8 19l12 10M56 19L44 29" opacity=".7" />
-    <path d="M6 56c4-2 8-2 12 0M46 56c4-2 8-2 12 0" opacity=".4" />${close}`
+    <path d="M6 56c4-2 8-2 12 0M46 56c4-2 8-2 12 0" opacity=".4" />${close}`,
+  causeway: `${open}
+    <path d="M6 52c7-4 14-4 21 0s14 4 22 0 9-3 13-1" opacity=".7" />
+    <path d="M9 42c2-3 7-3 9 0M23 35c2-3 7-3 9 0M37 28c2-3 7-3 9 0M49 21c2-3 7-3 9 0" />
+    <path d="M13 42v3M27 35v4M41 28v4" opacity=".45" />
+    <path d="M52 10c-5 1-8 5-8 9" opacity=".5" />${close}`,
+  spear: `${open}
+    <path d="M50 8l6 4-3 7-6-4z" />
+    <path d="M47 19L16 50M20 46l-6 8 8-6" />
+    <path d="M8 30c5-3 10-3 15 0s10 3 15 0" opacity=".55" />
+    <path d="M28 38c4-2 8-1 11 2-3 3-7 4-11 2z" opacity=".7" />${close}`,
+  thermal: `${open}
+    <path d="M20 52c0-10 8-12 8-22 0-7-6-9-6-15" />
+    <path d="M22 18l-4-3 4-4M22 30l4-3-4-4" opacity=".7" />
+    <path d="M38 52V36h10v16" />
+    <path d="M40 34c2-6 8-8 12-5" opacity=".6" />
+    <path d="M6 52h52" opacity=".5" />${close}`,
+  lantern: `${open}
+    <path d="M26 14h12l3 8v20c0 3-4 5-9 5s-9-2-9-5V22z" />
+    <path d="M29 26h6v10h-6z" opacity=".6" />
+    <path d="M32 8v6M24 10l2 4M40 10l-2 4" opacity=".5" />
+    <path d="M46 26l12-6M46 34l14 2M46 42l11 8" opacity=".45" />${close}`,
+  geyser: `${open}
+    <path d="M32 50c-8 0-14-2-14-4s6-3 14-3 14 1 14 3-6 4-14 4z" />
+    <path d="M26 42c-3-9-2-16 2-22 3 6 6 13 4 22" />
+    <path d="M32 40c0-10 2-16 5-20M38 42c3-7 3-12 1-16" opacity=".6" />
+    <path d="M20 20c-3-4-3-8 0-11M46 22c3-3 4-7 2-11" opacity=".45" />${close}`,
+  nest: `${open}
+    <path d="M10 40c2-8 10-13 22-13s20 5 22 13c-4 8-12 12-22 12s-18-4-22-12z" />
+    <path d="M14 34c6 3 12 4 18 4s12-1 18-4" opacity=".6" />
+    <ellipse cx="32" cy="34" rx="7" ry="8" />
+    <path d="M20 44l8-6M44 44l-8-6M26 48l10-4" opacity=".45" />${close}`,
+  burrow: `${open}
+    <path d="M4 22c8-6 16-6 24 0s16 6 24 0" opacity=".5" />
+    <path d="M14 54c0-12 4-18 12-20 6-2 10-6 10-12" />
+    <path d="M22 46c4-2 8-2 12 1" opacity=".6" />
+    <circle cx="30" cy="40" r="3" opacity=".7" />
+    <path d="M44 44h8M46 50h8M50 38h6" opacity=".4" />${close}`,
+  egg: `${open}
+    <path d="M32 8c8 10 13 20 13 28 0 9-6 16-13 16s-13-7-13-16c0-8 5-18 13-28z" />
+    <path d="M25 36c0-6 3-11 7-14" opacity=".55" />
+    <path d="M8 54h48" opacity=".5" />
+    <path d="M18 50l-4 4M46 50l4 4" opacity=".4" />${close}`,
+  charcoal: `${open}
+    <path d="M10 40c4-12 14-18 24-16 8 2 12 8 12 14 0 5-3 9-8 10" />
+    <path d="M26 26c3-3 7-4 10-2M22 44c6 2 12 2 18-1" opacity=".6" />
+    <path d="M52 46l6 8-8-2z" />
+    <path d="M54 42l4-6" opacity=".6" />${close}`,
+  chorus: `${open}
+    <path d="M14 54c0-9 5-15 12-17" />
+    <circle cx="26" cy="33" r="3" />
+    <path d="M30 26c4-2 8-1 11 2M34 18c8 2 13 8 14 16" opacity=".6" />
+    <path d="M40 10c10 3 16 12 16 22" opacity=".4" />
+    <path d="M6 44c3-2 6-2 9 0M6 50c3-2 6-2 9 0" opacity=".45" />${close}`,
+  frost: `${open}
+    <path d="M4 46h56" opacity=".55" />
+    <path d="M20 40V18M14 26l6-6 6 6M14 34l6-6 6 6" />
+    <path d="M42 42V24M37 30l5-5 5 5" opacity=".7" />
+    <path d="M28 12c2-3 5-4 8-3" opacity=".45" />${close}`,
+  starpath: `${open}
+    <path d="M10 52c8-10 18-16 30-18 6-1 10-3 14-7" stroke-dasharray="2 5" />
+    <path d="M44 12l3 6 6 1-4.5 4 1 6-5.5-3-5.5 3 1-6-4.5-4 6-1z" />
+    <path d="M16 16l2 4 4 .6-3 3 .8 4-3.8-2-3.8 2 .8-4-3-3 4-.6z" opacity=".6" />
+    <path d="M8 56c4-2 8-2 12 0" opacity=".45" />${close}`,
+  mirror: `${open}
+    <ellipse cx="26" cy="30" rx="14" ry="12" transform="rotate(-18 26 30)" />
+    <path d="M20 26c3-3 8-4 12-2" opacity=".6" />
+    <path d="M40 20l16-8M42 30l18 2M40 40l14 10" opacity=".5" />
+    <path d="M26 42l-4 12M22 54h10" opacity=".6" />${close}`,
+  brush: `${open}
+    <path d="M8 14l18 12 6-8L14 6z" />
+    <path d="M26 26l10 7-4 6-10-7z" opacity=".8" />
+    <path d="M32 40l4 8M37 42l3 9M42 44l2 8" opacity=".6" />
+    <path d="M44 20c5 2 8 6 9 11M52 16c3 4 4 9 3 13" opacity=".45" />${close}`
 };
 
 export function emblemFor(game) {

@@ -78,7 +78,7 @@ export const chapters = [
   {
     id: 'arcade',
     title: 'Prehistoric Arcade',
-    subtitle: '10 hand-built games · sprint, climb, fly, stalk — and drum the dusk',
+    subtitle: '29 hand-built games · sprint, climb, fly, stalk, dig and drum',
     icon: '✦',
     url: 'chapters/arcade/index.html',
     storagePrefix: 'du-arcade-v1',
