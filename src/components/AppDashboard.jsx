@@ -247,7 +247,7 @@ function InstallGuide({ selectedApp, onSelect }) {
     <section id="install-apps" className="install-section" aria-labelledby="install-title">
       <div className="install-intro">
         <span className="install-symbol" aria-hidden="true"><Icon name="device" /></span>
-        <h2 id="install-title">A little closer.<br />One tap away.</h2>
+        <h2 id="install-title">A little closer.<br /> One tap away.</h2>
         <p>Keep your favourite app on your home screen or desktop. Free to install, with no app store needed.</p>
         <p className="install-caption">Phone, iPad, tablet or computer.</p>
       </div>
