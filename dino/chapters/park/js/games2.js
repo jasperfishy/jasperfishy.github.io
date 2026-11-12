@@ -13,6 +13,8 @@
   const recordBar = (txt) => ribbon('🏆 ' + txt, 'linear-gradient(90deg,#fdf1d4,#f6e2ae)');
   /* A few collectible stars drift in when the child does something wonderful. */
   const cheer = (n) => { if (window.DUWONDER && DUWONDER.mote) DUWONDER.mote(n); };
+  /* What each species is called, for the words we say and for a card's accessible name. */
+  const SP = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
 
   /* ---------- premium furniture, shared by the four games in this file ---------- */
   /* The status strip every board hangs under: level, what is on it, your best, your collection. */
@@ -89,18 +91,21 @@
     const found = el('div', 'bm-found'), grid = el('div', 'bm-grid');
     two.forEach((s) => { const f = el('span', 'bm-slot'); f.dataset.k = s; f.innerHTML = '<i>🥇</i>'; found.append(f); });
     let first = null, locked = true, got = 0;
+    // As on the main board: a card says what it is showing, and goes back to anonymous when hidden.
+    const showB = (x) => { x.classList.add('flipped'); x.setAttribute('aria-label', `${SP[x.dataset.k]}, the golden one`); };
+    const hideB = (x) => { x.classList.remove('flipped'); x.setAttribute('aria-label', 'Golden card'); };
     deck.forEach((s) => {
       const b = el('button', 'bm-card flipped');
-      b.dataset.k = s; b.setAttribute('aria-label', 'Golden card');
+      b.dataset.k = s; showB(b);
       b.innerHTML = `<span class="mc-inner"><span class="mc-face mc-back"><i></i><i></i><i></i><em>⭐</em></span><span class="mc-face mc-front">${FX.dinoHTML(s, { color: COLORS[SPECIES.indexOf(s) % COLORS.length], state: 'happy' })}</span></span>`;
       b.onclick = async () => {
         if (locked || b.classList.contains('flipped') || b.classList.contains('matched')) return;
-        b.classList.add('flipped'); FX.sfx.pop();
+        showB(b); FX.sfx.pop();
         if (!first) { first = b; return; }
         const a = first; first = null; locked = true;
         await sleep(480); if (!ctx.alive()) return;
         if (a.dataset.k === b.dataset.k) {
-          [a, b].forEach((x) => { x.classList.add('matched'); x.classList.remove('flipped'); });
+          [a, b].forEach((x) => { x.classList.add('matched'); hideB(x); x.setAttribute('aria-label', `${SP[x.dataset.k]}, matched`); });
           const slot = [...found.children].find((q) => q.dataset.k === a.dataset.k && !q.classList.contains('got'));
           if (slot) { slot.classList.add('got'); slot.innerHTML = FX.dinoHTML(a.dataset.k, { color: COLORS[SPECIES.indexOf(a.dataset.k) % COLORS.length], state: 'happy' }); FX.pop(slot); }
           ctx.good(b); FX.sfx.coin();
@@ -110,13 +115,13 @@
           ctx.bad(.34, b); FX.shake(a); FX.shake(b); FX.sfx.bad();
           ctx.say('Not a pair — look at the two pictures again!');
           await sleep(650); if (!ctx.alive()) return;
-          a.classList.remove('flipped'); b.classList.remove('flipped'); locked = false;
+          hideB(a); hideB(b); locked = false;
         }
       };
       grid.append(b);
     });
     host.append(found, grid);
-    setTimeout(() => { if (ctx.alive()) $$('.bm-card', grid).forEach((c) => c.classList.remove('flipped')); }, 1500);
+    setTimeout(() => { if (ctx.alive()) $$('.bm-card', grid).forEach(hideB); }, 1500);
   }
 
   window.Park.register({
@@ -124,7 +129,6 @@
     desc: 'Remember where the dinosaurs hide!',
     round(ctx) {
       const pairs = [3, 4, 6, 8, 10][ctx.round - 1], peek = [2600, 2400, 3000, 3600, 4200][ctx.round - 1], mixUp = ctx.round >= 3, maxMix = ctx.round === 5 ? 2 : 1;
-      const SP = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
       // Each card front gets a soft colour wash of its dinosaur colour, so pairs read differently at a glance.
       const TINT = { green: '#f0fbe8', teal: '#e6fafa', purple: '#f2e9fd', orange: '#fdf0e0', pink: '#fdeaf2', blue: '#e8f1fd', yellow: '#fef8dd', red: '#fceaea' };
       // The board only uses species that have a trophy-case slot, so every match stamps the shelf.
@@ -149,20 +153,26 @@
       const bar = el('div', 'mem-timer', '<i></i><b>Remember!</b>');
       const grid = el('div', 'mem-grid'); grid.style.setProperty('--cols', pairs === 3 ? 3 : pairs >= 8 ? 5 : 4);
       let first = null, locked = true, matched = 0, combo = 0, tries = 0, slips = 0, mixes = 0, taught = false;
+      /* A card's accessible name follows what is actually face-up. Without this a child
+       * using a screen reader, or the Parents read-aloud mode, hears six identical
+       * "Hidden dinosaur card" and cannot follow the game at all. */
+      const faceUp = (x) => { x.classList.add('flipped'); x.setAttribute('aria-label', SP[x.dataset.s] + (x.dataset.star === '1' ? ', the golden one' : '')); };
+      const faceDown = (x) => { x.classList.remove('flipped'); x.setAttribute('aria-label', 'Hidden dinosaur card'); };
       const cards = deck.map((d, ci) => {
         const b = el('button', 'mem-card flipped');
-        b.dataset.k = d.k; b.dataset.s = d.s; b.dataset.c = d.c; b.dataset.star = d.star ? '1' : ''; b.setAttribute('aria-label', 'Hidden dinosaur card');
+        b.dataset.k = d.k; b.dataset.s = d.s; b.dataset.c = d.c; b.dataset.star = d.star ? '1' : '';
+        faceUp(b);
         b.innerHTML = `<span class="mc-inner"><span class="mc-face mc-back" style="${d.star ? 'background:radial-gradient(circle at 50% 34%,#fff3c0,#e0a42a 78%)' : ''}"><i></i><i></i><i></i><em>${d.star ? '⭐' : '🐾'}</em></span><span class="mc-face mc-front" style="background:radial-gradient(circle at 50% 38%,${TINT[d.c] || '#fff'},#ffffff 78%)">${FX.dinoHTML(d.s, { color: d.c, state: 'idle' })}</span></span>`;
         b.onclick = async () => {
           if (locked || b.classList.contains('flipped') || b.classList.contains('matched')) return;
-          b.classList.add('flipped'); FX.sfx.pop(); FX.sfx.note(b.dataset.s === 'trex' ? 0 : SPECIES.indexOf(b.dataset.s) * 2 + 2, .12);
+          faceUp(b); FX.sfx.pop(); FX.sfx.note(b.dataset.s === 'trex' ? 0 : SPECIES.indexOf(b.dataset.s) * 2 + 2, .12);
           if (!first) { first = b; return; }
           const a = first; first = null; locked = true; tries++;
           await sleep(520);
           if (!ctx.alive()) return;
           if (a.dataset.k === b.dataset.k) {
             combo++; matched++;
-            [a, b].forEach((x) => { x.classList.add('matched'); FX.dinoState(x.querySelector('.du-dino'), 'happy'); });
+            [a, b].forEach((x) => { x.classList.add('matched'); x.setAttribute('aria-label', `${SP[x.dataset.s]}, matched`); FX.dinoState(x.querySelector('.du-dino'), 'happy'); });
             ctx.good(b);
             const c = centreOf(b); FX.burst(c.x, c.y, { kind: 'hearts', n: 8 }); if (combo > 1) FX.floatText(c.x, c.y - 30, combo + ' in a row!');
             (a.dataset.s === 'trex' ? FX.sfx.roar : FX.sfx.chirp)();
@@ -199,13 +209,13 @@
               // No scolding: the board offers a second peek instead.
               taught = true; ctx.bad(.16, b); ctx.say('Nearly! Let us look at your friends one more time.');
               const rem = cards.filter((x) => !x.classList.contains('matched'));
-              rem.forEach((x) => x.classList.add('flipped')); FX.sfx.sparkle();
+              rem.forEach(faceUp); FX.sfx.sparkle();
               await sleep(1200); if (!ctx.alive()) return;
-              rem.forEach((x) => x.classList.remove('flipped'));
+              rem.forEach(faceDown);
             }
             await sleep(750);
             if (!ctx.alive()) return;
-            a.classList.remove('flipped'); b.classList.remove('flipped'); FX.sfx.tap();
+            faceDown(a); faceDown(b); FX.sfx.tap();
             locked = false;
           }
         };
@@ -231,9 +241,9 @@
         const k = left[0].dataset.k, pair = left.filter((c) => c.dataset.k === k).slice(0, 2);
         pair.forEach((c) => c.classList.add('hint'));
         setTimeout(() => pair.forEach((c) => c.classList.remove('hint')), 1600);
-        pair.forEach((c) => c.classList.add('flipped')); FX.sfx.sparkle();
+        pair.forEach(faceUp); FX.sfx.sparkle();
         ctx.say(`This ${SP[pair[0].dataset.s]} has a twin — one of these two holds it!`);
-        setTimeout(() => pair.forEach((c) => { if (!c.classList.contains('matched') && c !== first) c.classList.remove('flipped'); }), 1100);
+        setTimeout(() => pair.forEach((c) => { if (!c.classList.contains('matched') && c !== first) faceDown(c); }), 1100);
       };
       ctx.hint(showMe);
       head.append(helpBtn(showMe));
@@ -245,7 +255,7 @@
         await sleep(peek);
         if (!ctx.alive()) return;
         bar.classList.add('off');
-        cards.forEach((c, i) => setTimeout(() => c.classList.remove('flipped'), i * 70)); FX.sfx.whoosh();
+        cards.forEach((c, i) => setTimeout(() => faceDown(c), i * 70)); FX.sfx.whoosh();
         ctx.say('Now find the matching pairs!');
         await sleep(450 + cards.length * 70);
         locked = false;

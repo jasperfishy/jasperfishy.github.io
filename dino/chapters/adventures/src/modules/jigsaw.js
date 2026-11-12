@@ -4,7 +4,7 @@
  * Then it goes in two parts — Part 1 is the border, Part 2 is the middle. When the picture is whole it comes alive,
  * and a bonus "Spot it!" round asks you to find the little things hidden in it. Finished pictures go into your
  * gallery with stars and a best time. */
-import { createPlay, shuffle, enter, dragPiece, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-556d96214a55198f";
+import { createPlay, shuffle, enter, dragPiece, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-28730ed953f5f1ae";
 
 const SKY = (id, a, b) => '<linearGradient id="' + id + '" x2="0" y2="1"><stop stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient>';
 const E = (ch, x, y, size, extra) => '<text x="' + x + '" y="' + y + '" font-size="' + size + '" text-anchor="middle" ' + (extra || "") + '>' + ch + '</text>';
