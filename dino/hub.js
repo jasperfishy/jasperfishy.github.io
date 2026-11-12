@@ -1,7 +1,7 @@
 // Dinosaur Universe — hub shell.
 // Shared state: child name and parent preferences. Chapters receive them via postMessage.
-import { chapters, activities } from './chapters.js?v=du-e3e2759ce3d75cba';
-import { heroScene, chapterArt } from './hub-art.js?v=du-e3e2759ce3d75cba';
+import { chapters, activities } from './chapters.js?v=du-9ab77cff6b9ebbf2';
+import { heroScene, chapterArt } from './hub-art.js?v=du-9ab77cff6b9ebbf2';
 
 const FX = window.DUFX;
 const hub = document.querySelector('#hub');
@@ -209,7 +209,7 @@ function applyTod() {
 // Each world keeps its own key prefix in the shared star ledger: park.*, meadow.*,
 // drive.*, act.* and egg.*. Reading the ledger instead of the old per-world stores
 // means a star earned in any edition of any world lights up the map.
-const LEDGER = { park: 'park', meadow: 'meadow', drive: 'drive', adventures: 'act', 'egg-dash': 'egg' };
+const LEDGER = { park: 'park', meadow: 'meadow', drive: 'drive', adventures: 'act', 'egg-dash': 'egg', arcade: 'arcade' };
 function progress() {
   const J = window.DUJourney;
   const out = { total: 0, gems: 0, finds: 0, chapter: 0, worlds: {} };
@@ -546,7 +546,7 @@ function wireHero() {
   }, 650);
 }
 
-const CHAPTER_COLOUR = { park: '#ff8a4d', meadow: '#7fd16e', drive: '#4aa8ff' };
+const CHAPTER_COLOUR = { park: '#ff8a4d', meadow: '#7fd16e', drive: '#4aa8ff', arcade: '#ff8f5e' };
 /* The main story travels with the child into the game: which part this is, how
  * close the goal is, who is riding with them, and the way to the reward
  * cutscene. A quick game belongs to the Adventures chapter rather than having

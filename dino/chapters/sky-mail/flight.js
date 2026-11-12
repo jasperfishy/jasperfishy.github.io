@@ -1,8 +1,8 @@
 // Prehistoric Sky Mail — a pterosaur courier flight.
 // Phaser 3.80, procedural illustration, synthesized score, three routes.
 
-import { makeAtlas, PALETTES } from './atlas.js?v=du-a1454ea5250e1aa0';
-import { SkyAudio } from './audio.js?v=du-a1454ea5250e1aa0';
+import { makeAtlas, PALETTES } from './atlas.js?v=du-9ab77cff6b9ebbf2';
+import { SkyAudio } from './audio.js?v=du-9ab77cff6b9ebbf2';
 
 const W = 960;
 

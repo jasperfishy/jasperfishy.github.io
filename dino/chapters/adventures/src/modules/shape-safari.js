@@ -5,7 +5,7 @@
  * The explorer kit is the part that grows: every round unlocks another tool (a magnifier that sweeps the grass, a
  * ghost outline to compare things against, a whistle that calls the shy golden critter), the rucksack fills up with
  * everything you found, and the meadow-watch line tells you how the weather is turning while you hunt. */
-import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-e3e2759ce3d75cba";
+import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-9ab77cff6b9ebbf2";
 
 const SHAPES = {
   circle: { name: "circle", plural: "circles", sides: "round, no corners", path: '<circle cx="20" cy="20" r="15"/>', items: ["☀️", "🏀", "🍊", "🪙", "🍪", "🔴", "🌕", "🎾", "⭕", "🧿"] },

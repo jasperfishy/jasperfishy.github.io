@@ -81,6 +81,19 @@ export function chapterArt(id) {
       <span class="ca-walker" style="--t:14s">${D('raptor', { state: 'run', color: 'orange' })}</span>
       <i class="ca-ground ca-ground-m"></i>
     </div>`;
+  if (id === 'arcade') return `
+    <div class="ca ca-arcade">
+      <i class="ca-arc-sun"></i>
+      <i class="ca-arc-cloud" style="top:14%;--w:64px;--t:38s"></i><i class="ca-arc-cloud" style="top:4%;--w:40px;--t:52s;--o:-24s"></i>
+      <span class="ca-arc-lanes"><b></b><b></b><b></b><b></b></span>
+      <svg class="ca-arc-ridge" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 70 L0 44 Q28 18 58 40 T118 32 T176 42 T236 26 T300 46 L300 70Z" fill="rgba(70,38,66,.62)"/>
+        <path d="M0 70 L0 56 Q40 38 84 54 T168 50 T246 56 T300 50 L300 70Z" fill="rgba(38,21,40,.78)"/>
+      </svg>
+      <i class="ca-arc-glow"></i>
+      <span class="ca-arc-notes"><i style="--i:0;--d:0s"></i><i style="--i:1;--d:-.7s"></i><i style="--i:2;--d:-1.4s"></i><i style="--i:3;--d:-2.1s"></i></span>
+      <span class="ca-arc-stage"><b style="--i:0"><s></s></b><b style="--i:1"><s></s></b><b style="--i:2"><s></s></b><b style="--i:3"><s></s></b></span>
+    </div>`;
   return `
     <div class="ca ca-drive">
       <i class="ca-cloud" style="top:10%;--w:70px;--t:22s"></i><i class="ca-cloud" style="top:26%;--w:46px;--t:34s;--o:-12s"></i>

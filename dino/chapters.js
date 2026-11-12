@@ -75,6 +75,14 @@ export const chapters = [
     url: 'chapters/egg-dash/index.html',
     storagePrefix: 'dino-egg-dash-v1',
   },
+  {
+    id: 'arcade',
+    title: 'Prehistoric Arcade',
+    subtitle: '10 hand-built games · sprint, climb, fly, stalk — and drum the dusk',
+    icon: '✦',
+    url: 'chapters/arcade/index.html',
+    storagePrefix: 'du-arcade-v1',
+  },
 ];
 
 // Original quick-play activities use the same hub shell and launch directly

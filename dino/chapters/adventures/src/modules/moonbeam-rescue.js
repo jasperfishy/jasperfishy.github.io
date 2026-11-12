@@ -9,7 +9,7 @@
  *   • THE MOON IS FADED — moonlight slowly drains (faster while the lamp is out). When it runs out the moon simply
  *     takes a breath, the stones glow again and the meter refills. Nobody loses; the night just gets dimmer and
  *     busier as the rounds grow: more stones, more hidden friends, a faster-fading moon. */
-import { createPlay, shuffle, getExtras, collect, collection } from "../adv-kit.js?v=du-e3e2759ce3d75cba";
+import { createPlay, shuffle, getExtras, collect, collection } from "../adv-kit.js?v=du-9ab77cff6b9ebbf2";
 
 const STARS = [["moon", "🌙"], ["fern", "🌿"], ["pawprint", "🐾"], ["flower", "🌼"], ["crystal", "💎"], ["star", "⭐"], ["leaf", "🍃"], ["pebble", "🪨"], ["glowfly", "✨"], ["shell", "🐚"]];
 const HELPERS = [["tricera", "teal", "Trixie"], ["stego", "purple", "Spike"], ["bronto", "orange", "Bronte"], ["raptor", "red", "Zippy"], ["trex", "green", "Rexy"]];

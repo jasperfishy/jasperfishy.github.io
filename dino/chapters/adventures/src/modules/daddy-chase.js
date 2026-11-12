@@ -3,7 +3,7 @@
 // dodges between lanes, escapes on a skateboard and a giant duck, and when he is finally caught there is a
 // full cartoon "gobble, burp, sorry!" cutscene.
 // Everything is pretend and silly: nobody is ever really hurt, and there is no losing screen.
-import { collect as bookRun, collection } from "../adv-kit.js?v=du-e3e2759ce3d75cba";
+import { collect as bookRun, collection } from "../adv-kit.js?v=du-9ab77cff6b9ebbf2";
 const FX = window.DUFX;
 const W = 800, H = 500, HORIZON = 168;
 // `obs` are low things you hop over, `block` are tall ones you must swerve round — two different lessons.

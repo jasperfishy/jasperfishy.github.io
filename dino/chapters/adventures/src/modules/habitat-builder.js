@@ -4,7 +4,7 @@
  * still missing, the weather drifts across the land, and every kind of thing lands with its own sound and sparkle.
  * When the home is ready the dinosaur moves in, sunset turns to starry night, you may catch the night stars, and then
  * it falls asleep. */
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-e3e2759ce3d75cba";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-9ab77cff6b9ebbf2";
 
 const HABITATS = [
   { dino: "Brachiosaurus", sp: "bronto", color: "orange", place: "Fern Forest", cls: "hb-forest", base: ["water", "ferns", "tallTrees"], extras: ["sunnyRocks", "flowers"], note: "A long neck reaches the tallest leaves!" },

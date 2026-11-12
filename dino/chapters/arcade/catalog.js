@@ -77,14 +77,14 @@ export const CATALOG = [
 export const byId = (id) => CATALOG.find((g) => g.id === id);
 
 export const LOADERS = {
-  'raptor-run': () => import('./games/raptor-run.js?v=du-a1454ea5250e1aa0'),
-  'trike-charge': () => import('./games/trike-charge.js?v=du-a1454ea5250e1aa0'),
-  'ptero-plunge': () => import('./games/ptero-plunge.js?v=du-a1454ea5250e1aa0'),
-  'stego-stand': () => import('./games/stego-stand.js?v=du-a1454ea5250e1aa0'),
-  'volcano-escape': () => import('./games/volcano-escape.js?v=du-a1454ea5250e1aa0'),
-  'tar-pit': () => import('./games/tar-pit.js?v=du-a1454ea5250e1aa0'),
-  'meteor-herd': () => import('./games/meteor-herd.js?v=du-a1454ea5250e1aa0'),
-  'starlight-stalk': () => import('./games/starlight-stalk.js?v=du-a1454ea5250e1aa0'),
-  'bone-bridge': () => import('./games/bone-bridge.js?v=du-a1454ea5250e1aa0'),
-  'primal-rhythm': () => import('./games/primal-rhythm.js?v=du-a1454ea5250e1aa0')
+  'raptor-run': () => import('./games/raptor-run.js?v=du-9ab77cff6b9ebbf2'),
+  'trike-charge': () => import('./games/trike-charge.js?v=du-9ab77cff6b9ebbf2'),
+  'ptero-plunge': () => import('./games/ptero-plunge.js?v=du-9ab77cff6b9ebbf2'),
+  'stego-stand': () => import('./games/stego-stand.js?v=du-9ab77cff6b9ebbf2'),
+  'volcano-escape': () => import('./games/volcano-escape.js?v=du-9ab77cff6b9ebbf2'),
+  'tar-pit': () => import('./games/tar-pit.js?v=du-9ab77cff6b9ebbf2'),
+  'meteor-herd': () => import('./games/meteor-herd.js?v=du-9ab77cff6b9ebbf2'),
+  'starlight-stalk': () => import('./games/starlight-stalk.js?v=du-9ab77cff6b9ebbf2'),
+  'bone-bridge': () => import('./games/bone-bridge.js?v=du-9ab77cff6b9ebbf2'),
+  'primal-rhythm': () => import('./games/primal-rhythm.js?v=du-9ab77cff6b9ebbf2')
 };
