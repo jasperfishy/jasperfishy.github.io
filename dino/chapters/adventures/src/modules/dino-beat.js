@@ -4,7 +4,7 @@
  * face leads the parade, and their voice opens the tune. A hot-streak meter counts the clean echoes in a row, and the
  * song ends with a call-and-response: the leader drums a short fill, you echo it back, and the parade plays your fill.
  * At the end the whole parade marches to the song you played. Replay and a slower "show me" button are always there. */
-import { createPlay, getExtras, collect, collection } from "../adv-kit.js?v=du-a6930f78f9a4718b";
+import { createPlay, getExtras, collect, collection } from "../adv-kit.js?v=du-a1454ea5250e1aa0";
 
 const LEADS_KEY = "beat-leads"; // saved inside du-adv-extras-v1 via collect()
 const FILLS_KEY = "beat-fills";

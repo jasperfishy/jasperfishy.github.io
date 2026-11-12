@@ -2,8 +2,8 @@
 // world and both play modes. The road is a loop of short segments; each frame the
 // segments in front of the camera are projected to the screen, far to near.
 
-import { SCENES } from "../data-scenes.js?v=du-a6930f78f9a4718b";
-import { drawCarRear } from "../render-car.js?v=du-a6930f78f9a4718b";
+import { SCENES } from "../data-scenes.js?v=du-a1454ea5250e1aa0";
+import { drawCarRear } from "../render-car.js?v=du-a1454ea5250e1aa0";
 
 const RACE_LAPS = 3;
 const EXPLORE_GOAL = 20;

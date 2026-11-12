@@ -1,4 +1,4 @@
-import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-a6930f78f9a4718b";
+import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-a1454ea5250e1aa0";
 
 export const PREHISTORIC_CREATURES = [
   { name: "Tyrannosaurus rex", short: "T. rex", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "T. rex had strong legs, tiny arms and a powerful bite." , cheer: "stomps a happy dance" },

@@ -297,6 +297,30 @@ body[data-tod="night"] .module-group h3 { color: #a8e3d2; }
 .ca-balloon::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: 24px; background: rgba(0,0,0,.35); }
 @keyframes ca-rise { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-34px) rotate(4deg); } }
 
+/* Prehistoric Arcade tile — a dusk drum circle, one rune falling into each lane */
+.ca-arcade { background: linear-gradient(#241a44 0%, #4b2f5d 40%, #9c4a45 72%, #dd8c54 100%); }
+.ca-arc-sun { position: absolute; left: 16%; top: 16%; width: 34px; height: 34px; border-radius: 50%; background: #ffd9a0; box-shadow: 0 0 0 7px rgba(255,206,140,.16), 0 0 28px 12px rgba(255,150,80,.4); animation: hs-sunpulse 4.5s ease-in-out infinite; }
+.ca-arc-cloud { position: absolute; left: 0; width: var(--w, 56px); height: calc(var(--w, 56px) * .3); border-radius: 999px; background: rgba(255,214,190,.2); filter: blur(1px); animation: ca-drift var(--t, 36s) linear infinite; animation-delay: var(--o, 0s); }
+.ca-arc-lanes { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
+.ca-arc-lanes b { position: relative; background: linear-gradient(to top, rgba(255,198,138,.15), rgba(255,198,138,.03) 62%, transparent); }
+.ca-arc-lanes b::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 1px; height: 64%; background: linear-gradient(transparent, rgba(255,222,176,.32)); }
+.ca-arc-ridge { position: absolute; left: 0; bottom: 0; width: 100%; height: 66px; }
+.ca-arc-glow { position: absolute; left: 50%; bottom: -34px; width: 88%; height: 100px; transform: translateX(-50%); background: radial-gradient(ellipse at center, rgba(255,152,84,.4), transparent 68%); }
+.ca-arc-stage { position: absolute; left: 5%; right: 5%; bottom: 7px; display: grid; grid-template-columns: repeat(4, 1fr); }
+.ca-arc-stage b { position: relative; width: 47%; max-width: 42px; aspect-ratio: 1.5; margin: 0 auto; border-radius: 20% 20% 26% 26% / 16% 16% 38% 38%; background: linear-gradient(#9c6742, #5d3627 72%, #3c2117); box-shadow: 0 6px 10px rgba(0,0,0,.35), inset 0 -4px 0 rgba(0,0,0,.22); transform-origin: 50% 100%; animation: ca-arc-pulse 2.7s ease-in-out infinite; animation-delay: calc(var(--i) * -.27s); }
+.ca-arc-stage b::before { content: ""; position: absolute; left: -7%; right: -7%; top: -34%; height: 74%; border-radius: 50%; background: radial-gradient(ellipse at 40% 34%, #fff2d4, #ebd1a6 58%, #b98c5c); box-shadow: inset 0 -2px 0 rgba(90,50,30,.3), 0 0 12px rgba(255,190,120,.22); }
+.ca-arc-stage s { position: absolute; left: 50%; top: -16%; width: 34%; max-width: 12px; aspect-ratio: 1; transform: translateX(-50%) rotate(45deg); border-radius: 2px; background: #ffcf6a; }
+.ca-arc-stage b:nth-child(2) s { background: #ff8f5e; }
+.ca-arc-stage b:nth-child(3) s { background: #7de3d4; }
+.ca-arc-stage b:nth-child(4) s { background: #c9b6ff; }
+.ca-arc-notes { position: absolute; inset: 0; }
+.ca-arc-notes i { position: absolute; left: calc(16.25% + var(--i) * 22.5%); top: 28px; width: 15px; height: 15px; margin-left: -7.5px; border-radius: 50%; border: 2px solid #ffcf6a; background: rgba(255,240,212,.16); box-shadow: 0 0 9px 1px rgba(255,200,130,.5); animation: ca-arc-fall 2.9s cubic-bezier(.5,.05,.8,.65) infinite; animation-delay: var(--d); }
+.ca-arc-notes i:nth-child(2) { border-color: #ff8f5e; box-shadow: 0 0 9px 1px rgba(255,143,94,.5); }
+.ca-arc-notes i:nth-child(3) { border-color: #7de3d4; box-shadow: 0 0 9px 1px rgba(125,227,212,.5); }
+.ca-arc-notes i:nth-child(4) { border-color: #c9b6ff; box-shadow: 0 0 9px 1px rgba(201,182,255,.5); }
+@keyframes ca-arc-fall { 0% { transform: translateY(-16px) scale(.8); opacity: 0; } 14% { opacity: 1; } 76% { transform: translateY(76px) scale(1); opacity: 1; } 94%, 100% { transform: translateY(92px) scale(1.12); opacity: 0; } }
+@keyframes ca-arc-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03, .975); } }
+
 /* ===================== STORY RIBBON ===================== */
 .story-ribbon {
   display: grid; grid-template-columns: 26px 1fr; gap: 16px; align-items: start;
