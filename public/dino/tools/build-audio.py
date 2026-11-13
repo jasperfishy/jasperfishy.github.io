@@ -2254,6 +2254,10 @@ def patch_sw(rows):
     with open(path, encoding="utf-8") as fh:
         src = fh.read()
     urls = sorted({rel(os.path.join(ROOT, r["file"][2:])) for r in rows})
+    # The audition page fetches both of these, and offline it gets nothing if
+    # only the sounds are precached: the tables render empty and say nothing
+    # about why.
+    urls.insert(0, "./assets/audio/report.json")
     urls.insert(0, "./assets/audio/index.json")
     body = ",\n".join('    "%s"' % u for u in urls)
     block = "%s\nconst AUDIO_ASSETS = [\n%s\n];\n%s" % (SW_BEGIN, body, SW_END)
@@ -2267,8 +2271,14 @@ def patch_sw(rows):
             print("  sw.js has no install listener; skipping precache patch")
             return
         src = src.replace(anchor, "\n" + block + anchor, 1)
-    src = src.replace("await cache.addAll(ASSETS);",
-                      "await cache.addAll(ASSETS.concat(AUDIO_ASSETS));", 1)
+    # Not addAll: one URL that 404s would fail the whole install and leave the
+    # app with no offline cache at all. Add each one on its own so a single miss
+    # costs one asset. If sw.js ever reverts to the addAll form, this puts it
+    # back rather than quietly re-introducing the all-or-nothing install.
+    src = src.replace(
+        "await cache.addAll(ASSETS);",
+        "await Promise.all(ASSETS.map((u) =>\n"
+        "      cache.add(u).catch((e) => console.warn('precache missed', u, String((e && e.message) || e)))));", 1)
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(src)
     print("  sw.js: %d audio URLs precached" % len(urls))

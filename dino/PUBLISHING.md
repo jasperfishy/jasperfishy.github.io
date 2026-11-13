@@ -1,7 +1,9 @@
 # Publishing Dinosaur Universe
 
-This folder (`FlagshipUI/app/dino-universe`) is the **single master copy** of
+This folder (`D:/Games/dino-universe`) is the **single master copy** of
 Dinosaur Universe. Make every game change here, never in the website repo.
+It is one of the games under `D:/Games`; `D:/FlagshipUI` is a separate model
+and inference-engine project and must never hold game files.
 
 The live game is <https://jasperfish.com/dino/>, served by GitHub Pages from
 the `jasperfishy/jasperfishy.github.io` repo (`main` branch). That repo keeps:
@@ -20,6 +22,9 @@ the `jasperfishy/jasperfishy.github.io` repo (`main` branch). That repo keeps:
    text that the object layer has already turned into a photograph; it also
    re-proves the retired defects with `--selftest`).
 2. In a clone of `jasperfishy/jasperfishy.github.io` (with `core.autocrlf false`):
+   Build from `origin/main` in a fresh worktree
+   (`git worktree add -f -B publish-live <path> origin/main`) — the clone's local
+   `main` may have no merge base with the remote, so a pull there is not safe.
    - Replace `public/dino/` with this folder, except `tests/`, and keep
      `public/dino/games/`.
    - Convert text files to LF line endings (the website repo stores LF).

@@ -39,16 +39,43 @@
     const lp = c.createBiquadFilter();
     lp.type = 'lowpass'; lp.frequency.value = 5200; lp.Q.value = 0.4;
     // Cheap reverb: two feedback delays. Long enough to feel like a cave.
+    //
+    // The damping belongs *inside* each recirculation rather than only on the
+    // output tap, so the high partials of a sent voice die away over the repeats
+    // instead of coming back at the full feedback gain each time. 0.19 s and
+    // 0.31 s also happen to put resonances on every multiple of 100 Hz, where
+    // the two sets coincide, so a bright send would have been reinforced there.
+    // (That coincidence was measured and is NOT what made the opening squeal —
+    // muting the reverb entirely left the tone standing. See pluck() below.)
     verb = c.createGain(); verb.gain.value = 0.3;
     const d1 = c.createDelay(1); d1.delayTime.value = 0.19;
     const d2 = c.createDelay(1); d2.delayTime.value = 0.31;
+    const damp1 = c.createBiquadFilter();
+    damp1.type = 'lowpass'; damp1.frequency.value = 2200; damp1.Q.value = 0.4;
+    const damp2 = c.createBiquadFilter();
+    damp2.type = 'lowpass'; damp2.frequency.value = 1500; damp2.Q.value = 0.4;
     const fb1 = c.createGain(); fb1.gain.value = 0.42;
     const fb2 = c.createGain(); fb2.gain.value = 0.34;
-    verb.connect(d1); d1.connect(fb1); fb1.connect(d1); d1.connect(lp);
-    verb.connect(d2); d2.connect(fb2); fb2.connect(d2); d2.connect(lp);
-    lp.connect(master); master.connect(c.destination);
+    verb.connect(d1); d1.connect(damp1); damp1.connect(fb1); fb1.connect(d1); damp1.connect(lp);
+    verb.connect(d2); d2.connect(damp2); damp2.connect(fb2); fb2.connect(d2); damp2.connect(lp);
+    lp.connect(master);
+    master.connect(c.destination);
     ready = true;
     return true;
+  }
+  /* Everything else in the game reaches the speakers through DUAudio's buses
+   * and their compressor. The synth used to wire itself straight to the
+   * destination, so it alone could push the mix past full scale. The sample
+   * bank is fetched by du-fx.js after this file runs, so the swap has to be
+   * re-tried rather than decided once at build time. */
+  let wiredTo = null;
+  function sink() {
+    const c = ctx();
+    if (!c || !master) return;
+    const want = (window.DUAudio && window.DUAudio.bus && window.DUAudio.bus('music')) || c.destination;
+    if (want === wiredTo) return;
+    if (wiredTo) { try { master.disconnect(wiredTo); } catch (e) { } }
+    try { master.connect(want); wiredTo = want; } catch (e) { }
   }
   const on = () => !(FX && FX.settings && FX.settings.sound === false);
   const reduce = () => !!(FX && FX.settings && FX.settings.reduce);
@@ -104,8 +131,16 @@
     for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
     const src = c.createBufferSource(); src.buffer = buf;
     const dl = c.createDelay(0.02); dl.delayTime.value = Math.min(0.0199, 1 / freq);
-    const fb = c.createGain(); fb.gain.value = 0.86;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3400;
+    const fb = c.createGain(); fb.gain.value = 0.78;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass';
+    // The loop ceiling has to travel with the note. Set at a fixed 3400 Hz, the
+    // best-preserved comb tooth was always the highest harmonic *under 3400*, so
+    // every pluck reinforced the same ~2.6-3 kHz slice no matter what it was
+    // supposed to sound like — and the opening re-triggers one about every half
+    // second, which is a steady high squeal rather than a harp. Three partials
+    // is a plucked string; the ring time is what a low cutoff buys back.
+    lp.frequency.value = Math.max(900, Math.min(3400, freq * 3.2));
+    lp.Q.value = 0.2;
     const g = c.createGain();
     src.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(g);
     g.connect(gainNode);
@@ -213,6 +248,7 @@
   let barCount = 0;
   function schedule() {
     const c = ctx(); if (!c || !current) return;
+    sink();
     const spb = 60 / current.bpm / 4;              // one 16th note
     if (nextAt < c.currentTime) nextAt = c.currentTime + 0.05;   // a hidden tab must not spam
     // Muted: keep the clock honest but build no nodes, so a muted tablet does
@@ -271,6 +307,7 @@
   function begin(name) {
     const T = THEMES[name]; if (!T || !build()) return;
     const c = ctx(); if (!c) return;
+    sink();
     const next = c.createGain();
     next.gain.value = 0.0001;
     next.connect(master);

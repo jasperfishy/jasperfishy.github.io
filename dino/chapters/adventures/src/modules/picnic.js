@@ -2,7 +2,7 @@
  * Drag (or tap) the right food. Requests grow from names ("berries!") to kinds, colours, feels, drinks and puddings,
  * so a long table wants a dish, a sip and a sweet finish. The weather changes the table each round, a wrong dish
  * earns a teaching nudge, a free hint glows the right plate, and a fed table can unlock a dessert dash. */
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-58e7197a7bd67562";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-7ebd3d49aa7fa37b";
 
 // The picnic grocery: every dish is a specimen the valley actually has, and no two dishes share a photograph.
 const FOODS = [

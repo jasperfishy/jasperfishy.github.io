@@ -1,9 +1,9 @@
-import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-58e7197a7bd67562';
+import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-7ebd3d49aa7fa37b';
 // River Braid — the braided jungle river.
 // A hatchling goes downstream and may only spend breath where the water spends
 // it for them: the dark deep threads, and the lee of anything that drifts.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-58e7197a7bd67562';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7ebd3d49aa7fa37b';
 
 const STAR = [9, 16, 25];
 const BENDS = 25;

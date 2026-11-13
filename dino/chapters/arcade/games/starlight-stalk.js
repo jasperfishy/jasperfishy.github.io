@@ -2,7 +2,7 @@
 // Walk the dark lane with the last egg on your back. Noise wakes the hunters;
 // fern cover buys you the seconds you need. The far nest is far.
 
-import { canvasTex, grain, rng, clamp, approach, lerp, W } from '../engine.js?v=du-58e7197a7bd67562';
+import { canvasTex, grain, rng, clamp, approach, lerp, W } from '../engine.js?v=du-7ebd3d49aa7fa37b';
 
 const GROUND = 444;
 const GOAL_M = 1500;

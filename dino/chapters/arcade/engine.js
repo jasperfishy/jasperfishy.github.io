@@ -1,9 +1,9 @@
-import { addEnvironment } from '../../photoreal-environments.js?v=du-58e7197a7bd67562';
+import { addEnvironment } from '../../photoreal-environments.js?v=du-7ebd3d49aa7fa37b';
 // Prehistoric Arcade — shared engine.
 // One stage, one audio ensemble, one set of hand-painted procedural layers, so
 // every little game inherits the same finish as Sky Mail without shipping any
 // image or sound files.
-import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-58e7197a7bd67562';
+import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-7ebd3d49aa7fa37b';
 
 export const W = 960;
 export const SAVE_KEY = 'du-arcade-v1';

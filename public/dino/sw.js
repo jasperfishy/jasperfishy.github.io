@@ -559,7 +559,6 @@ const ASSETS = [
   "./photoreal-vehicles.js",
   "./progress.js",
   "./rex-audio.js",
-  "./tools/__pycache__/build-audio.cpython-315.pyc",
   "./tools/audition.html",
   "./tools/build-audio.py",
   "./tools/build-intro-audio.py",
@@ -577,6 +576,7 @@ const ASSETS = [
 // BEGIN GENERATED AUDIO PRECACHE (tools/build-audio.py)
 const AUDIO_ASSETS = [
     "./assets/audio/index.json",
+    "./assets/audio/report.json",
     "./assets/audio/amb/desert.mp3",
     "./assets/audio/amb/fog.mp3",
     "./assets/audio/amb/meadow.mp3",

@@ -1,5 +1,5 @@
-import { PREHISTORIC_CREATURES, speciesFor } from "./dino-discoveries.js?v=du-58e7197a7bd67562";
-import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-58e7197a7bd67562";
+import { PREHISTORIC_CREATURES, speciesFor } from "./dino-discoveries.js?v=du-7ebd3d49aa7fa37b";
+import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-7ebd3d49aa7fa37b";
 
 const STORY_HEROES = PREHISTORIC_CREATURES.map(function (creature) {
   return { name: creature.name, short: creature.short, icon: creature.icon, kind: creature.kind, fact: creature.fact };

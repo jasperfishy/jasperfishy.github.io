@@ -1,7 +1,7 @@
 // Bone Bridge — an ice ravine, a swinging rib, and a herd that trusts you.
 // Lay the next span before the lead walker runs out of bone.
 
-import { canvasTex, grain, rng, clamp, lerp, W } from '../engine.js?v=du-58e7197a7bd67562';
+import { canvasTex, grain, rng, clamp, lerp, W } from '../engine.js?v=du-7ebd3d49aa7fa37b';
 
 const LEFT = 150;
 const RIGHT = 828;

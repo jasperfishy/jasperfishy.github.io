@@ -1,9 +1,9 @@
-import { overlayPhotorealMaterial } from '../../../photoreal-textures.js?v=du-58e7197a7bd67562';
+import { overlayPhotorealMaterial } from '../../../photoreal-textures.js?v=du-7ebd3d49aa7fa37b';
 // Fossil Brush — sixty million years, one afternoon.
 // A trench in a canyon wash. Sand is a real field of depth you lift grain by
 // grain; the bone under it dries out, and a hurried hand on dry bone cracks it.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-58e7197a7bd67562';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7ebd3d49aa7fa37b';
 
 const TAU = Math.PI * 2;
 const PAL = MOODS.canyon;

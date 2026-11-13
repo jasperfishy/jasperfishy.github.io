@@ -1,9 +1,9 @@
-import { drawPhotoreal } from "../../../photoreal-textures.js?v=du-58e7197a7bd67562";
-import { vehicleSVG, drawVehicle } from "../../../photoreal-vehicles.js?v=du-58e7197a7bd67562";
+import { drawPhotoreal } from "../../../photoreal-textures.js?v=du-7ebd3d49aa7fa37b";
+import { vehicleSVG, drawVehicle } from "../../../photoreal-vehicles.js?v=du-7ebd3d49aa7fa37b";
 // render/car.js — Draws the player's car from its config.
 // config = { body, paint, name, stickers: ["⭐", ...] }
 
-import { BODIES } from "./data-cars.js?v=du-58e7197a7bd67562";
+import { BODIES } from "./data-cars.js?v=du-7ebd3d49aa7fa37b";
 
 let svgUid = 0;
 
