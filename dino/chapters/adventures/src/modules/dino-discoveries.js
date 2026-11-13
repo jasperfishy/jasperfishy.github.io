@@ -1,10 +1,10 @@
-import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, collect, collection, getExtras } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
 export const PREHISTORIC_CREATURES = [
   { name: "Tyrannosaurus rex", short: "T. rex", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "T. rex had strong legs, tiny arms and a powerful bite." , cheer: "stomps a happy dance" },
   { name: "Velociraptor", short: "Velociraptor", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "Velociraptor was much smaller than movie versions and had feathers." , cheer: "does a speedy spin" },
   { name: "Stegosaurus", short: "Stegosaurus", icon: "🦕", kind: "Dinosaur", diet: "Plant eater", fact: "Stegosaurus had large plates on its back and spikes on its tail." , cheer: "wiggles its plates" },
-  { name: "Triceratops", short: "Triceratops", icon: "🦏", kind: "Dinosaur", diet: "Plant eater", fact: "Triceratops had three face horns and a big bony frill." , cheer: "gives a proud little bow" },
+  { name: "Triceratops", short: "Triceratops", icon: "🦕", kind: "Dinosaur", diet: "Plant eater", fact: "Triceratops had three face horns and a big bony frill." , cheer: "gives a proud little bow" },
   { name: "Brachiosaurus", short: "Brachiosaurus", icon: "🦕", kind: "Dinosaur", diet: "Plant eater", fact: "Its front legs were longer than its back legs, helping its shoulders rise high." , cheer: "reaches up for the stars" },
   { name: "Ankylosaurus", short: "Ankylosaurus", icon: "🦖", kind: "Dinosaur", diet: "Plant eater", fact: "Ankylosaurus wore bony armour and had a heavy club at the end of its tail." , cheer: "gives a gentle tail wiggle" },
   { name: "Parasaurolophus", short: "Parasaurolophus", icon: "🦕", kind: "Dinosaur", diet: "Plant eater", fact: "A long, hollow crest swept back over its head." , cheer: "plays a happy trumpet note" },
@@ -17,7 +17,7 @@ export const PREHISTORIC_CREATURES = [
   { name: "Carnotaurus", short: "Carnotaurus", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "Two short horns sat above its eyes." , cheer: "does a tiny horned hop" },
   { name: "Coelophysis", short: "Coelophysis", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "This slim dinosaur lived very early in dinosaur history." , cheer: "takes a quick little step" },
   { name: "Archaeopteryx", short: "Archaeopteryx", icon: "🪶", kind: "Dinosaur", diet: "Meat eater", fact: "It had feathers and a mix of dinosaur and bird-like features." , cheer: "flutters its feathered wings" },
-  { name: "Styracosaurus", short: "Styracosaurus", icon: "🦏", kind: "Dinosaur", diet: "Plant eater", fact: "Its frill had several long spikes and a nose horn." , cheer: "gives a spiky little bow" },
+  { name: "Styracosaurus", short: "Styracosaurus", icon: "🦕", kind: "Dinosaur", diet: "Plant eater", fact: "Its frill had several long spikes and a nose horn." , cheer: "gives a spiky little bow" },
   { name: "Deinonychus", short: "Deinonychus", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "It had a large curved claw on each foot." , cheer: "shows off a careful footstep" },
   { name: "Corythosaurus", short: "Corythosaurus", icon: "🦕", kind: "Dinosaur", diet: "Plant eater", fact: "A rounded, helmet-like crest sat on top of its head." , cheer: "taps its crest like a drum" },
   { name: "Baryonyx", short: "Baryonyx", icon: "🦖", kind: "Dinosaur", diet: "Meat eater", fact: "Baryonyx had a long snout and a very large claw on each hand." , cheer: "makes a gentle splash" },
@@ -29,7 +29,7 @@ export const PREHISTORIC_CREATURES = [
   { name: "Quetzalcoatlus", short: "Quetzalcoatlus", icon: "🪽", kind: "Flying reptile", diet: "Meat eater", fact: "This giant pterosaur was a flying reptile, not a dinosaur." , cheer: "soars above the meadow" },
   { name: "Mosasaurus", short: "Mosasaurus", icon: "🐊", kind: "Marine reptile", diet: "Meat eater", fact: "Mosasaurus was a sea reptile with flippers, not a dinosaur." , cheer: "swishes its ocean tail" },
   { name: "Plesiosaurus", short: "Plesiosaurus", icon: "🌊", kind: "Marine reptile", diet: "Meat eater", fact: "This marine reptile swam with four flippers and a long neck." , cheer: "paddles a happy circle" },
-  { name: "Ichthyosaurus", short: "Ichthyosaurus", icon: "🐬", kind: "Marine reptile", diet: "Meat eater", fact: "This sea reptile had a streamlined body and paddled with flippers." , cheer: "swims through a bubble ring" },
+  { name: "Ichthyosaurus", short: "Ichthyosaurus", icon: "🌊", kind: "Marine reptile", diet: "Meat eater", fact: "This sea reptile had a streamlined body and paddled with flippers." , cheer: "swims through a bubble ring" },
   { name: "Dimetrodon", short: "Dimetrodon", icon: "🦎", kind: "Other ancient animal", diet: "Meat eater", fact: "Dimetrodon had a large back sail and lived long before the dinosaurs." , cheer: "gives a sunny sail wiggle" }
 ];
 
@@ -38,7 +38,7 @@ export const PREHISTORIC_CREATURES = [
  * Trips grow with the level: more friends to meet and trickier questions (what kind, what it ate, "was it really a
  * dinosaur?", which fact belongs to whom). A free hint crosses out one wrong answer instead of giving the game away. */
 export function speciesFor(creature) {
-  const aliases = {'Tyrannosaurus rex':'trex',Velociraptor:'raptor',Triceratops:'tricera',Stegosaurus:'stego',Pteranodon:'ptero'};
+  const aliases = {'Tyrannosaurus rex':'trex','T-Rex':'trex',Velociraptor:'raptor',Triceratops:'tricera',Stegosaurus:'stego',Pteranodon:'ptero'};
   const key = aliases[creature.name] || creature.name.toLowerCase();
   return window.DUFX.dinoPhotoURL(key) ? key : null;
 }
@@ -67,6 +67,13 @@ const DETAILS = {
 };
 const FALLBACK_DETAIL = { size: "bigger than a grown-up human", found: "rocks from long ago", period: "the age of dinosaurs" };
 function detailFor(c) { return DETAILS[c.short] || FALLBACK_DETAIL; }
+/* Specimen labels, not stickers. These chips used to lead with a plate, a
+ * ruler, a globe and an hourglass — four emoji doing no work, because the words
+ * beside them already said everything they meant. A museum label names the
+ * field first, in small caps, and then gives the value. */
+function chip(label, value) {
+  return '<span class="ds-chip"><b>' + label + "</b>" + escapeText(value) + "</span>";
+}
 function askAbout(c) { return c.name + ". " + c.kind + ". " + c.diet + ". " + c.fact; }
 // a wrong answer teaches: name what the child nearly matched, then point back at the card
 function whyWrong(q, o) {
@@ -93,23 +100,31 @@ export function mountDinoDiscoveries(context) {
   const stamps = function () { return new Set(collection("guide").map(function (g) { return g.name; })); };
   const trips = collection("trips");
 
+  /* The grid used to type a dinosaur emoji into each card. 🦕🦖🦎🐊 are four
+   * spellings of one hatchling photograph, so thirty different animals were
+   * drawn as four identical pictures. Every creature in this guide has its own
+   * specimen photograph, so the card shows the animal itself. */
+  function avatar(c, cls) {
+    const url = F.dinoPhotoURL(speciesFor(c));
+    return '<img class="' + cls + '" src="' + url + '" alt="" draggable="false">';
+  }
   function ribbon() {
-    const icons = [];
-    visited.forEach(function (name) { const c = PREHISTORIC_CREATURES.find(function (x) { return x.name === name; }); if (c) icons.push(c.icon); });
-    return icons.length ? icons.join(" ") : "…";
+    const met = [];
+    visited.forEach(function (name) { const c = PREHISTORIC_CREATURES.find(function (x) { return x.name === name; }); if (c) met.push(avatar(c, "ds-rib")); });
+    return met.length ? met.join("") : '<span class="ds-rib-empty">…</span>';
   }
   function drawGuide() {
     selected = null;
     const have = stamps();
     const creatures = PREHISTORIC_CREATURES.filter(function (c) { return filter === "All" || c.kind === filter; });
     board.innerHTML = '<div class="ds-bar"><span class="ds-prog">Friends met this trip: <b>' + visited.size + "</b> of " + required + '</span><span class="ds-stamps">📒 Stamps <b>' + have.size + "</b>/" + PREHISTORIC_CREATURES.length + "</span>" +
-      (bestTrip ? "<span>🏅 Best trip: " + "⭐".repeat(bestTrip) + "</span>" : "") +
+      (bestTrip ? "<span>🏅 Best trip: " + window.DUICONS.stars(bestTrip) + "</span>" : "") +
       '<span class="ds-ribbon" aria-label="Friends met this trip">' + ribbon() + "</span></div>" +
       '<div class="discovery-filters">' + ["All"].concat(KINDS).map(function (category) {
         return '<button type="button" class="discovery-filter' + (filter === category ? ' selected' : '') + '" data-filter="' + category + '">' + escapeText(category === "All" ? "All friends" : category + "s") + '</button>';
       }).join("") + '</div><div class="ds-grid">' + creatures.map(function (c) {
         const done = visited.has(c.name), stamp = have.has(c.name);
-        return '<button type="button" class="ds-card' + (done ? " met" : "") + (stamp ? " stamped" : "") + '" data-creature="' + escapeText(c.name) + '"><span class="ds-ico">' + c.icon + '</span><strong>' + escapeText(c.short) + '</strong><small>' + escapeText(c.kind) + '</small>' + (stamp ? '<i class="ds-stamp" aria-label="Stamped">✔</i>' : "") + "</button>";
+        return '<button type="button" class="ds-card' + (done ? " met" : "") + (stamp ? " stamped" : "") + '" data-creature="' + escapeText(c.name) + '">' + avatar(c, "ds-ico") + '<strong>' + escapeText(c.short) + '</strong><small>' + escapeText(c.kind) + '</small>' + (stamp ? '<i class="ds-stamp" aria-label="Stamped">✔</i>' : "") + "</button>";
       }).join("") + "</div>" +
       (visited.size >= required ? '<p class="hb-deco" id="dsBonusNote">🦋 Bonus hunt! A fluttering friend drifts past the dig site — catch it for a sticker.</p>' : "") +
       (visited.size >= required ? '<button type="button" class="pk-btn sb-next ds-finish" id="finishDiscovery">Finish this discovery trip ✨</button>' : "");
@@ -160,9 +175,9 @@ export function mountDinoDiscoveries(context) {
     const q = question(c);
     if (F.sfx) F.sfx.sparkle();
     board.innerHTML = '<article class="ds-detail"><button type="button" class="pk-btn" id="dsBack">← Field guide</button>' +
-      '<div class="ds-stage">' + (sp ? '<div class="ds-dino">' + F.dinoHTML(sp, { color: tintFor(c.name), state: "idle", size: "100%" }) + "</div>" : '<div class="ds-emoji">' + c.icon + "</div>") + (isNew ? '<span class="ds-new">NEW! Stamp collected 📒</span>' : "") + '</div>' +
-      '<h3>' + escapeText(c.name) + '</h3><div class="ds-chips"><span>' + escapeText(c.kind) + "</span><span>🍽️ " + escapeText(c.diet) + "</span><span>📏 " + escapeText(det.size) + "</span><span>🌍 " + escapeText(det.found) + "</span><span>⏳ " + escapeText(det.period) + "</span></div><p class=\"ds-fact\">" + escapeText(c.fact) + '</p>' +
-      '<p class="hb-deco">🎗️ Friends met: ' + visited.size + " of " + required + " · 📒 Stamps: " + stamps().size + " of " + PREHISTORIC_CREATURES.length + (trips.length ? " · 🏅 Best trip " + "⭐".repeat(trips.reduce(function (m, t) { return Math.max(m, Number(t.stars) || 0); }, 0)) : "") + "</p>" +
+      '<div class="ds-stage">' + '<div class="ds-dino">' + F.dinoHTML(speciesFor(c) || "trex", { color: tintFor(c.name), state: "idle", size: "100%" }) + "</div>" + (isNew ? '<span class="ds-new">NEW! Stamp collected 📒</span>' : "") + '</div>' +
+      '<h3>' + escapeText(c.name) + '</h3><div class="ds-chips">' + chip("Diet", c.diet) + chip("Size", det.size) + chip("Found", det.found) + chip("Age", det.period) + '</div><p class=\"ds-fact\">' + escapeText(c.fact) + '</p>' +
+      '<p class="ds-tally">' + chip("Friends met", visited.size + " of " + required) + chip("Guide stamps", stamps().size + " of " + PREHISTORIC_CREATURES.length) + (trips.length ? '<span class="ds-chip"><b>Best trip</b>' + window.DUICONS.stars(trips.reduce(function (m, t) { return Math.max(m, Number(t.stars) || 0); }, 0)) + "</span>" : "") + "</p>" +
       '<div class="ds-actions"><button type="button" class="pk-btn" id="speakCreature">🔊 Hear about ' + escapeText(c.short) + "</button>" + (sp ? '<button type="button" class="pk-btn" id="dsRoar">' + (sp === "ptero" ? "🪽 Flap" : "🦖 Say hello") + "</button>" : "") + '</div>' +
       '<div class="ds-quiz"><p class="ds-qtext">🔎 Fact Finder: ' + escapeText(q.text) + '</p><div class="ds-opts"></div>' +
       '<p style="text-align:center;margin:8px 0 0"><button type="button" class="tiny-button" id="dsHelp">💡 Need a clue?</button></p></div></article>';
@@ -185,6 +200,10 @@ export function mountDinoDiscoveries(context) {
     shuffle(q.options.slice()).forEach(function (o) {
       const b = document.createElement("button");
       b.type = "button"; b.className = "pk-btn ds-opt"; b.textContent = o;
+      /* The clue below has to know which answer this button really holds. A fact
+       * that ever grows a specimen emoji would lose it here, because the object
+       * layer swaps the glyph for an <img> and the words stay behind. */
+      b.dataset.answer = o;
       if (q.type === "fact") b.style.cssText = "flex:1 1 100%;max-width:440px;font-size:.82rem;line-height:1.35;text-align:left;padding:8px 12px";
       opts.appendChild(b);
       if (F.anim) F.anim(b, [{ opacity: 0, transform: "translateY(14px) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 320, delay: opts.children.length * 50, fill: "backwards" });
@@ -212,7 +231,7 @@ export function mountDinoDiscoveries(context) {
     /* the clue costs the child nothing: it crosses out a wrong answer and reads the card again */
     helpBtn.addEventListener("click", function () {
       if (answered) return;
-      const still = Array.prototype.filter.call(opts.querySelectorAll("button"), function (x) { return !x.disabled && x.textContent !== q.right; });
+      const still = Array.prototype.filter.call(opts.querySelectorAll("button"), function (x) { return !x.disabled && x.dataset.answer !== q.right; });
       if (still.length > 1) {
         const drop = still[Math.floor(Math.random() * still.length)];
         drop.disabled = true;

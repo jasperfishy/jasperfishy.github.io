@@ -50,8 +50,8 @@
       beats: [
         { text: 'LOOK! Over Mount Roar the whole sky is full of sparkling dinosaur eggs!', who: 'rex', state: 'happy' },
         { text: 'Those are Star Seeds. Every single one is a wish the universe made for a friend.', who: 'rex', state: 'idle' },
-        { text: 'Oh dear. Grumblecloud sneezed the biggest sneeze in history and blew them everywhere.', who: 'grumble', state: 'roar' },
-        { text: 'He did not mean it. He says sorry in a voice like thunder and then hides behind a hill.', who: 'grumble', state: 'sad' },
+        { text: 'Oh dear. Grumblecloud sneezed the biggest sneeze in history and blew them everywhere.', who: 'grumble', state: 'roar', stage: 'storm', push: 'in' },
+        { text: 'He did not mean it. He says sorry in a voice like thunder and then hides behind a hill.', who: 'grumble', state: 'sad', stage: 'storm' },
         { text: 'Will you help me gather them, NAME? Play in every world and the Starlight Garden will shine again!', who: 'rex', state: 'happy' },
         {
           text: 'First though, NAME — somebody has to ride with you. Who do you pick?', who: 'rex', state: 'happy',
@@ -59,13 +59,13 @@
             prompt: 'Who rides with you?',
             options: [
               {
-                tag: 'pip', label: '🪽 Pip, who sees everything from the sky', reply: [
+                tag: 'pip', art: 'pip', label: 'Pip, who sees everything from the sky', reply: [
                   { text: 'Pip! She is already circling. From up there she can spot one little glow in any bush.', who: 'pip', state: 'happy' },
                   { text: 'Hold on tight, NAME. We fly at dawn, and she never gets dizzy, not even once.', who: 'pip', state: 'walk' }
                 ]
               },
               {
-                tag: 'bumper', label: '🦣 Bumper, who carries everybody', reply: [
+                tag: 'bumper', art: 'bumper', label: 'Bumper, who carries everybody', reply: [
                   { text: 'Bumper! His back is bigger than a bus and he never gets tired of carrying friends.', who: 'bumper', state: 'happy' },
                   { text: 'Climb aboard. He will not start walking until you say go, so go on and say it.', who: 'bumper', state: 'walk' }
                 ]
@@ -89,15 +89,15 @@
             prompt: 'How do we get in?',
             options: [
               {
-                tag: 'side', label: '🌿 Through the fern garden, where the small ones nap', reply: [
+                tag: 'side', art: 'fern', label: 'Through the fern garden, where the small ones nap', reply: [
                   { text: 'Careful feet in here. The tiniest dinosaurs sleep under the ferns, and they dream in colours.', who: 'spike', state: 'happy' },
                   { text: 'There is the little gate. It was never locked — it just likes a very quiet push.', who: 'spike', state: 'idle' }
                 ]
               },
               {
-                tag: 'front', label: '🌋 Past the warm volcano, to the big front gate', reply: [
-                  { text: 'The long road, then. Warm sand, warm rocks, and one enormous snoring T-Rex at the end.', who: 'gentle', state: 'walk' },
-                  { text: 'The big gate swings open the moment you knock. Somebody was waiting for us.', who: 'gentle', state: 'happy' }
+                tag: 'front', art: 'firepit', label: 'Past the warm volcano, to the big front gate', reply: [
+                  { text: 'The long road, then. Warm sand, warm rocks, and one enormous snoring T-Rex at the end.', who: 'gentle', state: 'walk', stage: 'volcano', push: 'in' },
+                  { text: 'The big gate swings open the moment you knock. Somebody was waiting for us.', who: 'gentle', state: 'happy', stage: 'volcano' }
                 ]
               }
             ]
@@ -116,13 +116,13 @@
             prompt: 'What do we do first?',
             options: [
               {
-                tag: 'help', label: '🦕 Stop and free the little one', reply: [
+                tag: 'help', art: 'hatchling', label: 'Stop and free the little one', reply: [
                   { text: 'Of course we stop. Bumper lifts the lunch box off like it is a hat and she does not even notice.', who: 'bumper', state: 'happy' },
                   { text: 'She has a name, by the way: Pebble. Pebble follows anybody who frees her, so expect company in the meadow.', who: 'spike', state: 'idle' }
                 ]
               },
               {
-                tag: 'quick', label: '🏃 Off to the meadow before the gate shuts', reply: [
+                tag: 'quick', art: 'footprint', label: 'Off to the meadow before the gate shuts', reply: [
                   { text: 'Straight for the gate then! Zip is already halfway there and pretending he only just started.', who: 'zip', state: 'run' },
                   { text: 'The park keeper shouts after you that the little triceratops will manage. You will remember her anyway.', who: 'gentle', state: 'sad' }
                 ]
@@ -145,13 +145,13 @@
             prompt: 'Which way through the meadow?',
             options: [
               {
-                tag: 'flowers', label: '🌼 Into the buttercups, where the smell is silly', reply: [
+                tag: 'flowers', art: 'flower', label: 'Into the buttercups, where the smell is silly', reply: [
                   { text: 'Buttercups it is. Zip always sneezes in there, which gives everybody away every single time.', who: 'zip', state: 'happy' },
                   { text: 'Spike hides in the tall grass and believes nobody can see his plates. Everybody sees his plates.', who: 'spike', state: 'idle' }
                 ]
               },
               {
-                tag: 'river', label: '💧 Down to the river, over the bumpy stones', reply: [
+                tag: 'river', art: 'splash', label: 'Down to the river, over the bumpy stones', reply: [
                   { text: 'Hopping stones! Mind the wet one, NAME. It has been wet for eleven million years.', who: 'zip', state: 'walk' },
                   { text: 'Gentle wades across so nobody has to get their feet splashy. That is just who he is.', who: 'gentle', state: 'happy' }
                 ]
@@ -176,13 +176,13 @@
             prompt: 'How do we cross?',
             options: [
               {
-                tag: 'hop', label: '🪨 Hop the wet stones, one at a time', reply: [
+                tag: 'hop', art: 'stone', label: 'Hop the wet stones, one at a time', reply: [
                   { text: 'Hopping stones it is. Gentle counts for you, because Gentle counts for everybody.', who: 'gentle', state: 'happy' },
                   { text: 'You got across with dry socks, which in this valley is a kind of magic.', who: 'zip', state: 'happy' }
                 ]
               },
               {
-                tag: 'bridge', label: '🌉 Walk the long log bridge, and look at the view', reply: [
+                tag: 'bridge', art: 'driftwood', label: 'Walk the long log bridge, and look at the view', reply: [
                   { text: 'The bridge! It takes twice as long and is worth every step. There are fish down there waving.', who: 'pip', state: 'happy' },
                   { text: 'Halfway across, Pip drops a feather for luck. She does that for people she likes.', who: 'pip', state: 'idle' }
                 ]
@@ -205,13 +205,13 @@
             prompt: 'Which road?',
             options: [
               {
-                tag: 'coast', label: '🌊 The coast road, where the wind smells like water', reply: [
+                tag: 'coast', art: 'fish', label: 'The coast road, where the wind smells like water', reply: [
                   { text: 'The coast! Pip flies alongside the window to point out every shiny thing she can see.', who: 'pip', state: 'happy' },
                   { text: 'Slow down at the bends, NAME. Out here the view is the whole point of the trip.', who: 'gentle', state: 'walk' }
                 ]
               },
               {
-                tag: 'mountain', label: '⛰️ The mountain cut, where the road goes up and up', reply: [
+                tag: 'mountain', art: 'slate', label: 'The mountain cut, where the road goes up and up', reply: [
                   { text: 'The mountain! Bumper loves hills, mostly because Bumper loves absolutely everything.', who: 'bumper', state: 'run' },
                   { text: 'Third gear, NAME. Listen to that engine — it sounds like a very happy roar.', who: 'rex', state: 'happy' }
                 ]
@@ -234,13 +234,13 @@
             prompt: 'Do we stop?',
             options: [
               {
-                tag: 'deliver', label: '📦 Drive around and deliver it properly', reply: [
+                tag: 'deliver', art: 'satchel', label: 'Drive around and deliver it properly', reply: [
                   { text: 'You drove all the way round for one parcel. The engine is warm and so is this story, and I am not being silly about it.', who: 'rex', state: 'happy' },
                   { text: 'The gate opens. There is somebody out there in the snow, and they did not expect anybody at all.', who: 'spike', state: 'happy' }
                 ]
               },
               {
-                tag: 'keep', label: '🚗 Post it from here and race on to the hill', reply: [
+                tag: 'keep', art: 'cart', label: 'Post it from here and race on to the hill', reply: [
                   { text: 'The mail pterosaur takes it off your wing — pardon, your window — at full speed. Pip approves of the efficiency.', who: 'pip', state: 'walk' },
                   { text: 'It will arrive. Probably. The hill is right there, NAME, and the hill is the reason we came.', who: 'zip', state: 'run' }
                 ]
@@ -264,13 +264,13 @@
             prompt: 'Where do we start?',
             options: [
               {
-                tag: 'small', label: '🐣 The small ones first — the egg, the chick, the lost little friend', reply: [
+                tag: 'small', art: 'egg-clutch', label: 'The small ones first — the egg, the hatchling, the lost little friend', reply: [
                   { text: 'The little ones. Gentle carries all of them at once and does not even notice he is doing it.', who: 'gentle', state: 'happy' },
                   { text: 'One small kindness, then another, then another. That is how a whole valley gets fixed.', who: 'pip', state: 'walk' }
                 ]
               },
               {
-                tag: 'big', label: '🎈 The big one — the rescue everybody is talking about', reply: [
+                tag: 'big', art: 'gentle', label: 'The big one — the rescue everybody is talking about', reply: [
                   { text: 'The big rescue! Rex is already running ahead and pretending that he is not.', who: 'rex', state: 'run' },
                   { text: 'Grumblecloud is coming too. He is extremely good at lifting and terrible at admitting it.', who: 'grumble', state: 'happy' }
                 ]
@@ -302,13 +302,13 @@
             prompt: 'What do we say?',
             options: [
               {
-                tag: 'invite', label: '🤝 Come and slide down with us, Grumblecloud', reply: [
+                tag: 'invite', art: 'grumble', label: 'Come and slide down with us, Grumblecloud', reply: [
                   { text: 'He nearly cried. Nobody had ever invited him before, and he will not stop talking about it.', who: 'grumble', state: 'happy' },
                   { text: 'Now there are two of you sliding, which is twice the fun and about twice the noise.', who: 'grumble', state: 'walk' }
                 ]
               },
               {
-                tag: 'race', label: '🏁 Race him — he is fastest when he is happy', reply: [
+                tag: 'race', art: 'signpost', label: 'Race him — he is fastest when he is happy', reply: [
                   { text: 'Race him?! He has been waiting all winter for somebody to ask him that.', who: 'grumble', state: 'roar' },
                   { text: 'Photo finish, NAME. Nobody will ever know who won, which is the best kind of race.', who: 'zip', state: 'run' }
                 ]
@@ -329,13 +329,13 @@
             prompt: 'Where does the last Star Seed go?',
             options: [
               {
-                tag: 'give', label: '🤲 Give it to Grumblecloud to plant', reply: [
+                tag: 'give', art: 'claw', label: 'Give it to Grumblecloud to plant', reply: [
                   { text: 'He plants it with both front claws in the dirt, very carefully, like it is an egg.', who: 'grumble', state: 'happy' },
                   { text: 'It is the first thing he has ever been in charge of. Say nothing, NAME. Just stand next to him.', who: 'rex', state: 'idle' }
                 ]
               },
               {
-                tag: 'plant', label: '🌱 Plant it yourself at the top of Mount Roar', reply: [
+                tag: 'plant', art: 'sprout', label: 'Plant it yourself at the top of Mount Roar', reply: [
                   { text: 'You walk all the way to the top with it cupped in your hands, which is a longer walk than it looks.', who: 'gentle', state: 'walk' },
                   { text: 'The whole valley goes quiet at the same moment. They are all watching for you.', who: 'owl', state: 'idle' }
                 ]
@@ -362,7 +362,7 @@
         { text: 'The big rescue is on the news in three worlds. They said your name twice.', who: 'rex', state: 'roar', ifPick: 'adventures:big' },
         { text: 'Grumblecloud has learned a brand new word this winter. The word is we.', who: 'grumble', state: 'happy', ifPick: 'egg-dash:invite' },
         { text: 'Grumblecloud is already planning the rematch. He swears it will be closer this time.', who: 'grumble', state: 'roar', ifPick: 'egg-dash:race' },
-        { text: 'One by one the Star Seeds float up out of your arms and bloom into the sky.', who: 'gentle', state: 'happy', ifNone: 'egg-dash' },
+        { text: 'One by one the Star Seeds float up out of your arms and bloom into the sky.', who: 'gentle', state: 'happy', ifNone: 'egg-dash', stage: 'garden', push: 'out' },
         { text: 'Pebble has followed you all the way up the mountain and is now sitting at your feet like she paid for the ticket.', who: 'spike', state: 'happy', ifPick: 'park:help' },
         { text: 'Pip finds a spare feather in her wing and gives it to you at the top. She kept that one for the walk up.', who: 'pip', state: 'happy', ifPick: 'meadow:bridge' },
         { text: 'Grumblecloud has tied your parcel string around his smallest claw. He says it is a flag now, and everybody agrees.', who: 'grumble', state: 'happy', ifPick: 'drive:deliver' },
@@ -372,11 +372,11 @@
         { text: 'The garden blooms from the top down, one ring of light at a time, all the way to the sea.', who: 'gentle', state: 'happy', ifPick: 'egg-dash:plant' },
         { text: 'Rex makes you promise to remember which hole is yours. You both know you will.', who: 'rex', state: 'idle', ifPick: 'egg-dash:plant' },
         { text: 'Grumblecloud asks, very quietly, whether he might grow the next one beside you. Of course he might.', who: 'grumble', state: 'happy', ifPick: 'egg-dash:plant' },
-        { text: 'Rex, Pip, Bumper, Zip, Spike, Gentle and Grumblecloud each get a star of their very own.', who: 'pip', state: 'happy' },
-        { text: 'The Starlight Garden shines over the whole dinosaur universe again, and that was all you.', who: 'spike', state: 'happy' },
-        { text: 'You chose your own way through {PICKS} parts of this story, so this ending is yours and nobody else\'s.', who: 'rex', state: 'happy', ifPicks: 3 },
-        { text: 'Nine ways, NAME. There is no version of this story that does not have you in it, but this exact one has never happened before.', who: 'owl', state: 'happy', ifPicks: 8 },
-        { text: 'Whenever you want to visit, the gate stays open. Happy exploring, NAME.', who: 'rex', state: 'roar' }
+        { text: 'Rex, Pip, Bumper, Zip, Spike, Gentle and Grumblecloud each get a star of their very own.', who: 'pip', state: 'happy', stage: 'garden' },
+        { text: 'The Starlight Garden shines over the whole dinosaur universe again, and that was all you.', who: 'spike', state: 'happy', stage: 'garden' },
+        { text: 'You chose your own way through {PICKS} parts of this story, so this ending is yours and nobody else\'s.', who: 'rex', state: 'happy', ifPicks: 3, stage: 'garden' },
+        { text: 'Nine ways, NAME. There is no version of this story that does not have you in it, but this exact one has never happened before.', who: 'owl', state: 'happy', ifPicks: 8, stage: 'garden' },
+        { text: 'Whenever you want to visit, the gate stays open. Happy exploring, NAME.', who: 'rex', state: 'roar', stage: 'garden', push: 'out' }
       ]
     }
   ];
@@ -481,8 +481,8 @@
    * chapter went and which of the two endings they have earned. Kept in the
    * story's own words so the map never invents a second vocabulary. */
   const PATH_WORDS = {
-    'prologue:pip': '🪽 with Pip, from the sky',
-    'prologue:bumper': '🦣 on Bumper\'s back',
+    'prologue:pip': 'with Pip, from the sky',
+    'prologue:bumper': "on Bumper's back",
     'park:side': 'in through the fern garden',
     'park:front': 'in past the big gate',
     'park:help': 'stopping for Pebble',
@@ -536,6 +536,206 @@
 
   const esc = (text) => String(text == null ? '' : text).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  /* ---------- the world a chapter is told inside ----------
+   * A chapter used to open on a still photograph with one dinosaur popping in on
+   * top of it. That is a slideshow, and a child can tell. These are the same
+   * plates the opening cinematic uses, now with the things that make that film
+   * feel alive: mist at three depths, star seeds still falling, a herd that puts
+   * one foot in front of the other, pteranodons crossing the shot, and a camera
+   * that pushes for as long as the sentence is being read.
+   *
+   * What moves is chosen from the story, not from a decoration list. The rex
+   * walks on two photographs of itself — trex.png and trex-walk.png are the same
+   * pixel size, so swapping them every half-stride is a real stride, not a wobble.
+   * The snow on the last hill is snow, and the animals there breathe steam.
+   */
+  const W = () => window.DUWORLD;
+  const JPG = (n) => ({ plate: n + '.jpg', plateBase: W() ? W().urls.ART : n });
+  const CIN = (n) => ({ plate: n, plateBase: W() ? W().urls.CINEMA : n });
+
+  const WORLDS = {
+    night: Object.assign(CIN('star-seeds'), {
+      camera: { zoom: [1.03, 1.15], pan: [[0.5, 0.44], [0.44, 0.54]] },
+      grade: { tint: '#0b1a33', amount: 0.16, vignette: 0.5 },
+      layers: [
+        { type: 'twinkle', n: 170 },
+        { type: 'fall', n: 26, colour: '255,226,160', speed: 0.030, sway: 0.014, r: 3.4 },
+        { type: 'glow', points: [[0.86, 0.12], [0.75, 0.25], [0.62, 0.39], [0.53, 0.5], [0.46, 0.61]], colour: '255,214,150', r: 0.052, pulse: 0.5, rate: 0.75 },
+        { type: 'motes', n: 34, colour: '200,225,255', speed: 0.012, size: [0.4, 1.4] },
+        { type: 'mist', bands: [{ y: 0.72, h: 0.14, a: 0.13, s: 0.006 }, { y: 0.85, h: 0.17, a: 0.17, s: -0.005 }] }
+      ]
+    }),
+    /* The Starlight Garden, which is what the finale has become by the last line:
+     * the same night, but the seeds have landed and everything is alight. */
+    garden: Object.assign(CIN('star-seeds'), {
+      camera: { zoom: [1.16, 1.02], pan: [[0.46, 0.52], [0.52, 0.46]] },
+      grade: { tint: '#3a2b57', amount: 0.12, vignette: 0.34 },
+      layers: [
+        { type: 'twinkle', n: 220 },
+        { type: 'glow', points: [[0.2, 0.66], [0.38, 0.72], [0.58, 0.66], [0.74, 0.74], [0.88, 0.62]], colour: '255,232,170', r: 0.07, pulse: 0.62, rate: 1.15 },
+        { type: 'motes', n: 90, colour: '255,240,200', speed: 0.02, size: [0.5, 2.1] },
+        { type: 'flyers', n: 4, art: 'ptero', band: [0.14, 0.3], size: [0.028, 0.046], speed: [0.02, 0.04] }
+      ]
+    }),
+    sun: Object.assign(CIN('valley-dawn'), {
+      camera: { zoom: [1.02, 1.14], pan: [[0.5, 0.54], [0.46, 0.48]] },
+      grade: { tint: '#ffcf8a', amount: 0.07, vignette: 0.4 },
+      layers: [
+        { type: 'rays', at: [0.7, 0.24], colour: '255,226,170', n: 9, len: 1.25, spread: 0.5, pulse: 0.22 },
+        { type: 'mist', bands: [{ y: 0.44, h: 0.1, a: 0.11, s: 0.006 }, { y: 0.56, h: 0.13, a: 0.14, s: -0.009 }] },
+        { type: 'flyers', n: 4, art: 'ptero', band: [0.14, 0.3], size: [0.028, 0.048], speed: [0.02, 0.042] },
+        { type: 'herd', sprites: [
+          { art: 'diplodocus', at: [0.62, 0.58], w: 0.05, depth: 0.26, dir: 1, speed: 0.004, bob: 0.004 },
+          { art: 'mamenchisaurus', at: [0.34, 0.6], w: 0.055, depth: 0.3, dir: 1, speed: 0.0045, bob: 0.004 },
+          { art: ['trex', 'trex-walk'], at: [0.2, 0.74], w: 0.12, depth: 0.8, dir: 1, speed: 0.009, bob: 0.007, stride: 0.85 }
+        ] },
+        { type: 'mist', bands: [{ y: 0.9, h: 0.2, a: 0.13, s: 0.017 }] }
+      ]
+    }),
+    meadow: Object.assign(CIN('lagoon-home'), {
+      camera: { zoom: [1.04, 1.14], pan: [[0.44, 0.5], [0.56, 0.5]] },
+      grade: { tint: '#bfe9ff', amount: 0.05, vignette: 0.36 },
+      layers: [
+        { type: 'shimmer', at: [0.06, 0.55, 0.94, 0.45], colour: '255,255,255', n: 90 },
+        { type: 'mist', bands: [{ y: 0.4, h: 0.1, a: 0.1, s: -0.007 }] },
+        { type: 'flyers', n: 3, art: 'ptero', band: [0.1, 0.24], size: [0.03, 0.05], speed: [0.025, 0.05] },
+        { type: 'herd', sprites: [
+          { art: 'stego', at: [0.22, 0.52], w: 0.07, depth: 0.46, dir: 1, speed: 0.005, bob: 0.005 },
+          { art: 'parasaurolophus', at: [0.46, 0.48], w: 0.06, depth: 0.52, dir: -1, speed: 0.006, bob: 0.005 },
+          { art: ['brachiosaurus', 'brachiosaurus-step'], at: [0.32, 0.56], w: 0.13, depth: 0.74, dir: 1, speed: 0.008, bob: 0.008, stride: 1.2, reflect: true },
+          { art: 'tricera', at: [0.66, 0.66], w: 0.085, depth: 0.8, dir: -1, speed: 0.007, bob: 0.006, reflect: true },
+          { art: 'compsognathus', at: [0.78, 0.7], w: 0.05, depth: 0.9, dir: 1, speed: 0.016, bob: 0.008, stride: 0.5 }
+        ] },
+        { type: 'motes', n: 44, colour: '255,255,235', speed: 0.016, size: [0.5, 2] }
+      ]
+    }),
+    day: Object.assign(JPG('day'), {
+      camera: { zoom: [1.05, 1.17], pan: [[0.46, 0.52], [0.56, 0.48]] },
+      grade: { tint: '#dff3e6', amount: 0.05, vignette: 0.34 },
+      layers: [
+        { type: 'rays', at: [0.16, 0.12], colour: '255,246,214', n: 7, len: 1.1, spread: 0.46, pulse: 0.18 },
+        { type: 'mist', bands: [{ y: 0.58, h: 0.12, a: 0.1, s: 0.008 }] },
+        { type: 'herd', sprites: [
+          { art: 'iguanodon', at: [0.3, 0.74], w: 0.1, depth: 0.66, dir: 1, speed: 0.008, bob: 0.006 },
+          { art: 'edmontosaurus', at: [0.62, 0.79], w: 0.11, depth: 0.74, dir: -1, speed: 0.009, bob: 0.006 },
+          { art: 'styracosaurus', at: [0.46, 0.86], w: 0.13, depth: 0.86, dir: 1, speed: 0.007, bob: 0.007 }
+        ] },
+        { type: 'flyers', n: 3, art: 'archaeopteryx', band: [0.12, 0.26], size: [0.026, 0.04], speed: [0.03, 0.055] },
+        { type: 'motes', n: 30, colour: '255,255,230', speed: 0.012, size: [0.4, 1.6] }
+      ]
+    }),
+    rainbow: Object.assign(JPG('rainbow'), {
+      camera: { zoom: [1.03, 1.12], pan: [[0.5, 0.5], [0.5, 0.44]] },
+      grade: { tint: '#ffe6f6', amount: 0.07, vignette: 0.3 },
+      layers: [
+        { type: 'rays', at: [0.5, 0.06], colour: '255,250,230', n: 11, len: 1.2, spread: 0.9, pulse: 0.16 },
+        { type: 'motes', n: 60, colour: '255,246,220', speed: 0.014, size: [0.5, 1.9] },
+        { type: 'flyers', n: 5, art: 'ptero', band: [0.16, 0.36], size: [0.026, 0.044], speed: [0.022, 0.05] }
+      ]
+    }),
+    snow: Object.assign(JPG('snow'), {
+      camera: { zoom: [1.04, 1.16], pan: [[0.5, 0.46], [0.54, 0.56]] },
+      grade: { tint: '#cfe4ff', amount: 0.06, vignette: 0.36 },
+      wash: ['#2c3a52', '#8fa6c4'],
+      layers: [
+        { type: 'fall', n: 150, colour: '255,255,255', speed: 0.05, sway: 0.02, r: 3.0 },
+        { type: 'mist', bands: [{ y: 0.66, h: 0.16, a: 0.2, s: 0.007 }, { y: 0.82, h: 0.18, a: 0.24, s: -0.01 }] },
+        { type: 'herd', sprites: [
+          { art: 'pachycephalosaurus', at: [0.34, 0.78], w: 0.1, depth: 0.7, dir: 1, speed: 0.007, bob: 0.006 },
+          { art: 'therizinosaurus', at: [0.68, 0.84], w: 0.12, depth: 0.82, dir: -1, speed: 0.006, bob: 0.007 }
+        ] },
+        { type: 'breath', at: [0.4, 0.74], rate: 2.6, life: 3.4, rise: 0.05, colour: '245,248,252', max: 0.2 },
+        { type: 'fall', n: 60, colour: '255,255,255', speed: 0.11, sway: 0.03, r: 4.2 }
+      ]
+    }),
+    volcano: Object.assign(CIN('rex-mist'), {
+      camera: { zoom: [1.05, 1.18], pan: [[0.56, 0.46], [0.6, 0.42]] },
+      grade: { tint: '#ffd9a8', amount: 0.07, vignette: 0.46 },
+      layers: [
+        { type: 'rays', at: [0.12, 0.18], colour: '255,232,190', n: 7, len: 1.1, spread: 0.42, pulse: 0.18 },
+        { type: 'mist', bands: [{ y: 0.52, h: 0.16, a: 0.2, s: 0.01 }, { y: 0.66, h: 0.2, a: 0.26, s: -0.014 }, { y: 0.82, h: 0.22, a: 0.3, s: 0.019 }] },
+        { type: 'breath', at: [0.45, 0.24], rate: 3.4, life: 3.2, rise: 0.05, colour: '245,248,252', max: 0.16 },
+        { type: 'motes', n: 34, colour: '255,240,215', speed: 0.01, size: [0.5, 1.8] }
+      ]
+    }),
+    storm: Object.assign(JPG('night'), {
+      camera: { zoom: [1.06, 1.0], pan: [[0.5, 0.5], [0.46, 0.54]] },
+      grade: { tint: '#243044', amount: 0.2, vignette: 0.56 },
+      wash: ['#1a2338', '#3b4763'],
+      layers: [
+        { type: 'fall', n: 220, kind: 'streak', colour: '206,226,246', speed: 0.9, wind: 0.05, r: 1.6 },
+        { type: 'mist', bands: [{ y: 0.6, h: 0.2, a: 0.16, s: 0.03 }, { y: 0.8, h: 0.22, a: 0.2, s: -0.02 }] }
+      ]
+    }),
+    cave: Object.assign(JPG('cave'), {
+      camera: { zoom: [1.14, 1.04], pan: [[0.5, 0.5], [0.52, 0.46]] },
+      grade: { tint: '#1b2340', amount: 0.16, vignette: 0.5 },
+      layers: [
+        { type: 'rays', at: [0.52, 0.02], colour: '255,244,214', n: 6, len: 1.15, spread: 0.36, pulse: 0.2 },
+        { type: 'motes', n: 40, colour: '226,236,250', speed: 0.008, size: [0.4, 1.5] },
+        { type: 'glow', points: [[0.44, 0.72], [0.62, 0.66]], colour: '255,206,120', r: 0.06, pulse: 0.4, rate: 0.5 }
+      ]
+    })
+  };
+
+  let world = null;   // { canvas, ctx, key, layers, time, shot, raf, push }
+
+  function closeWorld() {
+    if (world && world.raf) cancelAnimationFrame(world.raf);
+    world = null;
+  }
+
+  /** The shot for one beat: the chapter's world unless the beat says otherwise.
+   *  It is called `stage` because `world` already means something here — which
+   *  game a chapter belongs to — and the two must never be confused. */
+  function worldKey(beat, c) {
+    return (beat && beat.stage) || c.stage || beat.scene || c.scene || 'night';
+  }
+
+  function setWorld(beat, c) {
+    if (!world || !W()) return;
+    const key = worldKey(beat, c);
+    const def = WORLDS[key] || WORLDS.night;
+    if (key === world.key && !beat.stage && !beat.push) return;
+    /* A reveal pushes in; the line that hands the story to the next world pulls
+     * back out, so the camera move and the sentence agree. */
+    const scene = Object.assign({}, def);
+    if (def.camera) {
+      const out = beat.push === 'out';
+      scene.camera = out
+        ? { zoom: [def.camera.zoom[1], def.camera.zoom[0]], pan: [def.camera.pan[1], def.camera.pan[0]] }
+        : def.camera;
+    }
+    world.key = key;
+    world.scene = scene;
+    world.layers = W().make(def, 1 + Object.keys(WORLDS).indexOf(key) * 5 + state.beat);
+    world.time = 0;
+  }
+
+  function openWorld(sceneEl) {
+    if (!W() || !sceneEl) return;
+    const canvas = sceneEl.querySelector('canvas');
+    if (!canvas) return;
+    world = { canvas, ctx: canvas.getContext('2d'), key: '', scene: null, layers: null, time: 0, raf: 0 };
+    const reduce = () => FX() && FX().settings && FX().settings.reduce;
+    const frame = () => {
+      if (!world) return;
+      world.raf = requestAnimationFrame(frame);
+      if (!world.scene) return;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+      if (!w || !h) return;
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      const r = reduce();
+      if (!r) world.time += 1 / 60;
+      W().paint(world.ctx, {
+        scene: world.scene, layers: world.layers, time: world.time,
+        k: Math.min(1, world.time / 14), W: w, H: h, reduce: r, backdrop: null
+      });
+    };
+    world.raf = requestAnimationFrame(frame);
+  }
+
   /* ---------- the cutscene player ---------- */
   let root = null, state = null, timers = [];
 
@@ -566,10 +766,14 @@
     if (!beat) return finish();
     const reduce = FX() && FX().settings.reduce;
     const el = root.querySelector('.du-cut-scene');
-    el.dataset.scene = c.scene;
+    el.dataset.scene = beat.scene || c.scene;
+    setWorld(beat, c);
     const art = root.querySelector('.du-cut-art');
     art.innerHTML = FX().dinoHTML(FRIENDS[beat.who].species, { state: beat.state || 'happy', color: FRIENDS[beat.who].colour, size: 'min(46vw,260px)' });
-    art.dataset.friend = FRIENDS[beat.who].name;
+    // Which way the friend is moving drives how it keeps moving: a sleeping
+    // dinosaur rises and falls slowly, a running one hammers, a roaring one
+    // shakes the ground it is standing on.
+    art.dataset.motion = beat.state || 'idle';
     if (!reduce) { art.classList.remove('in'); void art.offsetWidth; art.classList.add('in'); }
     const txt = root.querySelector('.du-cut-text');
     const line = say(beat.text, state.picks);
@@ -604,12 +808,28 @@
     ask.hidden = false;
     ask.innerHTML = '<span class="du-cut-askq">' + esc(say(beat.ask.prompt, state.picks)) + '</span>' +
       '<span class="du-cut-opts">' + opts.map((o, i) => `<button class="du-cut-opt" type="button" data-i="${i}">
-          <span class="du-cut-opt-key">${i + 1}</span><span class="du-cut-opt-label">${esc(o.label)}</span>
+          <span class="du-cut-opt-key">${i + 1}</span>${optArt(o)}<span class="du-cut-opt-label">${esc(o.label)}</span>
         </button>`).join('') + '</span>';
     Array.prototype.forEach.call(ask.querySelectorAll('.du-cut-opt'), (btn) => {
       btn.onclick = (e) => { e.stopPropagation(); choose(Number(btn.dataset.i)); };
     });
     if (!reduce) { ask.classList.remove('in'); void ask.offsetWidth; ask.classList.add('in'); }
+  }
+
+  /* The picture a choice is about, in the form the rest of the cutscene already
+   * uses for it: an animated dinosaur where a dinosaur is the way through, a
+   * specimen photograph where a thing or a place is. Naming it here rather than
+   * typing a glyph into the label is what makes the button mean something to a
+   * child who cannot read the words yet — and two ways through one chapter can
+   * never be drawn with the same picture, because a child would see one choice
+   * twice instead of two. */
+  function optArt(o) {
+    const F = FX();
+    if (!F || !o.art) return '';
+    const f = FRIENDS[o.art];
+    if (f && F.dinoHTML) return '<span class="du-cut-opt-art">' + F.dinoHTML(f.species, { state: 'happy', color: f.colour, size: '52px' }) + '</span>';
+    if (!F.objects) return '';
+    return '<span class="du-cut-opt-art du-cut-opt-obj">' + F.objects.img(o.art, 52) + '</span>';
   }
 
   function choose(i) {
@@ -645,6 +865,7 @@
   }
   function unmount() {
     clearTimers();
+    closeWorld();
     hideWhisper();
     if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (e) { } }
     if (root && root._key) window.removeEventListener('keydown', root._key);
@@ -680,9 +901,9 @@
     root.setAttribute('aria-modal', 'true');
     root.setAttribute('aria-label', c.title);
     root.innerHTML = `
-      <div class="du-cut-scene" data-scene="${c.scene}"><span class="du-cut-stars" aria-hidden="true"></span></div>
+      <div class="du-cut-scene" data-scene="${c.scene}"><canvas class="du-cut-world" aria-hidden="true"></canvas><span class="du-cut-stars" aria-hidden="true"></span></div>
       <div class="du-cut-wrap">
-        <p class="du-cut-kicker">${state.mode === 'win' ? '★ CHAPTER COMPLETE ★' : 'A Dinosaur Universe story'}</p>
+        <p class="du-cut-kicker">${state.mode === 'win' ? 'CHAPTER COMPLETE' : 'A Dinosaur Universe story'}</p>
         <h2 class="du-cut-title"></h2>
         <div class="du-cut-stage"><div class="du-cut-art in"></div></div>
         <p class="du-cut-card">
@@ -699,6 +920,9 @@
         </div>
       </div>`;
     document.body.appendChild(root);
+    if (W()) root.querySelector('.du-cut-scene').classList.add('has-world');
+    openWorld(root.querySelector('.du-cut-scene'));
+    setWorld(state.list[0], c);
     root.querySelector('#cutNext').onclick = (e) => { e.stopPropagation(); advance(); };
     root.querySelector('#cutSkip').onclick = (e) => { e.stopPropagation(); finish(); };
     root.addEventListener('pointerdown', advance);

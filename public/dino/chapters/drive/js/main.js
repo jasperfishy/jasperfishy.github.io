@@ -77,7 +77,7 @@ function refreshHome() {
   scenePicker.innerHTML = SCENE_LIST.map(scene => {
     const unlocked = state.totalStars >= scene.unlockStars;
     const selected = state.selectedScene === scene.id;
-    return `<button class="scene-choice${selected ? " selected" : ""}${unlocked ? "" : " locked"}" data-scene="${scene.id}" ${unlocked ? "" : "aria-disabled=\"true\""} aria-label="${scene.label}${unlocked ? (selected ? ", selected" : "") : `, unlock at ${scene.unlockStars} stars`}"><span>${sceneIcon(scene.id)}</span><strong>${scene.label}</strong><small>${unlocked ? (selected ? "Ready to explore" : "Choose this world") : `🔒 ${scene.unlockStars} stars`}</small></button>`;
+    return `<button class="scene-choice${selected ? " selected" : ""}${unlocked ? "" : " locked"}" data-scene="${scene.id}" ${unlocked ? "" : "aria-disabled=\"true\""} aria-label="${scene.label}${unlocked ? (selected ? ", selected" : "") : `, unlock at ${scene.unlockStars} stars`}"><span>${sceneIcon(scene.id)}</span><strong>${scene.label}</strong><small>${unlocked ? (selected ? "Ready to explore" : "Choose this world") : `${window.DUICONS.i('lock', { size: 16 })} ${scene.unlockStars} stars`}</small></button>`;
   }).join("");
   scenePicker.querySelectorAll("[data-scene]").forEach(button => button.addEventListener("click", () => {
     const scene = SCENE_LIST.find(item => item.id === button.dataset.scene);
@@ -93,8 +93,11 @@ function refreshHome() {
   }));
 }
 
+// One photographed thing per world, the same thing the drive screen puts by the
+// road first. A skyline and a ringed planet have no photographs in this valley,
+// so Dino City is a cart and Moonbeam Circuit is the moon.
 function sceneIcon(id) {
-  return ({ island: "🌴", city: "🏙️", mountain: "⛰️", snow: "❄️", desert: "🌵", space: "🪐" })[id] || "🦕";
+  return ({ island: "🌴", city: "🚗", mountain: "⛰️", snow: "❄️", desert: "🌵", space: "🌙" })[id] || "🦕";
 }
 
 function escapeHtml(value) {

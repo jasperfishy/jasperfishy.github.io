@@ -318,5 +318,17 @@ main {
   .hud-pill { font-size: 14px; padding: 6px 12px; }
 }
 @media (orientation: portrait) and (max-width: 700px) {
-  .drive-stage::after { content: "📱 Turn sideways for a bigger road!"; font-size: 14px; font-weight: bold; color: #6b7a99; }
+  /* A pseudo-element is invisible to the DOM watchers, so the phone that used to
+     lead this hint stayed a raw emoji on the screen. The words carry the meaning
+     now and the phone is drawn: a dark slab with a pale screen, turned sideways. */
+  .drive-stage::after {
+    content: "Turn sideways for a bigger road!";
+    font-size: 14px;
+    font-weight: bold;
+    color: #6b7a99;
+    padding-left: 26px;
+    background:
+      linear-gradient(#6b7a99, #6b7a99) left 2px center / 20px 12px no-repeat,
+      linear-gradient(var(--panel), var(--panel)) left 5px center / 14px 6px no-repeat;
+  }
 }

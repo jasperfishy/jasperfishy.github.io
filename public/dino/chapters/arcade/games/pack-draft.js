@@ -1,3 +1,4 @@
+import { addMaterialLayer } from '../../../photoreal-environments.js';
 // Pack Draft — run at the back. Finish at the front.
 // Eight runners, one trail, a wind that will not hold still, and a body that only
 // gets its legs back inside somebody else's slipstream.
@@ -280,6 +281,8 @@ function create(scene) {
   /* -------------------------------------------------------------- display */
   const plain = scene.add.graphics().setDepth(4);
   const trail = scene.add.graphics().setDepth(7);
+  addMaterialLayer(scene,plain,'soil',W,M.H,{alpha:.85});
+  addMaterialLayer(scene,trail,'soil',W,M.H,{alpha:.75});
   const finishG = scene.add.graphics().setDepth(9);
   const slipG = scene.add.graphics().setDepth(12);
   const smearG = scene.add.graphics().setDepth(17).setBlendMode(Phaser.BlendModes.ADD);

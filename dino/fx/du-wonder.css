@@ -1,153 +1,77 @@
-/* DUWONDER — the layer that keeps doing things while a child plays.
- * It is deliberately pointer-events:none except for the small collectibles, so
- * it can sit on top of a Phaser canvas without ever stealing a tap from the game. */
-.duw-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
-  overflow: hidden;
-  font-family: "Baloo 2", "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
-}
-.duw-layer > * { pointer-events: auto; }
-
-/* ---- drifting star motes: the always-available little loop ---- */
-.duw-mote {
-  position: absolute;
-  width: 46px; height: 46px;
-  border: 0; padding: 0; background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(0 0 10px rgba(255, 226, 90, .9));
-  animation: duw-float 5.5s ease-in-out infinite alternate;
-}
-.duw-mote::after {
-  content: "✨";
-  font-size: 34px;
-  line-height: 46px;
-  display: block;
-  text-align: center;
-}
-.duw-mote[data-kind="gem"]::after { content: "💎"; }
-.duw-mote[data-kind="petal"]::after { content: "🌸"; font-size: 30px; }
-.duw-mote[data-kind="shell"]::after { content: "🐚"; font-size: 30px; }
-.duw-mote[data-kind="leaf"]::after { content: "🍃"; font-size: 30px; }
-.duw-mote:hover { transform: scale(1.15); }
-.duw-mote.go { animation: duw-pop .5s ease-out forwards; pointer-events: none; }
-@keyframes duw-float {
-  from { transform: translate(0, 0) rotate(-8deg); }
-  to { transform: translate(10px, -16px) rotate(9deg); }
-}
-@keyframes duw-pop {
-  to { transform: scale(2.4) rotate(35deg); opacity: 0; }
-}
-
-/* ---- a visitor crossing the screen ---- */
-.duw-visitor {
-  position: absolute;
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  border: 0; padding: 0; margin: 0;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.duw-visitor .duv-body { width: 120px; }
-.duw-visitor.small .duv-body { width: 78px; }
-/* Wonder draws the same dino SVG the FX sheet normally constrains. A chapter
- * page can run wonder without that sheet, and an unconstrained SVG is 240px
- * wide no matter what box it was put in. */
-.duw-visitor .du-dino-svg, .duw-big .du-dino-svg, .duw-card .du-dino-svg { width: 100%; height: auto; display: block; }
-.duw-visitor:hover { transform: scale(1.06); }
-.duw-visitor.taken { pointer-events: none; }
-
-/* ---- the speech card a visitor leaves behind ---- */
-.duw-card {
-  position: absolute;
-  max-width: min(360px, 78vw);
-  padding: 12px 16px 13px;
-  border-radius: 20px 20px 20px 6px;
-  background: rgba(255, 251, 240, .97);
-  color: #23413c;
-  font-size: 1.02rem;
-  font-weight: 700;
-  line-height: 1.3;
-  box-shadow: 0 10px 26px rgba(6, 40, 36, .3);
-  animation: duw-card-in .42s cubic-bezier(.2, .9, .3, 1.4);
-  pointer-events: none;
-}
-.duw-card b { display: block; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: #177a63; }
-@keyframes duw-card-in {
-  from { transform: translateY(14px) scale(.86); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-
-/* ---- milestone celebration ---- */
+/* DUWONDER — the ceremony a child walks into once, for something they earned.
+ *
+ * Only the milestone card is styled here. There is no overlay layer any more:
+ * nothing drifts across the screen waiting to be tapped, so nothing in this
+ * file needs pointer-events:none, and nothing sits on top of a game.
+ *
+ * No webfont is loaded anywhere in this app, so the faces below are ones that
+ * really exist on the device. The ceremony is a title card, so it is set in a
+ * book serif rather than the rounded sans the rest of the app has been using. */
 .duw-big {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 50% 45%, rgba(255, 246, 214, .9), rgba(8, 60, 54, .72) 62%);
+  /* dawn over the valley: warm at the centre, going dark at the edges */
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255, 214, 150, .28), rgba(255, 214, 150, 0) 46%),
+    radial-gradient(circle at 50% 46%, rgba(18, 34, 28, .82), rgba(4, 20, 18, .95) 70%);
   pointer-events: auto;
-  animation: duw-fade .3s ease-out;
+  animation: duw-fade .5s ease-out;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
 }
 .duw-big .duw-inner {
+  position: relative;
   text-align: center;
-  color: #10322f;
-  padding: 26px 30px 30px;
-  border-radius: 30px;
-  background: rgba(255, 255, 255, .93);
-  box-shadow: 0 24px 60px rgba(4, 30, 28, .45);
-  animation: duw-rise .55s cubic-bezier(.2, .9, .3, 1.5);
-  max-width: min(460px, 86vw);
+  color: #f3ead9;
+  padding: 30px 34px 32px;
+  border-top: 1px solid rgba(255, 214, 150, .55);
+  border-bottom: 1px solid rgba(255, 214, 150, .28);
+  border-radius: 4px;
+  background: linear-gradient(rgba(12, 22, 18, .62), rgba(8, 16, 14, .78));
+  box-shadow: 0 40px 90px rgba(0, 0, 0, .6);
+  animation: duw-rise .7s cubic-bezier(.16, .84, .28, 1);
+  max-width: min(520px, 88vw);
 }
-.duw-big h3 { margin: 6px 0 2px; font-size: clamp(1.5rem, 6vw, 2.2rem); }
-.duw-big p { margin: 4px 0 14px; font-size: 1.05rem; font-weight: 600; }
-.duw-big .duw-crest { font-size: clamp(3rem, 14vw, 4.6rem); line-height: 1; }
-.duw-big .duw-inner > .du-dino { width: 150px; margin: -14px auto -6px; display: block; }
+/* A specimen, or the animal itself. Whatever is on the card is a photograph. */
+.duw-big .duw-crest-art {
+  display: block;
+  margin: 0 auto 6px;
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, .55));
+}
+.duw-big .duw-crest-art img { width: 170px; height: 170px; object-fit: contain; }
+.duw-big .duw-crest-dino { width: 190px; }
+.duw-big .duw-crest-art .du-dino-svg { width: 100%; height: auto; display: block; }
+.duw-big h3 {
+  margin: 8px 0 0;
+  font-size: clamp(1.6rem, 6.5vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: .01em;
+  color: #f0d9b8;
+}
+.duw-big p {
+  margin: 10px 0 20px;
+  font-size: 1.08rem;
+  line-height: 1.45;
+  color: #d8d2c6;
+}
 /* The ceremony closes with a button, and a chapter page has no hub.css to make
- * one — so wonder brings its own, sized for a small finger. */
+ * one — so this file brings its own, sized for a small finger. */
 .duw-big .duw-inner .pill {
-  border: 0; border-radius: 999px; padding: 12px 30px; min-height: 48px;
-  font-family: inherit; font-size: 1.15rem; font-weight: 900; line-height: 1;
-  background: #177a63; color: #fff; cursor: pointer;
-  box-shadow: 0 8px 20px rgba(6, 60, 50, .3);
-  transition: transform .15s ease, box-shadow .15s ease;
+  border: 0; border-radius: 2px; padding: 13px 34px; min-height: 48px;
+  font-family: inherit; font-size: 1.02rem; font-weight: 700; line-height: 1;
+  letter-spacing: .12em; text-transform: uppercase;
+  background: #c8a04a; color: #24150d; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
-.duw-big .duw-inner .pill:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 26px rgba(6, 60, 50, .36); }
-.duw-big .duw-inner .pill:active { transform: scale(.94); }
-.duw-big .duw-inner .pill:focus-visible { outline: 4px solid #ffd23f; outline-offset: 3px; }
+.duw-big .duw-inner .pill:hover { transform: translateY(-2px); background: #d9b055; }
+.duw-big .duw-inner .pill:active { transform: scale(.97); }
+.duw-big .duw-inner .pill:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
 @keyframes duw-fade { from { opacity: 0; } }
-@keyframes duw-rise { from { transform: translateY(40px) scale(.8); opacity: 0; } }
-
-/* ---- shooting star / rainbow ---- */
-.duw-shoot {
-  position: absolute;
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  background: #fff8d0;
-  box-shadow: 0 0 18px 6px rgba(255, 246, 190, .85);
-  pointer-events: none;
-}
-.duw-rainbow {
-  position: absolute;
-  left: 50%; top: 46%;
-  width: min(760px, 96vw); height: min(380px, 48vw);
-  transform: translate(-50%, 0);
-  border-radius: 999px 999px 0 0;
-  border: 26px solid transparent;
-  border-top-color: #ff6b6b;
-  border-left-color: #ffa94d;
-  border-right-color: #ffd43b;
-  box-shadow: 0 0 0 8px rgba(105, 219, 124, .55), 0 0 0 18px rgba(77, 171, 247, .45), 0 0 0 28px rgba(200, 150, 255, .35);
-  opacity: 0;
-  pointer-events: none;
-}
+@keyframes duw-rise { from { transform: translateY(34px) scale(.94); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .duw-mote, .duw-card, .duw-big .duw-inner { animation: none; }
-  .duw-mote.go { opacity: 0; }
+  .duw-big, .duw-big .duw-inner { animation: none; }
 }

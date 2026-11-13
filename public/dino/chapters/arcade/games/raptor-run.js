@@ -310,13 +310,13 @@ function create(scene) {
     const f = scene.add.image(r() * W, M.Y(GROUND) + 6, 'rr-fern').setOrigin(0.5, 1).setAlpha(0.55 + r() * 0.25);
     f.setScale(0.5 + r() * 0.4);
     f._x = r() * W; f._depth = 0.22 + r() * 0.1;
-    mid.add(f); ferns.push(f);
+    f.setVisible(false); mid.add(f); ferns.push(f);
   }
   for (let i = 0; i < 4; i++) {
     const t = scene.add.image(r() * W, M.Y(GROUND) + 10, 'rr-trunk').setOrigin(0.5, 1).setAlpha(0.4);
     t.setScale(0.7 + r() * 0.5);
     t._x = r() * W; t._depth = 0.12 + r() * 0.08;
-    mid.add(t); trunks.push(t);
+    t.setVisible(false); mid.add(t); trunks.push(t);
   }
   for (let i = 0; i < 7; i++) {
     const l = scene.add.rectangle(700 + r() * 260, M.Y(60 + r() * 300), 1 + r() * 2, 40 + r() * 120, 0xf6ecd6, 0)

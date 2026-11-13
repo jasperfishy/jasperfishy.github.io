@@ -1,6 +1,6 @@
 /* Fossil Explorer — a real dig site. Brush the soil away with your finger or mouse (it is a scratch-off canvas),
  * find every bone, spot the hidden treasures, then watch the skeleton wake up as the dinosaur it belonged to. */
-import { createPlay, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const W = 360, H = 240;
@@ -31,13 +31,17 @@ const SITES = [
     tr: [0, 2, 3, 5], drift: ["🍃", "🌾"], weather: "dry", line: "Warm dusty hill — the bones are lying shallow here!" },
   { id: "amber-grotto", name: "Amber Grotto", icon: "🟠", species: ["raptor", "tricera"], buddy: "tricera",
     soil: ["#9c6a45", "#6d452c"], tones: ["#8a5a38", "#7a4a2a", "#b07a4c", "#5e3c24", "#96683f"], pebble: ["#e5c37a", "#8a6a30"], rock: ["#6d4c7a", "#3c2b52"],
-    tr: [3, 0, 2, 4], drift: ["✨", "🕸️"], weather: "gloomy", line: "Cool and sticky in here — the deep bones are the good ones!" },
+    /* Nothing in the specimen library is a cobweb, and two glyphs of one family
+     * would drift out of the same photograph, so this pit sheds starlight and bone. */
+    tr: [3, 0, 2, 4], drift: ["✨", "🦴"], weather: "gloomy", line: "Cool and sticky in here — the deep bones are the good ones!" },
   { id: "shell-shore", name: "Shell Shore", icon: "🐚", species: ["bronto", "tricera"], buddy: "bronto",
     soil: ["#e4d3ab", "#c4ac82"], tones: ["#d8c69c", "#c0a878", "#efe0bd", "#b49a6c", "#e8d8b0"], pebble: ["#fff7e2", "#bfae8c"], rock: ["#7fa9b8", "#4c7386"],
     tr: [1, 5, 4, 0], drift: ["🐟", "💧"], weather: "breezy", line: "Sandy shore — the sea keeps washing new shells in!" },
   { id: "frost-hollow", name: "Frost Hollow", icon: "❄️", species: ["stego", "raptor", "trex"], buddy: "stego",
     soil: ["#cfe4f2", "#9dc0d8"], tones: ["#dbeaf6", "#bcd6e8", "#f0f8ff", "#a8c8dd", "#e6f2fa"], pebble: ["#ffffff", "#9fb8cc"], rock: ["#5f7fa8", "#33496b"],
-    tr: [5, 0, 1, 2], drift: ["❄️", "⛄"], weather: "snow", line: "Frozen ground! You have to brush through the snow first." }
+    /* ⛄ and ❄️ are one family — they would both print the same snow photograph —
+     * so the cold pit drifts snow and the frozen breath that goes with it. */
+    tr: [5, 0, 1, 2], drift: ["❄️", "🌫️"], weather: "snow", line: "Frozen ground! You have to brush through the snow first." }
 ];
 
 function el(name, attrs, text) { const n = document.createElementNS(SVGNS, name); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text) n.textContent = text; return n; }
@@ -129,7 +133,7 @@ export function mountFossil(context) {
         return '<button type="button" class="pk-btn fx-site" data-site="' + i + '" style="max-width:190px;display:grid;gap:2px;justify-items:center;padding:12px 14px"><span style="font-size:34px">' + s.icon + "</span><b>" + s.name + '</b><small style="font-weight:700;opacity:.75;font-size:11px">' + s.line + "</small></button>";
       }).join("") + "</div>" +
       '<p class="fx-shelf-note" style="text-align:center;font-size:12px;font-weight:800;margin:10px 0 0">' + layers + " layer" + (layers > 1 ? "s" : "") + " of earth to get through · " +
-      (bestStars ? "your best here: " + "⭐".repeat(bestStars) : "no dig finished here yet!") + (digs.length ? " · <b>" + digs.length + "</b> digs in your log" : "") + "</p></div>";
+      (bestStars ? "your best here: " + window.DUICONS.stars(bestStars) : "no dig finished here yet!") + (digs.length ? " · <b>" + digs.length + "</b> digs in your log" : "") + "</p></div>";
     play.hint("Tap a dig site to start. " + layers + " layers of soil, with treasures hidden in every one!", true);
     board.querySelectorAll(".fx-site").forEach(function (b, i) {
       if (F.anim) F.anim(b, [{ opacity: 0, transform: "translateY(24px) scale(.7)" }, { opacity: 1, transform: "none" }], { duration: 440, delay: i * 90, easing: "cubic-bezier(.2,.9,.3,1.3)", fill: "backwards" });
@@ -159,7 +163,7 @@ export function mountFossil(context) {
     board.innerHTML = '<div class="fx-tools"><button type="button" class="pk-btn on" data-tool="34" aria-label="Big brush">🖌️ Big</button>' +
       '<button type="button" class="pk-btn" data-tool="18" aria-label="Little brush">✏️ Little</button>' +
       '<button type="button" class="pk-btn" data-tool="blow" aria-label="Blow the dust away">💨 Blow</button>' +
-      '<button type="button" class="pk-btn fx-lens" aria-label="Magnifying glass hint">🔍</button></div>' +
+      '<button type="button" class="pk-btn fx-lens" data-icon="search" data-size="20" aria-label="Magnifying glass hint"></button></div>' +
       '<div class="fx-dig"><svg class="fx-rock" viewBox="0 0 ' + W + " " + H + '" aria-hidden="true"></svg><canvas class="fx-soil" aria-label="Soil to brush away"></canvas><div class="fx-treasures"></div><div class="fx-ping" hidden></div></div>' +
       '<div class="fx-shelf" aria-live="polite"><span class="fx-found"><b>0</b> of <i></i> bones</span><span class="fx-trs">Treasures: <b>0</b></span>' +
       '<span class="fx-layer-chip" style="padding:4px 12px;border-radius:99px;background:#fff3c9;font-weight:900">Layer <b>1</b> of ' + layers + "</span></div>";

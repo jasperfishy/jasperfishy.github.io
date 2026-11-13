@@ -378,7 +378,7 @@ function create(scene) {
   };
 
   scene.add.image(0, 0, 'cl-wall').setOrigin(0).setDepth(-12);
-  scene.add.image(W - 6, M.Y(0), 'cl-mouth').setOrigin(1, 0).setDepth(-11).setAlpha(0.92);
+  // The photographed wall includes the cave opening.
 
   const hr = rng('cl-hands');
   for (let i = 0; i < 7; i++) {
@@ -387,7 +387,7 @@ function create(scene) {
       .setAngle((hr() - 0.5) * 44).setTint(0xd76a3c);
   }
 
-  const ceil = scene.add.graphics().setDepth(-10);
+  const ceil = scene.add.graphics().setDepth(-10).setVisible(false);
   const cr = rng('cl-ceiling');
   // in portrait the rock above the stage band is a thin strip: the wall keeps
   // its own light there, so the mouth arch stays readable

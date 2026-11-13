@@ -4,7 +4,7 @@
  * silhouette of the dinosaur. Getting it right re-draws the sky; a wild star costs a star but never ends the night.
  * Every finished sky blazes, pays a star-legend and puts a collectible star-map on the shelf (saved on this device).
  * Later nights bring more stars, more wild ones, memory skies and a different moon. */
-import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
 const SKIES = [
   { sp: "bronto", color: "orange", name: "The Great Long-neck", fact: "Long-necked dinosaurs could reach leaves high in the treetops.",
@@ -30,8 +30,23 @@ const SVGNS = "http://www.w3.org/2000/svg";
 /* wild stars: they crowd the real sky from act two on, and belong to somebody else's constellation */
 const WILD = ["The Wobbly Spoon", "The Sky Kite", "The Fishy Fin", "The Lost Egg", "The Sleepy Cat", "The Little Boat",
   "The Big Wave", "The Lemon Slice", "The Crooked Hoop", "The Balloon", "The Tiny Hat", "The Shiny Shell"];
-const MOONS = [["new", "🌑"], ["waxing crescent", "🌒"], ["half", "🌓"], ["gibbous", "🌔"], ["full", "🌕"],
-  ["waning gibbous", "🌖"], ["last half", "🌗"], ["waning crescent", "🌘"]];
+/* The moon is a word on a chip here, not a picture: 🌒🌓🌔🌖🌘 are five different
+ * glyphs in the font and one pale disc on this screen, so a phase a child cannot
+ * read was a phase they could not see either way. The night still turns. */
+const MOONS = ["new", "waxing crescent", "half", "waxing gibbous", "full", "waning gibbous", "last half", "waning crescent"];
+/* The phase of the night, drawn: a lit disc with the shadow laid over it, the
+ * terminator bulging into the lit side for a crescent and into the dark side for
+ * a gibbous, and the whole shadow flipped left-to-right once the moon is waning. */
+const MOON_PHASE = { new: [0, 1], "waxing crescent": [.25, 1], half: [.5, 1], "waxing gibbous": [.75, 1], full: [1, 1], "waning gibbous": [.75, -1], "last half": [.5, -1], "waning crescent": [.25, -1] };
+function moonMark(name, size) {
+  const lit = MOON_PHASE[name][0], side = MOON_PHASE[name][1];
+  const R = 13, rx = Math.round(R * Math.abs(2 * lit - 1));
+  const sweep = lit < .5 ? 0 : 1;
+  const shadow = lit <= 0 ? `<circle r="${R}" fill="#22304f"/>`
+    : lit >= 1 ? "" : `<path d="M0 ${-R}A${R} ${R} 0 0 0 0 ${R}A${rx} ${R} 0 0 ${sweep} 0 ${-R}Z" fill="#22304f"/>`;
+  return '<svg class="cn-moon" viewBox="-15 -15 30 30" width="' + size + '" height="' + size + '" aria-hidden="true" focusable="false">' +
+    '<circle r="13" fill="#fff8d8"/>' + (side > 0 ? shadow : '<g transform="scale(-1,1)">' + shadow + "</g>") + "</svg>";
+}
 
 export function mountDinoConstellations(context) {
   const F = window.DUFX;
@@ -63,8 +78,8 @@ export function mountDinoConstellations(context) {
       (names.length ? names.join(" ") : '<span style="font-size:12px;color:#fff;opacity:.85">Finish a sky and find it in the real night to earn your first star-map!</span>');
   }
   board.innerHTML = '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px">' +
-    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip("A sky of " + count + " stars") + (best ? chip("Your best " + "⭐".repeat(best)) : "") +
-    chip("Night " + night + " · " + moon[0] + " moon " + moon[1]) + chip(maps.length ? "Shelf: " + maps.length + " maps 🗺" : "Shelf: no maps yet 🗺") + '<span id="cnActChip" style="background:rgba(255,243,168,.95);border-radius:99px;padding:4px 12px;box-shadow:0 3px 0 rgba(24,62,64,.14);font-weight:900;font-size:12.5px;color:#5d4a12">Act 1 of 2 · connect</span>' + "</div>" +
+    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip("A sky of " + count + " stars") + (best ? chip("Your best " + window.DUICONS.stars(best)) : "") +
+    chip("Night " + night + " · " + moonMark(moon, 15) + " " + moon + " moon") + chip(maps.length ? "Shelf: " + maps.length + " maps 🗺" : "Shelf: no maps yet 🗺") + '<span id="cnActChip" style="background:rgba(255,243,168,.95);border-radius:99px;padding:4px 12px;box-shadow:0 3px 0 rgba(24,62,64,.14);font-weight:900;font-size:12.5px;color:#5d4a12">Act 1 of 2 · connect</span>' + "</div>" +
     '<div class="cn-sky" id="cnSky" data-phase="connect" data-found="0" data-night="' + night + '"><svg class="cn-lines" viewBox="0 0 100 70" preserveAspectRatio="none" aria-hidden="true"></svg><div class="cn-live" id="cnLive"></div></div><p class="cn-status" id="cnStatus"></p>' +
     '<p class="cn-status" id="cnPhase" style="font-size:12.5px;opacity:.9;margin-top:4px"></p>' +
     '<p id="cnMaps" style="text-align:center;margin:8px 0 0">' + mapsShelf() + "</p>" +
@@ -73,7 +88,7 @@ export function mountDinoConstellations(context) {
   const phaseLine = board.querySelector("#cnPhase");
   const rubber = document.createElementNS(SVGNS, "line"); rubber.setAttribute("class", "cn-rubber"); rubber.setAttribute("visibility", "hidden"); svg.appendChild(rubber);
   // the night itself grows: a wandering planet, then an aurora on the biggest skies
-  if (tier >= 2) { const p = document.createElement("i"); p.textContent = moon[1]; p.style.cssText = "position:absolute;right:7%;top:7%;font-size:26px;opacity:.85;pointer-events:none"; skyEl.appendChild(p); }
+  if (tier >= 2) { const p = document.createElement("i"); p.innerHTML = moonMark(moon, 30); p.style.cssText = "position:absolute;right:7%;top:7%;opacity:.9;pointer-events:none"; skyEl.appendChild(p); }
   if (tier >= 3) { const au = document.createElement("span"); au.style.cssText = "position:absolute;left:0;right:0;top:0;height:30%;pointer-events:none;background:linear-gradient(180deg,rgba(126,255,212,.18),rgba(150,120,255,.1) 60%,transparent)"; skyEl.appendChild(au); }
   // faint background decoys — more of them as the nights get busier
   for (let i = 0; i < 12 + tier * 6; i++) { const d = document.createElement("i"); d.className = "cn-dot"; d.style.left = (Math.random() * 98).toFixed(1) + "%"; d.style.top = (Math.random() * 96).toFixed(1) + "%"; d.style.animationDelay = (-Math.random() * 4).toFixed(1) + "s"; skyEl.appendChild(d); }
@@ -316,18 +331,18 @@ export function mountDinoConstellations(context) {
     // tappable wish stars: a tiny reward inside the win moment
     for (let w = 0; w < 3; w++) {
       const wish = document.createElement("button");
-      wish.type = "button"; wish.className = "cn-star wish"; wish.innerHTML = "<span>🌠</span>";
+      wish.type = "button"; wish.className = "cn-star wish"; wish.innerHTML = "<span>" + window.DUICONS.i("spark", { size: 22 }) + "</span>";
       wish.style.left = (14 + Math.random() * 72) + "%"; wish.style.top = (10 + Math.random() * 34) + "%";
       wish.setAttribute("aria-label", "Make a wish");
       skyEl.appendChild(wish);
       if (F.anim) F.anim(wish, [{ opacity: 0, transform: "translate(-50%,-50%) scale(.2)" }, { opacity: 1, transform: "translate(-50%,-50%) scale(1)" }], { duration: 380, delay: 900 + w * 500, fill: "backwards" });
       wish.addEventListener("click", function () {
         if (wish.disabled) return;
-        wish.disabled = true; wish.innerHTML = "<span>💫</span>";
+        wish.disabled = true; wish.innerHTML = "<span>" + window.DUICONS.i("check", { size: 22 }) + "</span>";
         if (F.sfx) F.sfx.star();
         const wr = wish.getBoundingClientRect();
-        if (F.burst) F.burst(wr.left + wr.width / 2, wr.top + wr.height / 2, { kind: "hearts", n: 10 });
-        if (F.floatText) F.floatText(wr.left + wr.width / 2, wr.top, "Wish made! ✨");
+        if (F.burst) F.burst(wr.left + wr.width / 2, wr.top + wr.height / 2, { kind: "stars", n: 10 });
+        if (F.floatText) F.floatText(wr.left + wr.width / 2, wr.top, "Wish made!");
         play.bonus();
       });
     }

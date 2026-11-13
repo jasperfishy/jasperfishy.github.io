@@ -41,6 +41,7 @@ export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
     const b = document.createElement("button");
     b.className = "sticker";
     b.textContent = s;
+    b.dataset.sticker = s;
     b.addEventListener("click", () => {
       const idx = state.config.stickers.indexOf(s);
       if (idx >= 0) state.config.stickers.splice(idx, 1);
@@ -80,7 +81,7 @@ export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
   function syncControls() {
     markSelected(swatches, [...swatches.children].find(b => b.title === state.config.paint));
     [...tray.children].forEach(b => {
-      b.classList.toggle("selected", state.config.stickers.includes(b.textContent));
+      b.classList.toggle("selected", state.config.stickers.includes(b.dataset.sticker));
     });
     nameInput.value = state.config.name || "";
   }

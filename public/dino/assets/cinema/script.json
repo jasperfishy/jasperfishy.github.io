@@ -1,0 +1,82 @@
+{
+  "title": "The First Morning",
+  "subtitle": "How the Dinosaur Universe began",
+  "voices": {
+    "narrator": "en-US-AndrewMultilingualNeural",
+    "rex": "en-US-BrianMultilingualNeural"
+  },
+  "beats": [
+    {
+      "id": "b01",
+      "scene": "star-seeds",
+      "speaker": "narrator",
+      "text": "A very, very long time ago, before houses, before cars, before you, the whole world belonged to the dinosaurs."
+    },
+    {
+      "id": "b02",
+      "scene": "star-seeds",
+      "speaker": "narrator",
+      "text": "Nobody knows how many there were. But if you stand very still at the edge of the valley, you can still hear them."
+    },
+    {
+      "id": "b03",
+      "scene": "valley-dawn",
+      "speaker": "narrator",
+      "text": "This is the First Morning. The sun has only just climbed over the rim of the world."
+    },
+    {
+      "id": "b04",
+      "scene": "valley-dawn",
+      "speaker": "narrator",
+      "text": "Those are the long-necks. Gentle, enormous, and never in a hurry."
+    },
+    {
+      "id": "b05",
+      "scene": "valley-dawn",
+      "speaker": "narrator",
+      "text": "And those small shadows on the wind are pterosaurs. They have been flying since before the mountains had names."
+    },
+    {
+      "id": "b06",
+      "scene": "rex-mist",
+      "speaker": "narrator",
+      "text": "This is Rex. He keeps the gate of Dino Park."
+    },
+    {
+      "id": "b07",
+      "scene": "rex-mist",
+      "speaker": "rex",
+      "text": "Hello there! I roar like thunder, but I am entirely on your side."
+    },
+    {
+      "id": "b08",
+      "scene": "lagoon-home",
+      "speaker": "narrator",
+      "text": "Everything lives near this water. The park, the meadow, the racetracks, the sky roads. One whole universe."
+    },
+    {
+      "id": "b09",
+      "scene": "star-seeds",
+      "speaker": "narrator",
+      "text": "But one night, something fell out of the sky."
+    },
+    {
+      "id": "b10",
+      "scene": "star-seeds",
+      "speaker": "narrator",
+      "text": "Star seeds. Every single one is a wish the universe made for a new friend."
+    },
+    {
+      "id": "b11",
+      "scene": "star-seeds",
+      "speaker": "narrator",
+      "text": "Then Grumblecloud sneezed the biggest sneeze in history, and blew them all across the worlds."
+    },
+    {
+      "id": "b12",
+      "scene": "lagoon-home",
+      "speaker": "rex",
+      "text": "So. Will you help me gather them? Play in every world, and the Starlight Garden will shine again!"
+    }
+  ]
+}

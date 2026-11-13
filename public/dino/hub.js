@@ -47,8 +47,9 @@ function saveSettings() {
   try { localStorage.setItem('du-sound', JSON.stringify(settings.sound)); } catch {}
   try { localStorage.setItem('du-parent-settings', JSON.stringify({ sound: settings.sound, difficulty: settings.difficulty, speech: settings.speech, calmCelebrations: settings.calmCelebrations })); } catch {}
   const soundButton = document.querySelector('#soundBtn');
-  soundButton.textContent = settings.sound ? '🔊' : '🔇';
-  soundButton.setAttribute('aria-label', settings.sound ? 'Turn sound off' : 'Turn sound on');
+  window.DUICONS.set(soundButton, settings.sound ? 'sound' : 'sound-off', {
+    size: 20, label: settings.sound ? 'Turn sound off' : 'Turn sound on'
+  });
   FX.configure({ sound: settings.sound, calm: settings.calmCelebrations });
   if (!settings.sound) stopRexRoar();
   broadcast();
@@ -221,14 +222,15 @@ function progress() {
     const p = LEDGER[id];
     out.worlds[id] = { stars: J.worldStars(p), played: J.worldProgress(p).have };
   }
-  out.total = J.total(); out.gems = J.gems(); out.finds = discoveries(J).length; out.chapter = J.chapter();
+  out.total = J.total(); out.gems = J.gems(); out.finds = storiesSeen(J).length; out.chapter = J.chapter();
   return out;
 }
-/* The ledger also keeps book-keeping finds — which chapters were seen, which
- * way each choice went. Those are not things a child hunted down, so the
- * discoveries count only ever shows the ones they actually collected. */
-function discoveries(J) {
-  return J.finds().filter((f) => !/^(story|choice):/.test(f));
+/* What the child has actually been through. Wonder visitors used to write
+ * themselves into the codex at random, which is why the ledger distinguishes
+ * them at all; the only record left that a child can genuinely say they
+ * found is the story they watched. */
+function storiesSeen(J) {
+  return J.finds().filter((f) => f.indexOf('story:') === 0);
 }
 function crystalOf(id) {
   const J = window.DUJourney, S = window.DUSTORY;
@@ -248,7 +250,10 @@ function pickLabel(chapter, tag) {
 }
 
 /* The path this child chose is part of the map, not a secret left inside a
- * cutscene: the words they picked come back to them everywhere they look. */
+ * cutscene: the words they picked come back to them everywhere they look.
+ * The companion badge shows the animal that actually rides with them, because
+ * one feather standing in for both Pip and Bumper told a child they had made
+ * the same choice twice. */
 function trailHtml(S) {
   if (!S || !S.trail) return '';
   const t = S.trail();
@@ -256,7 +261,7 @@ function trailHtml(S) {
   const total = S.forkTotal ? S.forkTotal() : 0;
   const end = S.ending ? S.ending() : null;
   const friend = S.companion ? S.FRIENDS[S.companion()] : null;
-  return `<p class="sr-path">${friend ? `<b>🪶 Riding with ${escapeHtml(friend.name)}</b> · ` : ''}` +
+  return `<p class="sr-path">${friend ? `<b>${mateMark(friend)} Riding with ${escapeHtml(friend.name)}</b> · ` : ''}` +
     `<b>${made}</b> of ${total} choices are yours` +
     (end ? ` · heading for <b>${escapeHtml(end)}</b>` : '') + `</p>` +
     (t.length ? `<p class="sr-trail">${t.map(escapeHtml).join(' → ')}</p>` : '');
@@ -322,8 +327,16 @@ function resumeWonder() { if (window.DUWONDER && !window.DUWONDER.running()) win
 
 // ---------- Menu ----------
 const TINTS = { 'Puzzles': '#e6e3f5', 'Cozy play': '#fae8d5', 'Creative': '#f7e1d7', 'Discovery': '#dff0e8', 'Learning': '#dceef5', 'Adventures': '#f5e4cb' };
-const CAT_ICON = { 'Puzzles': '🧩', 'Cozy play': '🧸', 'Creative': '🎨', 'Discovery': '🔭', 'Learning': '🌱', 'Adventures': '🗺️' };
+const CAT_ICON = { 'Puzzles': '🧩', 'Cozy play': '🪹', 'Creative': '🎨', 'Discovery': '🔭', 'Learning': '🌱', 'Adventures': '🗺️' };
 let sayTimer = 0, parallaxOff = null, emberTimer = 0;
+
+/* A companion badge shows the animal that actually travels with you, in the
+ * same animated form the story stages use — it used to choose between a wing
+ * and a mammoth, and only one of those two lives here. */
+function mateMark(friend) {
+  const F = window.DUFX;
+  return F && F.dinoHTML && friend.species ? F.dinoHTML(friend.species, { state: 'happy', color: friend.colour, size: '22px' }) : '';
+}
 
 function wave(text) { return [...text].map((ch, i) => `<span style="--i:${i}">${escapeHtml(ch)}</span>`).join(''); }
 
@@ -364,6 +377,7 @@ function renderMenu() {
         <div class="toolbar">
           <button class="pill primary" id="storyBtn">📖 Play this part</button>
           <button class="pill" id="allStoryBtn">The whole story</button>
+          <button class="pill" id="cinemaBtn">🎬 The beginning</button>
         </div>
       </div>
     </section>` : ''}
@@ -398,6 +412,8 @@ function renderMenu() {
   if (sb) sb.onclick = () => window.DUSTORY.play(here, {});
   const asb = document.querySelector('#allStoryBtn');
   if (asb) asb.onclick = journeyDialog;
+  const cb = document.querySelector('#cinemaBtn');
+  if (cb) cb.onclick = () => window.DUINTRO && DUINTRO.play({ replay: true });
   for (const a of activities) {
     const el = document.querySelector(`[data-activity="${a.id}"]`);
     el.onclick = (e) => openChapter({ id: a.id, title: a.title, url: 'chapters/adventures/index.html?activity=' + encodeURIComponent(a.id) }, e);
@@ -413,8 +429,6 @@ function journeyDialog() {
   if (!J) { toast('Your journey is still being written…'); return; }
   const done = progress();
   const arc = S ? S.CHAPTERS : [];
-  const finds = discoveries(J);
-  const wonders = finds.filter((f) => f.indexOf('wonder:') === 0).length;
   const picks = S ? S.picks() : {};
   const path = arc.filter((c) => picks[c.id]).map((c) => ({ c, label: pickLabel(c, picks[c.id]) }));
   const root = document.querySelector('#modal-root');
@@ -426,7 +440,7 @@ function journeyDialog() {
       <div class="jy-totals">
         <span class="jy-pill">⭐ <b>${done.total}</b> stars</span>
         <span class="jy-pill">💎 <b>${done.gems}</b> treasures</span>
-        <span class="jy-pill">📖 <b>${done.finds}</b> discoveries</span>
+        <span class="jy-pill">📖 <b>${done.finds}</b> chapters witnessed</span>
         <span class="jy-pill">🌟 <b>${arc.filter((c) => J.has('crystal:' + c.id)).length} / ${arc.length}</b> story crystals</span>
       </div>
 
@@ -455,13 +469,10 @@ function journeyDialog() {
           return `<li><button data-jy-open="${c.id}">
             <span class="jy-icon">${c.icon}</span>
             <span class="jy-what"><b>${escapeHtml(c.title)}</b><i>${w.played ? `${w.played} game${w.played === 1 ? '' : 's'} played` : 'Not visited yet'}</i></span>
-            <span class="jy-stars">${'★'.repeat(Math.min(3, Math.round(w.stars / 3)))}${w.stars ? ` ${w.stars}⭐` : ''}${crystalOf(c.id) ? ' 💎' : ''}</span>
+            <span class="jy-stars">${window.DUICONS.stars(Math.min(3, Math.round(w.stars / 3)), { max: 3 })}${w.stars ? ' ' + w.stars + ' ' + window.DUICONS.i('star', { size: 14, filled: true }) : ''}${crystalOf(c.id) ? ' 💎' : ''}</span>
           </button></li>`;
         }).join('')}
       </ul>
-
-      ${wonders ? `<h3 class="jy-h">Friends you have met along the way</h3>
-      <p class="jy-wonders">${wonders} of ${window.DUWONDER ? window.DUWONDER.VISITORS.length : 14} wonder visitors found${window.DUWONDER && wonders >= window.DUWONDER.VISITORS.length ? ' — you have met them all!' : '. Keep playing and more will come.'}</p>` : ''}
 
       <div class="toolbar">
         <button class="pill primary" type="button" id="closeJourney">Back to the worlds</button>
@@ -569,7 +580,7 @@ function renderStageStory(c) {
   el.innerHTML = `<span class="ss-part">PART ${i + 1} OF ${S.count}</span>` +
     `<span class="ss-title">${escapeHtml(ch.title)}</span>` +
     (need ? `<span class="ss-goal${won ? ' met' : ''}">${won ? '🎉' : '⭐'} ${have} / ${need}</span>` : '') +
-    (friend ? `<span class="ss-mate">${friend.id === 'pip' ? '🪽' : '🦣'} ${escapeHtml(friend.name)}</span>` : '') +
+    (friend ? `<span class="ss-mate">${mateMark(friend)} ${escapeHtml(friend.name)}</span>` : '') +
     `<button class="pill ss-btn" id="stageStoryBtn" type="button">${won ? '🎉 See what happens next' : '📖 This part of the story'}</button>`;
   el.querySelector('#stageStoryBtn').onclick = () => {
     if (!won) return S.play(i, {});
@@ -631,8 +642,7 @@ document.querySelector('#soundBtn').onclick = () => { settings.sound = !settings
 document.querySelector('#journeyBtn').onclick = journeyDialog;
 document.querySelector('#parentsBtn').onclick = parentsDialog;
 document.querySelector('#backBtn').onclick = closeChapter;
-document.querySelector('#soundBtn').textContent = settings.sound ? '🔊' : '🔇';
-document.querySelector('#soundBtn').setAttribute('aria-label', settings.sound ? 'Turn sound off' : 'Turn sound on');
+window.DUICONS.set(document.querySelector('#soundBtn'), settings.sound ? 'sound' : 'sound-off', { size: 20, label: settings.sound ? 'Turn sound off' : 'Turn sound on' });
 
 renderMenu();
 let askForName = false;
@@ -640,7 +650,17 @@ try {
   askForName = !localStorage.getItem('du-name-seen');
   if (askForName) localStorage.setItem('du-name-seen', '1');
 } catch { /* The game remains playable when browser storage is unavailable. */ }
-if (askForName && !params.get('open')) nameDialog(true);
+
+// A first visit should open on the universe itself, not on a form. The film
+// needs a tap to begin, because that tap is what lets a browser make any
+// sound at all, so it asks for it on its own title card and only then reaches
+// for the child's name.
+const deepLinked = !!params.get('open');
+if (askForName && !deepLinked && window.DUINTRO && DUINTRO.needs()) {
+  DUINTRO.play({ onDone: () => nameDialog(true) });
+} else if (askForName && !deepLinked) {
+  nameDialog(true);
+}
 
 // Deep links: ?open=park | meadow | drive | <activity id>
 const wanted = params.get('open');

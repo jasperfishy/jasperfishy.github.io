@@ -46,7 +46,7 @@ class FlightScene extends Phaser.Scene {
   constructor() { super("flight"); }
 
   preload() {
-    this.load.image("hangingDino", "../../assets/prehistoric/raptor-hang.png");
+    this.load.image("hangingDino", "../../assets/prehistoric/raptor-hang.webp");
     DUKit.textures(this);
     // Textures belong to the game, not the scene: a "play again" restart baked
     // them a second time and Phaser logged "Texture key already in use".
@@ -132,16 +132,19 @@ class FlightScene extends Phaser.Scene {
     g.generateTexture("gate", 200, 300);
     g.destroy();
 
-    const mk = (key, emoji, size) => {
-      const t = this.add.text(0, 0, emoji, { fontSize: size + "px", fontFamily: "sans-serif" });
-      t.setPadding(4);
-      const rt = this.make.renderTexture({ width: Math.ceil(t.width), height: Math.ceil(t.height), add: false });
-      rt.draw(t, 0, 0);
-      rt.saveTexture(key);
-      t.destroy();
-    };
-    mk("egg", "🥚", 36);
-    mk("star", "⭐", 36);
+    /* These two used to be baked from a font glyph here, in code that was a
+     * copy of the shared kit's. Asking the kit instead means the specimen
+     * photograph turns up as soon as it decodes. */
+    DUKit.emoji(this, "egg", "🥚", 36);
+    DUKit.emoji(this, "star", "⭐", 36);
+    /* The rock teeth are a photographed limestone spire now. It used to be the
+     * wide boulder cut-out forced into this tall narrow box, which filled the
+     * box by slicing a straight-edged strip out of the middle of a rock. */
+    DUKit.prop(this, "cliff", "rock-spire");
+    DUKit.specimen(this, "seed", "sprout");
+    // A real cumulus, filled to the whole box and darkened: a storm you can
+    // see, not a grey lollipop.
+    DUKit.specimen(this, "storm", "cloud", { cover: true, darken: 0.42 });
   }
 
   create() {
@@ -160,8 +163,7 @@ class FlightScene extends Phaser.Scene {
     const sky = this.add.graphics();
     sky.fillGradientStyle(0x69c8ff, 0x69c8ff, 0xfff1d6, 0xfff1d6, 1);
     sky.fillRect(0, 0, W, H);
-    DUKit.sunRays(this, 160, 90, 220);
-    this.add.circle(160, 90, 42, 0xffe27a, 0.95);
+    DUKit.scenery(DUKit.sunRays(this, 160, 90, 220), this.add.circle(160, 90, 42, 0xffe27a, 0.95));
     DUKit.sparkleField(this, 14, 40, 30, 920, 360, 0xffffff);
     // One tinted rectangle is how the whole sky changes colour between bands.
     this.skyVeil = this.add.rectangle(W / 2, H / 2, W, H, BANDS[0].veil, 0.1).setDepth(6);
@@ -178,16 +180,27 @@ class FlightScene extends Phaser.Scene {
     this.farClouds2 = this.add.tileSprite(W / 2, 200, W, 40, "farCloud").setAlpha(0.55);
     this.farClouds2.tilePositionX = 50;
     this.hills = this.add.tileSprite(W / 2, H - 40, W, 90, "hill");
-    this.add.rectangle(W / 2, H - 10, W, 30, 0x4a9f4c);
+    const ground = this.add.rectangle(W / 2, H - 10, W, 30, 0x4a9f4c);
+    DUKit.scenery(sky, this.farClouds, this.farClouds2, this.hills, ground);
 
+    DUKit.environment(this, 'jungle');
     this.physics.world.gravity.y = 1100;
-    if (!this.textures.exists('photoFlyer')) {
-      const tex=this.textures.createCanvas('photoFlyer',86,126),c=tex.getContext();
-      c.drawImage(this.textures.get('flyer').getSourceImage(),0,0);
-      const img=this.textures.get('hangingDino').getSourceImage();
-      const scale=Math.min(72/img.width,58/img.height);
-      c.drawImage(img,43-img.width*scale/2,68,img.width*scale,img.height*scale);tex.refresh();
-    }
+    /* The envelope is a photograph and the passenger is a photograph, composited
+     * into the same 86×126 box the hitbox was already written for. When the
+     * balloon file decodes the kit repaints the envelope, so the dino is re-hung
+     * on real cables instead of staying clipped to the drawn ones. */
+    const hang = (top, tall) => {
+      const tex = this.textures.get('photoFlyer'), c = tex.getContext();
+      c.clearRect(0, 0, 86, 126);
+      c.drawImage(this.textures.get('flyer').getSourceImage(), 0, 0, 86, 126);
+      const img = this.textures.get('hangingDino').getSourceImage();
+      const scale = Math.min(72 / img.width, tall / img.height);
+      c.drawImage(img, 43 - img.width * scale / 2, top, img.width * scale, img.height * scale);
+      tex.refresh();
+    };
+    if (!this.textures.exists('photoFlyer')) this.textures.createCanvas('photoFlyer', 86, 126);
+    hang(68, 58);
+    DUKit.prop(this, 'flyer', 'balloon').then((photo) => { if (photo) hang(84, 42); });
     this.player = this.physics.add.sprite(220, H / 2, "photoFlyer");
     this.player.body.setSize(54, 100).setOffset(16, 10);
     this.player.body.setAllowGravity(false);
@@ -216,8 +229,8 @@ class FlightScene extends Phaser.Scene {
     const style = { fontSize: "30px", fontFamily: "system-ui,sans-serif", color: "#fff", stroke: "#17403a", strokeThickness: 6 };
     this.scoreText = this.add.text(66, 14, "0", style).setDepth(60);
     this.bestText = this.add.text(W - 18, 16, "Best " + this.best, { ...style, fontSize: "20px" }).setOrigin(1, 0);
-    this.bandText = this.add.text(66, 52, "", { ...style, fontSize: "19px" }).setDepth(60);
-    this.comboText = this.add.text(66, 78, "", { ...style, fontSize: "19px", color: "#eaffce" }).setDepth(60);
+    this.bandText = DUKit.label(this, 66, 52, { ...style, fontSize: "19px" }, null, { depth: 60 });
+    this.comboText = DUKit.label(this, 66, 78, { ...style, fontSize: "19px", color: "#eaffce" }, null, { depth: 60 });
     this.meter = this.add.graphics().setDepth(60);
     this.meterLabel = this.add.text(W - 18, 62, "glide", { ...style, fontSize: "16px", color: "#ffe14d" }).setOrigin(1, 0).setDepth(60);
     this.hint = this.add.text(W / 2, H / 2 + 110, "TAP or SPACE to flap · hold to glide", { fontSize: "24px", fontFamily: "system-ui,sans-serif", color: "#fff", stroke: "#17403a", strokeThickness: 5 }).setOrigin(0.5);
@@ -240,7 +253,10 @@ class FlightScene extends Phaser.Scene {
     // "Play again" skips the card once; coming back later should still teach.
     if (skipTitle) { skipTitle = false; this.ready = true; }
     else DUKit.title(this, {
-      title: "Balloon Flight", emoji: "🎈", color: 0x4aa8ff, cssColor: "#3b8fe0", voiceId: "flight",
+      // The balloon itself is drawn on the canvas, so it was never the problem;
+      // this icon was a raw glyph. There is no photograph of a balloon in this
+      // valley, so the card shows the cloud tops the child is flying up to.
+      title: "Balloon Flight", emoji: "☁️", color: 0x4aa8ff, cssColor: "#3b8fe0", voiceId: "flight",
       hint: "Tap or press Space to flap, hold to glide. Fly through the glowing rings, touch the cloud tops, then find the star gate. Warm air refills your glide!",
     }, () => { this.ready = true; });
   }
@@ -437,8 +453,10 @@ class FlightScene extends Phaser.Scene {
     // The hitbox waits for the shape to finish, so it never bites early.
     const fullY = c.scaleY;
     c.setScale(c.scaleX, 0.05);
-    c.body.setSize(70, 26, false);
-    this.tweens.add({ targets: c, scaleY: fullY, duration: 700, ease: "quad.out", onComplete: () => { if (c.active) c.body.setSize(80, h, false); } });
+    // The spire photograph is narrower than the 90px box it lands in, so the
+    // hitbox follows the rock the child can see instead of the box.
+    c.body.setSize(48, 26, false);
+    this.tweens.add({ targets: c, scaleY: fullY, duration: 700, ease: "quad.out", onComplete: () => { if (c.active) c.body.setSize(58, h, false); } });
     return c;
   }
 
@@ -475,7 +493,8 @@ class FlightScene extends Phaser.Scene {
       frequency: 40, quantity: 2
     }).setDepth(5);
     DUKit.sfx("whoosh");
-    const label = this.add.text(this.player.x, 96, dir > 0 ? "💨 →" : "← 💨", { fontSize: "34px" }).setOrigin(0.5).setDepth(70).setAlpha(0.9);
+    const label = DUKit.label(this, this.player.x, 96, { fontSize: "34px" }, null, { originX: 0.5, originY: 0.5, depth: 70 })
+      .setText(dir > 0 ? "💨 →" : "← 💨").setAlpha(0.9);
     this.wind = { dir, warn: 0.9, push: 0, fx: streaks, label };
     this.time.delayedCall(900, () => {
       if (!this.wind || this.gameOver) return;
@@ -614,7 +633,6 @@ class FlightScene extends Phaser.Scene {
     // A flight that earned stars has to reach the ledger, or the map never
     // learns the child ever left the ground.
     if (window.DUJourney) DUJourney.record("act.flight", { stars });
-    if (window.DUWONDER) DUWONDER.mote(stars >= 3 ? 3 : 1);
     const line = this.rings + " rings · " + this.peaks + " tops · " + this.seeds + " seeds"
       + (isBest && this.score > 0 ? "  ·  New best!" : "");
     this.time.delayedCall(600, () => {

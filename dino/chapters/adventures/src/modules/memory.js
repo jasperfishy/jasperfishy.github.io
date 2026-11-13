@@ -4,20 +4,23 @@
  * notebook (saved, so notes pile up across the whole journey); a live moves/time tally sets a medal budget you can
  * beat; and when the last pair is found ONE friend hides under a basket — you deduce who from the fact clue, and a
  * wrong guess costs a star while the free clue button only helps you look again. */
-import { createPlay, shuffle, enter, getExtras, collect, collection } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, shuffle, enter, getExtras, collect, collection } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
 const NOTE_KEY = "memory-notes"; // saved inside du-adv-extras-v1 via collect()
 const RUNS_KEY = "memory-runs";
 const DUCE_MS = 9000; // the deduction window always closes by itself
 
-/* one fact per species, two versions so round 2 and round 3 can show a different one */
+/* one fact per species, two versions so round 2 and round 3 can show a different one.
+ * These used to end with a banana, a shield, a nose, a walnut, a bus, a turkey and a
+ * hook — seven font glyphs, and comparisons a child here has never seen. A dinosaur is
+ * best measured by arms, grown-ups and storms, which every child can picture. */
 const FACTS = {
-  trex: ["had teeth as big as bananas 🍌", "could not scratch its nose — its arms were that short! 🦖"],
-  tricera: ["had a big bony frill to keep its neck safe 🛡️", "had three horns: two long ones and a short nose horn 👃"],
-  stego: ["had a brain the size of a walnut 🥜", "sunbathed its five-sided back plates ☀️"],
-  bronto: ["had a neck as long as a bus 🚌", "whipped its tail faster than a thunderclap ⚡"],
-  raptor: ["was only as big as a turkey 🦃", "had a big curved claw on each foot for climbing 🪝"],
-  ptero: ["was a flying reptile, not a dinosaur 🪽", "had a long crest behind its head to balance its beak ⚖️"]
+  trex: ["had teeth as long as your forearm", "could not scratch its nose — its arms were that short"],
+  tricera: ["had a big bony frill to keep its neck safe", "had three horns: two long ones over its eyes and a short one on its nose"],
+  stego: ["had a brain the size of a plum", "sunbathed its five-sided back plates to warm up"],
+  bronto: ["had a neck longer than four grown-ups standing head to tail", "whipped its tail faster than a storm wind"],
+  raptor: ["was no bigger than an owl, feathers and all", "carried a big curved claw on each foot, shaped like a climbing hook"],
+  ptero: ["was a flying reptile, not a dinosaur", "had a long crest behind its head to balance its beak"]
 };
 
 const FRIENDS = [
@@ -48,7 +51,7 @@ export function mountMemory(context) {
   const notes = collection(NOTE_KEY);
   const budget = Math.max(pairs + 1, Math.round(pairs * 1.9)); // the medal budget: how many moves for three ⭐ of memory
   board.innerHTML = '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px">' +
-    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip(pairs + " pairs to find") + (best ? chip("Your best " + "⭐".repeat(best)) : chip("A first clutch — say hello!")) +
+    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip(pairs + " pairs to find") + (best ? chip("Your best " + window.DUICONS.stars(best)) : chip("A first clutch — say hello!")) +
     '<span id="meTally" data-moves="0" data-secs="0" data-budget="' + budget + '" data-under="1" style="background:rgba(255,255,255,.92);border-radius:99px;padding:4px 12px;box-shadow:0 3px 0 rgba(24,62,64,.14);font-weight:900;font-size:12.5px;color:#245048">Moves <b id="meMoves">0</b>/' + budget + " · ⏱ <b id=\"meSecs\">0</b>s</span>" +
     chip('Notes 📔 <b id="meNotes">' + notes.length + "</b>") + "</div>" +
     '<div class="me-grid" style="--me-cols:' + cols + '"></div>' +
@@ -164,7 +167,7 @@ export function mountMemory(context) {
     if (first) { first.classList.remove("open"); first = null; }
     peeks -= 1; peekBtn.innerHTML = peeks ? "👀 Peek a pair ×" + peeks : "👀 No peeks left";
     if (!peeks) peekBtn.disabled = true;
-    locked = true; play.say("Look — these two are twins! 💛", 1500);
+    locked = true; play.say("Look — these two are twins! ✨", 1500);
     if (F.sfx) F.sfx.sparkle();
     byId[twin].forEach(function (e) { e.classList.add("open"); F.pop && F.pop(e); });
     window.setTimeout(function () {
@@ -205,7 +208,7 @@ export function mountMemory(context) {
         [a, egg].forEach(function (e) { F.dinoState(e.querySelector(".du-dino"), "happy", 1600); F.bounce && F.bounce(e); });
         if (F.sfx) F.sfx.coin();
         play.good(egg, { text: a.classList.contains("gold") ? "Golden hatch! ✨" : null });
-        play.say(d[2] + " says hi! 💚", 2200);
+        play.say(d[2] + " says hi! ✨", 2200);
         showFact(Number(a.dataset.id));
         // the pair hops into the nursery
         const chip2 = document.createElement("span");
@@ -228,7 +231,7 @@ export function mountMemory(context) {
     } else {
       locked = true; missRun += 1;
       window.setTimeout(function () {
-        play.miss(egg, ["Not twins this time! Remember where they are 💭", "Oops! Try to remember that one.", "Almost! Peek again."][missRun % 3]);
+        play.miss(egg, ["Not twins this time! Remember where they are.", "Oops! Try to remember that one.", "Almost! Peek again."][missRun % 3]);
         a.classList.remove("open"); egg.classList.remove("open");
         locked = false;
       }, 900);
@@ -344,7 +347,7 @@ export function mountMemory(context) {
       finishRound("answered");
       return;
     }
-    play.miss(btn, "Not that one under the basket! It " + duceClue + " — try again. 💛");
+    play.miss(btn, "Not that one under the basket! It " + duceClue + " — try again. ✨");
     play.hint("Read the clue again: it " + duceClue + ". The 👂 button says it out loud, free!", true);
     if (duceHits >= 2) { // never let a child be stuck: point at the right one
       const right = duceBox.querySelector('.me-ducopt[data-species="' + duceSp + '"]');

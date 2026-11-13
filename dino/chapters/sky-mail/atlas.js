@@ -1,6 +1,18 @@
 // Generates every illustration the flight needs at boot, as canvas textures.
 // No external art, no placeholders: layered shapes, gradients and texture grain.
-import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-316e7af9b57fa08e';
+import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-58e7197a7bd67562';
+
+/* The pines and ferns that crowd the ridges and the post stations are drawn as
+ * canvas textures once, at boot — so their photographs are fetched the moment
+ * this module loads and the drawn fronds below only show if a picture is still
+ * arriving. */
+const propImg = {};
+['pine', 'fern'].forEach((n) => {
+  const img = new Image();
+  img.src = new URL('../../assets/props/' + n + '.webp', import.meta.url).href;
+  img.decode().catch(() => {});
+  propImg[n] = img;
+});
 
 const TAU = Math.PI * 2;
 
@@ -203,6 +215,12 @@ function ridgeBand(c, w, h, base, amp, color, rand, detail) {
 }
 
 function pine(c, x, y, h, color, lean = 0) {
+  const img = propImg.pine;
+  if (img.complete && img.naturalWidth) {
+    const w = h * (img.naturalWidth / img.naturalHeight);
+    c.drawImage(img, x - w / 2, y - h, w, h);
+    return;
+  }
   c.strokeStyle = color; c.fillStyle = color;
   c.lineWidth = Math.max(1.5, h * 0.02);
   c.beginPath(); c.moveTo(x, y); c.lineTo(x + lean * h, y - h * 0.55); c.stroke();
@@ -220,6 +238,12 @@ function pine(c, x, y, h, color, lean = 0) {
 }
 
 function fern(c, x, y, s, color) {
+  const img = propImg.fern;
+  if (img.complete && img.naturalWidth) {
+    const w = s * 96, h = w * (img.naturalHeight / img.naturalWidth);
+    c.drawImage(img, x - w / 2, y - h, w, h);
+    return;
+  }
   c.save(); c.translate(x, y); c.scale(s, s);
   for (let k = -2; k <= 2; k++) {
     c.save(); c.rotate(k * 0.38);

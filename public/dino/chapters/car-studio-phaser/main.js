@@ -46,10 +46,11 @@ const SCENE_PALETTES = {
   space:    { label: "Moonbeam Circuit", skyA: 0x142652, skyB: 0x4d387b, ground: 0x43366e, road: 0x303b63, line: 0x91edff, hill: 0x5a4a95, mount: 0x7a68b4, trees: 0x6f5fb0, sun: 0xd68bff }
 };
 function readStudio() {
-  const out = { paint: "#2ecc71", name: "", stickers: [], scene: "island" };
+  const out = { body:'sport', paint: "#2ecc71", name: "", stickers: [], scene: "island" };
   try {
     const o = JSON.parse(localStorage.getItem(HUB_KEY)) || {};
     const c = o.config || {};
+    if(['sport','truck','van','pickup','race','monster'].includes(c.body))out.body=c.body;
     if (/^#[0-9a-f]{6}$/i.test(c.paint || "")) out.paint = c.paint;
     out.name = String(c.name || "").slice(0, 12);
     if (Array.isArray(c.stickers)) out.stickers = c.stickers.slice(0, 4).map(String);
@@ -72,7 +73,7 @@ class PlayScene extends Phaser.Scene {
   constructor() { super("play"); }
 
   preload() {
-    this.load.image("photoDriver", "../../assets/prehistoric/trex-head.png");
+    this.load.image("photoDriver", "../../assets/prehistoric/trex-head.webp");
     DUKit.textures(this);
     const g = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -180,6 +181,17 @@ class PlayScene extends Phaser.Scene {
     g.destroy();
     // The boost pad is a bolt of lightning, painted like the rest of the road art.
     DUKit.emoji(this, "boost", "⚡", 56);
+    /* What sits in the road is now photographed. The photographs are chosen to
+     * be the same shape as the box they go into: the boulder cut-out is twice as
+     * wide as it is tall, and forcing it into the square rock box filled the box
+     * by slicing a straight-edged strip out of the middle of it, which read as a
+     * patch of texture floating in the grass. A photographed cobble and a
+     * photographed vine each fill their box whole, so the rock a child crashes
+     * into is the rock they can see. */
+    DUKit.specimen(this, "rock", "stone");
+    DUKit.prop(this, "log", "fallen-log");
+    DUKit.specimen(this, "branch", "ivy");
+    DUKit.specimens(this, { egg: "egg", coin: "pyrite", star: "star" });
   }
 
   create() {
@@ -230,12 +242,14 @@ class PlayScene extends Phaser.Scene {
     this.hills = this.add.tileSprite(W / 2, GROUND_Y - 50, W, 90, "hill");
     this.trees = this.add.tileSprite(W / 2, GROUND_Y - 56, W, 116, "trees").setAlpha(0.95).setTint(PAL.trees);
 
-    this.add.rectangle(W / 2, (GROUND_Y + H) / 2, W, H - GROUND_Y, PAL.ground);
+    const ground = this.add.rectangle(W / 2, (GROUND_Y + H) / 2, W, H - GROUND_Y, PAL.ground);
     this.track = this.add.tileSprite(W / 2, GROUND_Y + 8, W, 16, "track");
+    DUKit.scenery(this.sky, this.rays, this.sun, this.mountains, this.clouds, this.clouds2, this.hills, this.trees, ground, this.track);
     // One darkening rectangle is the whole "light" of a biome.
     this.veil = this.add.rectangle(W / 2, H / 2, W, H, 0x0d1436, 0).setDepth(42);
     this.beam = this.add.image(0, 0, "beam").setOrigin(0, 0.5).setDepth(43).setAlpha(0);
 
+    DUKit.environment(this, ({island:'coast',city:'city',mountain:'mountain',snow:'ice',desert:'canyon',space:'space'})[STUDIO.scene]);
     // Physics: an invisible hitbox; the pretty kart follows it.
     this.physics.world.gravity.y = 2200;
     this.groundBody = this.physics.add.staticGroup();
@@ -252,6 +266,7 @@ class PlayScene extends Phaser.Scene {
     this.carBody = this.add.image(0, -10, "carBody").setOrigin(0.5, 1);
     this.driver = this.add.image(4, -50, "photoDriver").setDisplaySize(42,38).setOrigin(0.5, 0.7);
     this.car.add([this.wheelB, this.wheelF, this.carBody, this.driver]);
+    DUKit.vehicle(this,STUDIO,this.carBody,[this.wheelB,this.wheelF]);
     STUDIO.stickers.forEach((e, i) => this.car.add(this.add.text(-33 + i * 22, -23, e, { fontSize: "15px" }).setOrigin(0.5)));
     if (STUDIO.name) this.car.add(this.add.text(0, -86, STUDIO.name, { fontSize: "14px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", stroke: "#17403a", strokeThickness: 4 }).setOrigin(0.5));
     this.tweens.add({ targets: this.driver, angle: { from: -6, to: 6 }, y: -53, duration: 420, yoyo: true, repeat: -1, ease: "sine.inOut" });
@@ -528,7 +543,6 @@ class PlayScene extends Phaser.Scene {
     // Book the run on the campaign map as well as in this page's own score, so
     // the hub knows the child drove today.
     if (window.DUJourney) DUJourney.record("drive.run", { stars });
-    if (window.DUWONDER) DUWONDER.mote(stars >= 3 ? 3 : 1);
     this.time.delayedCall(650, () => {
       DUKit.endPanel(this, {
         title: "GAME OVER",

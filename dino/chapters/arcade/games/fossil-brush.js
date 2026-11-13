@@ -1,8 +1,9 @@
+import { overlayPhotorealMaterial } from '../../../photoreal-textures.js?v=du-58e7197a7bd67562';
 // Fossil Brush — sixty million years, one afternoon.
 // A trench in a canyon wash. Sand is a real field of depth you lift grain by
 // grain; the bone under it dries out, and a hurried hand on dry bone cracks it.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-316e7af9b57fa08e';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-58e7197a7bd67562';
 
 const TAU = Math.PI * 2;
 const PAL = MOODS.canyon;
@@ -803,6 +804,7 @@ function create(scene) {
       }
     }
     sandCtx.putImageData(sandImgData, 0, 0);
+    overlayPhotorealMaterial(sandCtx,'soil',.72,'source-atop','environments');
     sandTex.refresh();
   }
 

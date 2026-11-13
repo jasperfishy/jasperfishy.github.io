@@ -1,8 +1,9 @@
+import { addEnvironment } from '../../photoreal-environments.js?v=du-58e7197a7bd67562';
 // Prehistoric Arcade — shared engine.
 // One stage, one audio ensemble, one set of hand-painted procedural layers, so
 // every little game inherits the same finish as Sky Mail without shipping any
 // image or sound files.
-import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-316e7af9b57fa08e';
+import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-58e7197a7bd67562';
 
 export const W = 960;
 export const SAVE_KEY = 'du-arcade-v1';
@@ -133,12 +134,27 @@ export function canvasTex(scene, key, w, h, draw) {
   draw(c, w, h);
   tex.refresh();
   const pose = key.split('-').at(-1);
+  const prop = {'rr-branch':'branch','tp-branch':'branch','ac-branch':'branch','vc-branch':'branch','vc-canopy':'branch','vc-crown':'fern','vc-broadleaf':'fern','vc-basket':'empty-nest','pp-kelp':'kelp','tc-boulder':'boulder','tc-stone':'boulder','lw-stone':'boulder','lw-grass':'fern','rb-tree':'pine','rb-reed':'kelp','rb-weed':'kelp','ss-nest':'empty-nest','ss-egg':'egg','ng-nest':'empty-nest','ng-tuft':'fern','mw-nest':'nest','et-nest':'empty-nest','fh-trunk':'fallen-log','sc-kelp':'kelp','dc-reed':'kelp','dc-stone':'boulder','sl-bush':'fern','sl-grass':'fern','sl-canopy':'fern'}[key] || (/^et-egg-/.test(key)?'egg':null) || ({log:'fallen-log',rock:'boulder',boulder:'boulder',fern:'fern'})[pose];
+  if (prop) applyPhotorealTexture(tex, prop, {inset:0, library:'props'});
+  const environment = {'cl-wall':'cave','bs-sky':'jungle','bs-soil':'soil'}[key];
+  if (environment) applyPhotorealTexture(tex, environment, {inset:0,cover:true,library:'environments'});
+  if (!environment && /^(?:tc-floor-|fb-floor$|sl-floor$|ts-floor$|rb-bank-|sp-bank$)/.test(key))
+    applyPhotorealTexture(tex,'soil',{inset:0,cover:true,material:true,library:'environments'});
+  if (/^(?:ve-(?:ledge|wall|crumble|summit)|gl-(?:wall|shelf|pad|shelter|chimney)|ts-(?:ledge|wall)$)/.test(key))
+    applyPhotorealTexture(tex,'material-rock',{inset:0,cover:true,material:true,library:'environments'});
+  if (/^tp-rock-/.test(key)) applyPhotorealTexture(tex,'material-rock',{inset:0,cover:true,material:true,library:'environments'});
+  if (/^(?:bb-(?:cliffs|ravine|peaks)$|et-(?:ridge-|stone$))/.test(key)) applyPhotorealTexture(tex,'material-ice',{inset:0,cover:true,material:true,library:'environments'});
+  if (/^(?:sl|vc)-trunk$/.test(key)) applyPhotorealTexture(tex,'material-bark',{inset:0,cover:true,material:true,library:'environments'});
+  if (/^fh-(?:front|frozen|drift|crest)$/.test(key)) applyPhotorealTexture(tex,'material-ice',{inset:0,cover:true,material:true,library:'environments'});
+  if (/^(?:ng-sand|sc-sand|rb-bar|mw-scree|sp-dune)$/.test(key)) applyPhotorealTexture(tex,'soil',{inset:0,cover:true,material:true,library:'environments'});
+  if (/^(?:ng-sea|rb-bed)$/.test(key)) applyPhotorealTexture(tex,'material-water',{inset:0,cover:true,material:true,library:'environments'});
+  if (key==='dc-spire') applyPhotorealTexture(tex,'material-bark',{inset:0,cover:true,material:true,library:'environments'});
   const poseOptions = ['duck', 'crouch', 'slide', 'tuck', 'hang'].includes(pose)
     ? { scaleY: 0.72, offsetY: 0.1 }
     : ['jump', 'leap', 'hop', 'lunge', 'charge', 'flap'].includes(pose)
       ? { scaleY: 0.9, offsetY: -0.04 }
       : {};
-  const match = key.match(/^(?:bb-walker|mh-(?:lead|calf)-|rm-longneck-)/);
+  const match = key.match(/^(?:bb-walker|mh-(?:lead|calf)-|rm-longneck-|sp-herd-|sp-calf$)/);
   if (match) applyPhotorealTexture(tex, 'bronto', poseOptions);
   else if (/^(?:dc-raptor|rr-raptor-|ss-raptor-|sl-hero-)/.test(key)) applyPhotorealTexture(tex, 'raptor', poseOptions);
   else if (/^rm-shellback-/.test(key)) applyPhotorealTexture(tex, 'ankylosaurus', poseOptions);
@@ -155,6 +171,7 @@ export function canvasTex(scene, key, w, h, draw) {
   else if (/^pd-side-/.test(key)) applyPhotorealTexture(tex, 'raptor', poseOptions);
   else if (/^pd-rear-/.test(key)) applyPhotorealTexture(tex, 'raptor-rear', poseOptions);
   else if (key === 'tp-hang') applyPhotorealTexture(tex, 'raptor-hang');
+  else if (/^(?:dc-bird-|ng-gull-)/.test(key)) applyPhotorealTexture(tex, 'archaeopteryx');
   else if (key === 'tp-glide') applyPhotorealTexture(tex, 'archaeopteryx');
   return tex;
 }
@@ -253,6 +270,7 @@ function groundTex(scene, key, M, mood) {
 
 /* ------------------------------------------------------------- backdrop */
 export function paintWorld(scene, M, moodName, opts = {}) {
+  const photoLayers = new Set(scene.children.list);
   const pal = MOODS[moodName] || MOODS.dawn;
   const tall = M.portrait;
   const skyKey = 'arc-sky-' + moodName + (tall ? '-p' : '-w');
@@ -340,6 +358,13 @@ export function paintWorld(scene, M, moodName, opts = {}) {
     });
   }
 
+  const paintedLayers = scene.children.list.filter(child => !photoLayers.has(child));
+  const photoMood = {'tide-causeway':'coast','nest-gather':'coast','spear-cast':'coast','cave-line':'cave'}[scene.def?.id] || moodName;
+  addEnvironment(scene, W, M.H, photoMood, -10).then(background => {
+    if (!background) return;
+    // Remove only the common world's illustrated layers, never game platforms.
+    paintedLayers.forEach(layer => { if (layer.depth < 0 || layer.depth === 6) layer.setVisible(false); });
+  });
   scene._paintT = 0;
   scene.events.on('update', (t) => {
     scene._paintT = t;
@@ -358,6 +383,7 @@ export class ArcadeAudio {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const ctx = this.ctx = new AC();
+    if (window.DUAudio) window.DUAudio.useContext(ctx);
     this.master = ctx.createGain(); this.master.gain.value = this.muted ? 0 : 0.8;
     this.comp = ctx.createDynamicsCompressor();
     this.comp.threshold.value = -18; this.comp.knee.value = 22; this.comp.ratio.value = 3.4;
@@ -492,6 +518,11 @@ export class ArcadeAudio {
 
   sfx(name) {
     if (!this.ctx) return;
+    // The recorded bank whenever it is on the page and has this file. It answers
+    // true even when it deliberately swallows a duplicate, so the synthesised
+    // sound below can never arrive a half-second late on top of a sample.
+    const A = window.DUAudio;
+    if (A && A.play(name, { dest: this.sfxBus })) return;
     const t = this.ctx.currentTime;
     switch (name) {
       case 'jump': this.burst({ dur: 0.14, freq: 320, q: 0.9, gain: 0.05, sweep: 420 }); this.pluck(NOTE(72), t, 0.035, 0.2); break;

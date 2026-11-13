@@ -12,24 +12,36 @@ const DINOS = [
 ];
 // Each weather dresses the scene differently, hides a different number of crystals and
 // brings its own little creatures, so a foggy quest never plays like a sunny one.
+/* `friends` and the option `icon`s are specimen names and glyph synonyms the two
+ * layers own: 🐞, ☔ and 🕸️ sit in no library, so the bugs of a sunny day include
+ * the midge in amber, the wet day has a puddle, and the fog hangs low over moss.
+ * A splash was chosen over a 💧 droplet because the rain already falls one. */
 const WEATHERS = [
   { id: 'sunny', name: 'Sunny', e: '☀️', dress: 'sun', drops: 0, gems: 4,
     line: 'What a sunny morning! The grass is warm and the bugs are awake.',
-    friends: ['🦋', '🐞', '🌼'], hint: 'Sunny days are easy peasy — the crystals sparkle brightest in the sun.',
+    friends: ['🦋', '🐝', '🌼'], hint: 'Sunny days are easy peasy — the crystals sparkle brightest in the sun.',
     mtn: 'The sun is toasty! What does a dinosaur egg like best?',
     opts: [{ icon: '🌳', label: 'A cool shady spot' }, { icon: '🔥', label: 'Right in the hot sun' }, { icon: '🧊', label: 'On top of some ice' }], right: 0 },
   { id: 'rainy', name: 'Showery', e: '🌦️', dress: 'rain', drops: 16, gems: 5,
     line: 'Drip drop! It is showery today, so let’s find that egg before it gets cold.',
-    friends: ['☔', '🐌', '🌈'], hint: 'Tiptoe in the wet — slippery puddles are on the left of the path.',
+    friends: ['🌊', '🐌', '🌈'], hint: 'Tiptoe in the wet — slippery puddles are on the left of the path.',
     mtn: 'The rocks are all slippery and wet! What is the best way to carry the egg?',
-    opts: [{ icon: '🏃', label: 'Run as fast as you can' }, { icon: '🤗', label: 'Hold it snug and walk slowly' }, { icon: '🤷', label: 'Balance it on my head' }], right: 1 },
+    /* The three ways to carry an egg are things you DO, not things you find, so
+     * they are ink marks: a whoosh of speed, careful steps, and a friend. */
+    opts: [{ icon: 'wind', label: 'Run as fast as you can' }, { icon: 'footprints', label: 'Hold it snug and walk slowly' }, { icon: 'person', label: 'Balance it on my head' }], right: 1 },
   { id: 'foggy', name: 'Foggy', e: '🌫️', dress: 'fog', drops: 9, gems: 6,
     line: 'Ooh, foggy! Everything is muffled and quiet. Keep your eyes open!',
-    friends: ['🍄', '🕸️', '💨'], hint: 'In the fog, look low and near the edges. That is where things hide!',
+    friends: ['🍄', '☘️', '💨'], hint: 'In the fog, look low and near the edges. That is where things hide!',
     mtn: 'We can hardly see a thing in this fog! What helps the most?',
-    opts: [{ icon: '😴', label: 'Have a little nap here' }, { icon: '🎈', label: 'Fly a big balloon' }, { icon: '👀', label: 'Look and listen very slowly' }], right: 2 },
+    /* Nobody owns a balloon, so the silly way to see over the fog is the cloud
+     * itself — a photograph the object layer really has. */
+    opts: [{ icon: '😴', label: 'Have a little nap here' }, { icon: '☁️', label: 'Float up high on a cloud' }, { icon: '👀', label: 'Look and listen very slowly' }], right: 2 },
 ];
 const CHEERS = ['Roarsome!', 'Dino-mite!', 'You spotted it!', 'Brilliant eyes!', 'Hooray for you!'];
+/* A choice may be named after an ink mark ('wind') or written as a specimen
+ * glyph ('🪹'). DUICONS.mark draws the first and hands the second straight to
+ * the object layer's photograph, so this table never has to know which layer wins. */
+const optIcon = (v) => (window.DUICONS && window.DUICONS.mark ? window.DUICONS.mark(v) : v);
 const STREAKS = ['One treasure! Two in a row!', 'Ooh, a streak! Three finds!', 'Four in a row — you are a super scout!'];
 const TILE = (svg, w, h) => "url('data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' + svg + '</svg>') + "')";
 const HILLS = TILE('<path d="M0 100 L0 60 Q50 10 100 55 T200 50 T300 58 T400 60 L400 100Z" fill="#9ed7a6"/>', 400, 100);
@@ -91,7 +103,7 @@ export function mountDinoQuest(context) {
   // -------------------------------------------------------------- shared scene machinery
   let area, world, cap, capText, dino, dinoWrap, ctrl, chipsEl;
   const chip = (id, style, text) => '<span id="' + id + '" style="padding:3px 10px;border-radius:14px;font-weight:900;font-size:clamp(.66rem,1.8cqw,.86rem);box-shadow:0 2px 0 rgba(0,0,0,.12);' + style + '">' + text + '</span>';
-  const setChip = (id, text) => { const el = chipsEl && chipsEl.querySelector('#' + id); if (el && el.textContent !== text) { el.textContent = text; FX.pop && FX.pop(el); } };
+  const setChip = (id, text) => { const el = chipsEl && chipsEl.querySelector('#' + id); if (el && el.textContent !== text) { el.textContent = text; FX.pop && FX.pop(el); } }; // du-own-text the chip only ever holds words this file wrote
   function build() {
     context.stage.innerHTML = '<div class="dq"><div class="dq-area"><div class="dq-world"></div>' +
       // the chapter label is the child's place-marker: it grows from 1 of 4 to 4 of 4
@@ -99,7 +111,7 @@ export function mountDinoQuest(context) {
       chip('dqChapter', 'background:#17403a;color:#fff', 'Chapter 1 of 4 · The Meadow') +
       chip('dqGems', 'background:#fff6d8;color:#5c3b00', '💎 0 gems') +
       chip('dqFacts', 'background:#e6f6ff;color:#08415c', '📖 0 facts') +
-      chip('dqBest', 'background:#ffe9f0;color:#7a1030', shelf.gems ? '🏆 best ' + shelf.gems + ' 💎' : '🏆 first quest') +
+      chip('dqBest', 'background:#ffe9f0;color:#7a1030', shelf.gems ? window.DUICONS.i('trophy', { size: 16 }) + ' best ' + shelf.gems + ' 💎' : window.DUICONS.i('trophy', { size: 16 }) + ' first quest') +
       '<button id="dqHint" style="border:0;border-radius:14px;background:#fff;padding:4px 10px;font:900 clamp(.66rem,1.8cqw,.86rem) system-ui;box-shadow:0 2px 0 rgba(0,0,0,.12);cursor:pointer">💡 Hint</button>' +
       '</div><div class="dq-cap" hidden><span class="dq-cap-t"></span></div></div></div>';
     area = context.stage.querySelector('.dq-area'); world = area.querySelector('.dq-world'); cap = area.querySelector('.dq-cap'); capText = area.querySelector('.dq-cap-t');
@@ -160,7 +172,7 @@ export function mountDinoQuest(context) {
     return new Promise((resolve) => {
       hintText = why;
       const box = document.createElement('div'); box.className = 'dq-choice';
-      box.innerHTML = '<p>' + prompt + '</p><div>' + options.map((o, i) => '<button data-i="' + i + '"><span>' + o.icon + '</span>' + o.label + '</button>').join('') + '</div>' +
+      box.innerHTML = '<p>' + prompt + '</p><div>' + options.map((o, i) => '<button data-i="' + i + '"><span>' + optIcon(o.icon) + '</span>' + o.label + '</button>').join('') + '</div>' +
         '<p id="dqQuizNote" style="min-height:1.3em;margin:8px 0 0;font-weight:900;color:#7a1030"></p>';
       area.append(box);
       box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
@@ -203,7 +215,7 @@ export function mountDinoQuest(context) {
   function choose(prompt, options) {
     return new Promise((resolve) => {
       const box = document.createElement('div'); box.className = 'dq-choice';
-      box.innerHTML = '<p>' + prompt + '</p><div>' + options.map((o, i) => '<button data-i="' + i + '"><span>' + o.icon + '</span>' + o.label + '</button>').join('') + '</div>';
+      box.innerHTML = '<p>' + prompt + '</p><div>' + options.map((o, i) => '<button data-i="' + i + '"><span>' + optIcon(o.icon) + '</span>' + o.label + '</button>').join('') + '</div>';
       area.append(box);
       box.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { FX.sfx.pop(); box.remove(); resolve(Number(b.dataset.i)); }));
     });
@@ -242,10 +254,9 @@ export function mountDinoQuest(context) {
   // Real scenery behind the painted foreground: the same photographs the story
   // cutscenes stand in front of. The gradient sky stays underneath, so a photo
   // that has not downloaded yet leaves the scene exactly as it used to look.
-  const PLATE = '../../fx/art/';
+  const PLATE = new URL('../../../../assets/environments/',import.meta.url).href;
   const bgLayers = (sky, far, mid, near, plate) => '<div class="dq-sky" style="background:' + sky + '"></div>' +
-    (plate ? '<div class="dq-photo" style="background-image:url(' + PLATE + plate + '.jpg)"></div>' : '') +
-    (far ? '<div class="dq-par far" style="background-image:' + far + '"></div>' : '') + (mid ? '<div class="dq-par mid" style="background-image:' + mid + '"></div>' : '') + (near ? '<div class="dq-par near" style="background-image:' + near + '"></div>' : '');
+    '<div class="dq-photo" style="background-image:url(' + PLATE + (plate==='mountain'?'mountain':'jungle') + '.webp)"></div>';
 
   // -------------------------------------------------------------- the story
   async function begin() {
@@ -298,7 +309,9 @@ export function mountDinoQuest(context) {
     gem(2);
     await say('Two gems for finding it! It is a baby dinosaur egg! It has rolled away from its mummy. Let’s bring it home!');
     const carried = document.createElement('span'); carried.className = 'dq-carry'; carried.textContent = '🥚'; dinoWrap.append(carried);
-    await quiz('Where do you think this egg came from?', [{ icon: '🪹', label: 'A cosy nest' }, { icon: '⚽', label: 'A bouncing ball' }, { icon: '🌳', label: 'A tall tree' }], 0,
+    /* This universe has no football — ⚽ would have stayed a glyph — so the silly
+     * wrong guess is a round concretion stone, which really does roll away. */
+    await quiz('Where do you think this egg came from?', [{ icon: '🪹', label: 'A cosy nest' }, { icon: '🥌', label: 'A round stone that rolled away' }, { icon: '🌳', label: 'A tall tree' }], 0,
       'Dinosaurs laid their eggs in a nest, so a mummy dinosaur is looking for it!');
     hush();
     await say('The mummy lives past the big mountain. Off we go!', 700);
@@ -308,7 +321,9 @@ export function mountDinoQuest(context) {
   async function sceneMountain() {
     world.innerHTML = bgLayers('linear-gradient(#a8d8f5,#fff0d4)', null, null, null, 'mountain') +
       '<svg class="dq-mtn" viewBox="0 0 800 500" preserveAspectRatio="none"><path d="M0 500 L0 410 L180 330 L330 250 L470 150 L560 90 L620 150 L800 190 L800 500Z" fill="#a98a6e"/><path d="M0 500 L0 440 L200 380 L360 300 L500 215 L560 170 L640 210 L800 250 L800 500Z" fill="#8f7357"/><path d="M520 120 L560 90 L600 128 L575 122 L560 140 L545 124Z" fill="#fff"/></svg>' +
-      '<i class="dq-cloud" style="top:8%;--w:100px"></i><i class="dq-bird" style="top:20%">🐦</i>';
+      /* No layer owns 🐦, and a bird this far off is only two strokes anyway, so the
+       * mountain sky gets drawn wings that scale with the 4cqw the stylesheet sets. */
+      '<i class="dq-cloud" style="top:8%;--w:100px"></i><i class="dq-bird" style="top:20%"><svg viewBox="0 0 26 12" width="2.2em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-.15em"><path d="M1.5 9.5C5 2.5 9 3 12.5 8.5 16 3 20 2.5 24.5 9.5" fill="none" stroke="#33384a" stroke-width="2.1" stroke-linecap="round"/></svg></i>';
     FX.ambient && FX.ambient('wind');
     makeDino(-18, 60, 14); dinoWrap.insertAdjacentHTML('beforeend', '<span class="dq-carry">🥚</span>');
     await walkTo(3, 60, 1400);
@@ -331,7 +346,9 @@ export function mountDinoQuest(context) {
     FX.shakeScreen();
     await say('We did it! We are at the top! You can see the whole world from up here!');
     // pan to the cave
-    const cave = document.createElement('div'); cave.className = 'dq-farcave'; cave.innerHTML = '<span>🕳️</span><b>?</b>';
+    /* The far cave mouth is a hole in a rock, and 🕳️ belongs to no library:
+     * drawn as two arches it reads as shadow at any scene width. */
+    const cave = document.createElement('div'); cave.className = 'dq-farcave'; cave.innerHTML = '<span><svg viewBox="0 0 44 36" width="1.4em" height="1.15em" aria-hidden="true" focusable="false" style="vertical-align:-.18em"><path d="M2 34C2 16 10 3 22 3s20 13 20 31z" fill="#6d5a4b"/><path d="M8 34C8 19 14 9 22 9s14 10 14 25z" fill="#171225"/></svg></span><b>?</b>';
     world.append(cave); await wait(500);
     await say('Look! Over there on the next mountain… there is a CAVE!', 600);
     cave.classList.add('glow');
@@ -362,7 +379,9 @@ export function mountDinoQuest(context) {
     await say('The whole cave is shining! Look at the colours!', 700);
     area.classList.remove('in-cave');
     // bats
-    for (let i = 0; i < 4; i++) { const b = document.createElement('i'); b.className = 'dq-bat'; b.textContent = '🦇'; b.style.cssText = 'top:' + (12 + i * 9) + '%;animation-delay:' + (i * -1.4) + 's'; world.append(b); }
+    // bats — 🦇 is in neither layer, and a `textContent` glyph can never become
+    // art, so the four of them are cut from one drawn silhouette.
+    for (let i = 0; i < 4; i++) { const b = document.createElement('i'); b.className = 'dq-bat'; b.innerHTML = '<svg viewBox="0 0 32 20" width="2.2em" height="1.4em" aria-hidden="true" focusable="false" style="vertical-align:-.2em"><g fill="#2b2440"><ellipse cx="16" cy="11.5" rx="3.8" ry="5"/><path d="M12.4 9.6 2 4.2l2.2 6L0.6 11l8.6 5.4z"/><path d="M19.6 9.6 28 4.2l-2.2 6 3.6.8-8.6 5.4z"/><path d="m13.6 6.6 2.4-3.6 2.4 3.6z"/></g></svg>'; b.style.cssText = 'top:' + (12 + i * 9) + '%;animation-delay:' + (i * -1.4) + 's'; world.append(b); }
     await say('Eeek, bats! They only want to say hello. Wave goodbye!', 800);
     await walkTo(52, 58, 2200);
     await say('What is that big shape at the back of the cave?', 700);
@@ -375,7 +394,9 @@ export function mountDinoQuest(context) {
 
   async function sceneHome() {
     const carried = dinoWrap.querySelector('.dq-carry');
-    const c = await choose('Give the egg back to the mummy dinosaur?', [{ icon: '🥚', label: 'Yes, put it in the nest' }, { icon: '🤗', label: 'Yes, with a hug' }]);
+    /* One option is the egg itself (a photograph), the other is the two of them
+     * together, which is what the ink set calls `people` — 🤗 owns no layer. */
+    const c = await choose('Give the egg back to the mummy dinosaur?', [{ icon: '🥚', label: 'Yes, put it in the nest' }, { icon: 'people', label: 'Yes, with a hug' }]);
     FX.sfx.sparkle(); if (carried) carried.remove(); hush();
     const nestIcon = world.querySelector('.dq-nest i'); if (nestIcon) nestIcon.textContent = '🥚';
     FX.dinoState(world.querySelector('.dq-mum .du-dino'), 'happy', 1200);

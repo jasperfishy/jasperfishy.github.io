@@ -13,6 +13,12 @@ the `jasperfishy/jasperfishy.github.io` repo (`main` branch). That repo keeps:
 ## Release steps
 
 1. Commit and push this repo, after `node tests/hub-integration.cjs` passes.
+   Three sweeps are cheap and each has caught a real defect, so run them first:
+   `node tests/surface-audit.cjs --strict` (a glyph drawn where no layer can
+   swap it), `node tests/claim-audit.cjs --strict` (a typed glyph no layer
+   claims) and `node tests/dom-text-audit.cjs --strict` (logic deciding from DOM
+   text that the object layer has already turned into a photograph; it also
+   re-proves the retired defects with `--selftest`).
 2. In a clone of `jasperfishy/jasperfishy.github.io` (with `core.autocrlf false`):
    - Replace `public/dino/` with this folder, except `tests/`, and keep
      `public/dino/games/`.

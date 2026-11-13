@@ -3,7 +3,7 @@
  * animated with CSS. States: idle, walk, run, panic, caught, yawn, tired, sleep, happy, sit, lie, wave.
  *     el.innerHTML = DUFX.personHTML('daddy', { state: 'run', size: .8 });
  *     DUFX.personState(el.querySelector('.du-person'), 'panic', 1500);
- *     DUFX.personHold(person, '☕');    // an item in the right hand (or null to clear)
+ *     DUFX.personHold(person, '🍯');    // an item in the right hand (or null to clear)
  */
 (function () {
   'use strict';
@@ -22,6 +22,11 @@
   WHO.courtney = WHO.mummy; // older calls used this key
   DUFX.personWho = WHO;
 
+  /* The marks around a head — sweat, stars, sleep — are drawn in the app's own
+   * ink rather than typed, so they belong to this rig and not to whichever
+   * emoji font the device happens to ship. */
+  const I = (name, size, filled) => window.DUICONS.i(name, { size: size, filled: !!filled });
+
   DUFX.personHTML = function (who, opts) {
     opts = opts || {};
     const W = WHO[who] || WHO.daddy, k = opts.size || 1, state = opts.state || 'idle';
@@ -38,7 +43,7 @@
           ${lids}
           <i class="p-mouth" style="left:${W.mouth[0] * 100}%;top:${W.mouth[1] * 100}%;width:${W.mouthW * 100}%"></i>
           <i class="p-blush" style="left:${(W.mouth[0] - .2) * 100}%;top:${(W.mouth[1] - .12) * 100}%"></i>
-          <span class="p-sweat">💦</span><span class="p-stars">⭐💫✨</span><span class="p-zzz">💤</span>
+          <span class="p-sweat">${I('water', 18)}</span><span class="p-stars">${I('spark', 13)}${I('star', 13, true)}${I('spark', 13)}</span><span class="p-zzz">${I('sleep', 20)}</span>
         </div>
       </div>
     </div>`;

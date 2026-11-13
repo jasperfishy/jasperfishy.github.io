@@ -38,7 +38,7 @@ body { font-family: "Trebuchet MS", "Comic Sans MS", "Chalkboard SE", system-ui,
 .den-section h3, .games-h { margin: 0 0 8px; font-size: 20px; }
 .den-section small { font-size: 14px; opacity: .65; }
 .den { position: relative; height: 150px; border-radius: 24px; overflow: hidden; background: linear-gradient(#bfe8ff 0 55%, #8fd18f 55% 100%); box-shadow: inset 0 -8px 0 #5fb36f, 0 6px 0 rgba(0,0,0,.1); }
-.den::before { content: "☁️"; position: absolute; left: 0; top: 6px; font-size: 34px; animation: ca-drift2 40s linear infinite; }
+.den::before { content: ""; position: absolute; left: 0; top: 6px; width: 44px; height: 30px; background: url("../../../assets/objects/cloud.webp") center / contain no-repeat; animation: ca-drift2 40s linear infinite; }
 @keyframes ca-drift2 { from { transform: translateX(-60px); } to { transform: translateX(110vw); } }
 .den-empty { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 4px; padding: 0 16px; font-weight: 800; }
 .den-empty p { margin: 0; }
@@ -119,7 +119,10 @@ body { font-family: "Trebuchet MS", "Comic Sans MS", "Chalkboard SE", system-ui,
 .puz-live > svg { width: 100%; height: 100%; display: block; }
 .puz-album { display: flex; gap: 8px; justify-content: center; }
 .alb-frame { width: 46px; height: 35px; border-radius: 6px; background: #efe5cd center / cover; border: 3px solid #fff; box-shadow: 0 3px 0 rgba(0,0,0,.16); position: relative; }
-.alb-frame:not(.full)::after { content: "🖼️"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 16px; opacity: .3; }
+/* An empty frame is a drawn frame, not a typed picture: 🖼️ has no photograph in
+ * this valley, and even if it did a `content:` glyph can never be swapped for
+ * one, so the affordance is built from a border in the app's own ink. */
+.alb-frame:not(.full)::after { content: ""; position: absolute; inset: 6px; display: block; border: 3px dashed rgba(80, 50, 80, .38); border-radius: 4px; }
 .alb-frame.full { box-shadow: 0 0 0 2px #ffcf33, 0 3px 0 rgba(0,0,0,.16); }
 .puz-piece.hint { animation: hint-bounce .55s ease-in-out 4; z-index: 20; }
 .puz-slot.hint { background: rgba(255,214,70,.55); animation: du-glow .6s ease-in-out 4; }
@@ -350,7 +353,7 @@ body { font-family: "Trebuchet MS", "Comic Sans MS", "Chalkboard SE", system-ui,
 .swatch.eraser { background: #fff; }
 .col-gallery { display: flex; gap: 8px; justify-content: center; }
 .cg-frame { width: 62px; height: 48px; border-radius: 8px; background: #efe5cd; border: 3px solid #fff; box-shadow: 0 3px 0 rgba(0,0,0,.16); overflow: hidden; display: grid; place-items: center; position: relative; }
-.cg-frame:not(.full)::after { content: "🖼️"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 18px; opacity: .3; }
+.cg-frame:not(.full)::after { content: ""; position: absolute; inset: 8px; display: block; border: 3px dashed rgba(80, 50, 80, .38); border-radius: 6px; }
 .cg-frame.full { box-shadow: 0 0 0 2px #ffcf33, 0 3px 0 rgba(0,0,0,.16); background: #fff; }
 .cg-frame .col-stage { width: 100%; padding: 0; box-shadow: none; border-radius: 0; background: none; pointer-events: none; }
 .cg-frame .placed-sticker { font-size: 8px; }
@@ -388,6 +391,9 @@ body { font-family: "Trebuchet MS", "Comic Sans MS", "Chalkboard SE", system-ui,
 .dash-wrap { position: relative; width: min(96vw, 780px); aspect-ratio: 12 / 5; border-radius: 22px; overflow: hidden; box-shadow: 0 6px 0 rgba(0,0,0,.18); touch-action: manipulation; background: #bfe8ff; }
 .dash-cv { display: block; width: 100%; height: 100%; }
 .dash-dino { position: absolute; width: calc(112px * var(--sc, 1)); left: calc(19.44% - 56px * var(--sc, 1)); bottom: calc(21.3% + var(--lift, 0px) - 6px * var(--sc, 1)); pointer-events: auto; }
+/* The runner wears its photograph now: the photo is 2:1 where the drawn art was 4:3, so the
+ * sprite box widens around the same centre and the feet keep the same height on the ground. */
+.dash-dino .du-dino-photo { width: 150%; margin-left: -25%; }
 .dash-hud { position: absolute; left: 10px; right: 10px; top: 8px; display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 18px; pointer-events: none; }
 .dash-hud > span { background: rgba(255,255,255,.88); border-radius: 14px; padding: 2px 10px; box-shadow: 0 2px 0 rgba(0,0,0,.15); white-space: nowrap; }
 .dh-eggs { font-size: 15px; letter-spacing: 1px; }
@@ -636,3 +642,7 @@ body { font-family: "Trebuchet MS", "Comic Sans MS", "Chalkboard SE", system-ui,
 @media (prefers-reduced-motion: reduce) {
   .pad-cloud, .pad-bush.taken .pad-leaf, .pad-bush.glow { animation: none !important; }
 }
+
+.game-area, [data-game="dig"] .game-area { background:linear-gradient(#ffffff25,#ffffff45),url('../../../assets/environments/jungle.webp') center bottom/cover; }
+.park-path { background: url('../../../assets/environments/jungle.webp') center 70% / cover; }
+.park-path::before, .pp-sun, .pp-cloud { display: none; }

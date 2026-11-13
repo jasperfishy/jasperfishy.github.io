@@ -1,6 +1,7 @@
 /* Dino Park games 1–4: Puzzle, Dig, Footprint Match, Dino Mixer. */
 (function () {
   'use strict';
+  const environmentBase = new URL('../../../assets/environments/', document.currentScript.src).href;
   const { $, $$, rnd, pick, shuffle, sleep, el, drag, hit, den, store, NAMES, SPECIES, COLORS, FX } = window.Park;
   const SPEC_NAME = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
   window.Park.SPEC_NAME = SPEC_NAME;
@@ -20,7 +21,6 @@
 
   /* ---------- premium furniture shared with games2/games3 (same copies, same behaviour) ---------- */
   /* A few collectible stars drift in when the child does something wonderful. */
-  const cheer = (n) => { if (window.DUWONDER && DUWONDER.mote) DUWONDER.mote(n); };
   /* A free hint button on the board itself: a hint costs nothing, take as many as you like. */
   const helpBtn = (showMe) => { const b = el('button', 'btn small', '💡 Show me'); b.setAttribute('aria-label', 'Show me a hint'); b.onclick = () => showMe(); return b; };
   /* A collecting surface that outlives the tab: id -> the level it was first earned at.
@@ -94,11 +94,11 @@
   const toXML = (svgHTML) => { const t = document.createElement('div'); t.innerHTML = svgHTML; return new XMLSerializer().serializeToString(t.firstElementChild); };
   const THEMES = {
     meadow: { sky: ['#7fd0f2', '#e9f8d4'], far: '#9ccfb0', hill1: '#8fd18f', hill2: '#5fb36f', glow: '#ffe27a', prop: 'tree', life: '🦋' },
-    sunset: { sky: ['#ff8f6b', '#ffe3a8'], far: '#c78a8a', hill1: '#b5c978', hill2: '#7fae5f', glow: '#fff0a8', prop: 'tree', life: '🐦' },
+    sunset: { sky: ['#ff8f6b', '#ffe3a8'], far: '#c78a8a', hill1: '#b5c978', hill2: '#7fae5f', glow: '#fff0a8', prop: 'tree', life: '🪶' },
     night: { sky: ['#1d1b5c', '#6a58b8'], far: '#3d3f8f', hill1: '#3f8f78', hill2: '#2c6e66', glow: '#fff6d0', dark: 1, prop: 'pine', life: '✨' },
     lagoon: { sky: ['#79e0e6', '#eafcff'], far: '#8fd8cf', hill1: '#a9e58f', hill2: '#5fb36f', glow: '#ffe27a', water: '#4fc4de', prop: 'palm', life: '🐟' },
     blossom: { sky: ['#ffc3dd', '#fff3f7'], far: '#e8a6c4', hill1: '#a8d98a', hill2: '#6fb96f', glow: '#fff0b8', petal: 1, prop: 'blossom', life: '🐝' },
-    dusk: { sky: ['#5a2f7a', '#ff9a6b'], far: '#6b4a8f', hill1: '#4f8f6f', hill2: '#2f6a5a', glow: '#ffd07a', dark: 1, dusk: 1, prop: 'pine', life: '🦇' },
+    dusk: { sky: ['#5a2f7a', '#ff9a6b'], far: '#6b4a8f', hill1: '#4f8f6f', hill2: '#2f6a5a', glow: '#ffd07a', dark: 1, dusk: 1, prop: 'pine', life: '🦎' },
   };
   const THEME_KEYS = Object.keys(THEMES);
   /* A tiny seeded generator, so one scene always redraws exactly the same way from its own number. */
@@ -110,7 +110,7 @@
     const dw2 = 96 + R() * 30, dh2 = dw2 * .75, dx2 = R() < .5 ? 356 - dw2 : 4, dy2 = 244 - dh2;
     const dino2 = species2 ? FX.dinoSVG(species2, { color: COLORS[(COLORS.indexOf(color) + 3) % COLORS.length] }).replace('<svg class="du-dino-svg"', `<svg x="${f0(dx2)}" y="${f0(dy2)}" width="${f0(dw2)}" height="${f0(dh2)}" class="du-dino-svg"`) : '';
     const stars = Array.from({ length: dark ? 22 : 0 }, (_, i) => `<circle class="sc-star" cx="${f0(R() * 350)}" cy="${f0(R() * 140)}" r="${f1(1.2 + R() * 2)}" fill="#fff" style="animation-delay:${(i % 5) * .4}s"/>`).join('');
-    const petals = T.petal ? Array.from({ length: 12 }, (_, i) => `<text class="sc-star" x="${f0(R() * 350)}" y="${f0(R() * 250)}" font-size="${f0(9 + R() * 8)}" style="animation-delay:${(i % 6) * .3}s">🌸</text>`).join('') : '';
+    const petals = T.petal ? Array.from({ length: 12 }, (_, i) => `<image class="sc-star" href="${window.DUFX.objects.url('🌸')}" x="${f0(R() * 344)}" y="${f0(R() * 244)}" width="${f0(11 + R() * 9)}" height="${f0(11 + R() * 9)}" style="animation-delay:${(i % 6) * .3}s"/>`).join('') : '';
     const sky = dark
       ? `<g>${stars}</g><circle cx="${f0(280 + R() * 40)}" cy="46" r="24" fill="#fffbe0"/><circle cx="${f0(290 + R() * 40)}" cy="40" r="22" fill="${T.dusk ? '#3a2050' : '#2a2870'}" opacity=".9"/>`
       : `<g class="sc-sun"><circle cx="300" cy="46" r="40" fill="${T.glow}" opacity=".35"/><circle cx="300" cy="46" r="26" fill="url(#sn${uid})"/></g>`;
@@ -128,25 +128,24 @@
           ? `<path d="M${propX} 256 V218" stroke="#6a4a2a" stroke-width="7" stroke-linecap="round"/><path d="M${propX - 24} 224 L${propX} 176 L${propX + 24} 224Z" fill="#2f6a5a"/><path d="M${propX - 20} 206 L${propX} 164 L${propX + 20} 206Z" fill="#3f8f78"/>`
           : `<path d="M${propX} 262 Q${propX - 4} 210 ${propX + 8} 160" stroke="#7a5a3a" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M${propX + 8} 160 Q${propX - 18} 140 ${propX - 26} 160 M${propX + 8} 160 Q${propX + 34} 136 ${propX + 50} 156 M${propX + 8} 160 Q${propX - 2} 128 ${propX - 18} 126 M${propX + 8} 160 Q${propX + 24} 128 ${propX + 40} 130" stroke="#3f9a5e" stroke-width="7" fill="none" stroke-linecap="round"/>`;
     const flowers = Array.from({ length: 7 }, () => `<circle cx="${f0(R() * 356)}" cy="${f0(250 + R() * 18)}" r="${f1(3 + R() * 3)}" fill="${pick(['#ff8fb3', '#ffd54f', '#fff', '#c78aff'])}"/>`).join('');
-    const bugs = `<g class="sc-fly">${Array.from({ length: 3 }, () => `<text x="${f0(40 + R() * 280)}" y="${f0(170 + R() * 60)}" font-size="${f0(13 + R() * 8)}">${T.life}</text>`).join('')}</g>`;
+    const bugs = `<g class="sc-fly">${Array.from({ length: 3 }, () => { const sz = f0(15 + R() * 9); return `<image href="${window.DUFX.objects.url(T.life)}" x="${f0(40 + R() * 276)}" y="${f0(160 + R() * 58)}" width="${sz}" height="${sz}"/>`; }).join('')}</g>`;
+    const photo = dark ? 'night' : T.water ? 'coast' : T.prop === 'pine' ? 'mountain' : 'jungle';
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270">
-      <defs><linearGradient id="sk${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.sky[0]}"/><stop offset="1" stop-color="${T.sky[1]}"/></linearGradient>
-      <radialGradient id="sn${uid}"><stop offset="0" stop-color="#fff6c0"/><stop offset="1" stop-color="#ffcf4d"/></radialGradient>
-      <radialGradient id="vg${uid}"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="${dark ? '.4' : '.22'}"/></radialGradient></defs>
-      <rect width="360" height="270" fill="url(#sk${uid})"/>
-      ${sky}
-      ${T.dusk ? '' : `<g class="sc-clouds" fill="#fff" opacity=".92">${clouds}</g>`}
-      <path d="${ridge(158, 44 + R() * 26)}" fill="${T.far}"/>
-      ${vol}${water}
-      <path d="M0 214 Q90 ${f0(190 + R() * 18)} 190 212 T360 206 L360 270 L0 270Z" fill="${T.hill1}"/>
-      <path d="M0 244 Q120 ${f0(220 + R() * 16)} 240 246 T360 240 L360 270 L0 270Z" fill="${T.hill2}"/>
-      ${prop}
+      <image href="${environmentBase + photo}.webp" width="360" height="270" preserveAspectRatio="xMidYMid slice"/>
       <g class="scene-dino">${dino}</g>${dino2 ? `<g class="scene-dino2">${dino2}</g>` : ''}
-      ${flowers}${petals}${bugs}
-      <rect width="360" height="270" fill="url(#vg${uid})"/>
     </svg>`;
   }
-  const dataUri = (svg) => 'url("data:image/svg+xml;utf8,' + encodeURIComponent(toXML(svg)) + '")';
+  const embeddedImages = new Map();
+  async function dataUri(svg) {
+    const doc = new DOMParser().parseFromString(toXML(svg), 'image/svg+xml');
+    await Promise.all([...doc.querySelectorAll('image')].map(async image => {
+      const url=image.getAttribute('href');
+      if (!url || url.startsWith('data:')) return;
+      if (!embeddedImages.has(url)) embeddedImages.set(url,fetch(url).then(r=>{if(!r.ok) throw new Error('Puzzle image unavailable');return r.blob();}).then(blob=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);})).catch(error=>{embeddedImages.delete(url);throw error;}));
+      image.setAttribute('href',await embeddedImages.get(url));
+    }));
+    return 'url("data:image/svg+xml;utf8,'+encodeURIComponent(new XMLSerializer().serializeToString(doc.documentElement))+'")';
+  }
   let album = [], puzSpecies = [], themeDeck = [], puzOff = 0;
   /* Corners, edges and middles: knowing which kind a piece is lets a wrong try teach the shape. */
   const pieceKind = (i, cols, rows) => {
@@ -161,10 +160,10 @@
     return 'So close! Look at the colours on both sides of this piece.';
   };
   /* The "keep going" bonus: four pieces of a picture the child has never seen. */
-  function bonusPuzzle(ctx, host, done) {
+  async function bonusPuzzle(ctx, host, done) {
     const cols = 2, rows = 2, total = 4;
     const sp = pick(puzSpecies), pal = pick(COLORS), theme = pick(THEME_KEYS), uid = (Date.now() % 88000) + 13;
-    const img = dataUri(sceneSVG(sp, pal, uid, theme, pick(SPECIES.filter((s) => s !== sp)), rnd(99999)));
+    const img = await dataUri(sceneSVG(sp, pal, uid, theme, pick(SPECIES.filter((s) => s !== sp)), rnd(99999)));
     host.innerHTML = `<p style="margin:0;font-weight:800;font-size:14px">${SPEC_NAME[sp]} in the ${theme} · 4 pieces · +2⭐</p>`;
     const mini = el('div', 'puz-wrap'); mini.style.setProperty('--cols', cols); mini.style.setProperty('--rows', rows);
     const board = el('div', 'puz-board'); const ghost = el('div', 'puz-ghost'); ghost.style.backgroundImage = img; ghost.style.opacity = .4;
@@ -202,13 +201,13 @@
   window.Park.register({
     id: 'jigsaw', name: 'Dino Puzzle', icon: 'tricera', color: '#7a6fd1', rounds: 5, helper: 'tricera', ambient: 'meadow',
     desc: 'Drag the pieces to build a dinosaur picture!',
-    round(ctx) {
+    async round(ctx) {
       const grids = [[2, 2], [3, 2], [3, 3], [4, 3], [5, 4]], [cols, rows] = grids[ctx.round - 1], total = cols * rows;
       if (ctx.round === 1) { album = []; puzSpecies = shuffle(SPECIES.filter((s) => s !== 'ptero')); themeDeck = shuffle(THEME_KEYS); puzOff = rnd(puzSpecies.length); }
       const sp = puzSpecies[(ctx.round - 1 + puzOff) % puzSpecies.length], color = pick(COLORS), theme = themeDeck[(ctx.round - 1) % themeDeck.length];
       const sp2 = ctx.round >= 3 ? puzSpecies[(ctx.round + 2 + puzOff) % puzSpecies.length] : null;
       const uid = Date.now() % 100000;
-      const svg = sceneSVG(sp, color, uid, theme, sp2, uid + ctx.round * 977), img = dataUri(svg);
+      const svg = sceneSVG(sp, color, uid, theme, sp2, uid + ctx.round * 977), img = await dataUri(svg);
       const blind = ctx.round >= 3, spin = ctx.round >= 4, t0 = Date.now();
       let slips = 0;
       ctx.say(ctx.round === 1 ? 'Drag each piece to its place!' : spin ? 'Some pieces are turned around! Tap a piece to spin it, then drag it in.' : blind ? 'No ghost picture this time — your Peek button still helps!' : `A bigger picture: ${total} pieces this time!`);
@@ -277,7 +276,7 @@
       help.onclick = () => { ctx.say('A hint costs nothing — take one!'); showMe(); };
       head.append(help);
       if (blind) {
-        const peek = el('button', 'btn small', '👁 Peek');
+        const peek = el('button', 'btn small', '👀 Peek');
         peek.onclick = () => { FX.sfx.whoosh(); ghost.style.opacity = .55; FX.anim(ghost, [{ opacity: 0 }, { opacity: .55 }], { duration: 260 }); setTimeout(() => { ghost.style.opacity = 0; }, 1400); };
         wrap.append(peek);
       }
@@ -291,7 +290,6 @@
         board.innerHTML = `<div class="du-dino puz-live" data-state="happy">${svg.replace('<svg xmlns="http://www.w3.org/2000/svg"', '<svg xmlns="http://www.w3.org/2000/svg" class="live"')}</div>`;
         FX.sfx.roar(); FX.celebrate(); ctx.flutter(4);
         FX.anim(board, [{ filter: 'brightness(1.9)' }, { filter: 'none' }], { duration: 800 });
-        if (window.DUWONDER && DUWONDER.running && DUWONDER.running()) DUWONDER.mote(last ? 3 : 1);
         const rec = beatBest('jigsaw', ctx.round, secs);
         const c = centreOf(board);
         if (rec.isNew) { FX.floatText(c.x, c.y - 46, `New best! ${rec.best}s`, { size: 24 }); FX.sfx.coin(); }
@@ -323,12 +321,12 @@
   const FINDS = {
     bone: { e: '🦴', sfx: 'star', puff: 'sparkle', n: 14 },
     gem: { e: '💎', sfx: 'sparkle', puff: 'stars', n: 12 },
-    amber: { e: '🟡', sfx: 'coin', puff: 'stars', n: 14 },
+    amber: { e: '🍯', sfx: 'coin', puff: 'stars', n: 14 },
     shell: { e: '🐚', sfx: 'splash', puff: 'bubbles', n: 10 },
     fern: { e: '🌿', sfx: 'whoosh', puff: 'leaves', n: 10 },
     egg: { e: '🥚', sfx: 'drum', puff: 'hearts', n: 8 },
-    worm: { e: '🪱', sfx: 'boing', puff: 'dust', n: 6 },
-    beetle: { e: '🪲', sfx: 'chirp', puff: 'dust', n: 6 },
+    snail: { e: '🐌', sfx: 'boing', puff: 'dust', n: 6 },
+    turtle: { e: '🐢', sfx: 'chirp', puff: 'dust', n: 6 },
     lizard: { e: '🦎', sfx: 'jump', puff: 'dust', n: 6 },
     rock: { e: '🪨', sfx: 'thud', puff: 'dust', n: 8 },
     dirt: { e: '✨', sfx: 'tap', puff: 'dust', n: 5 },
@@ -357,7 +355,7 @@
       const musArt = (s, id) => { s.innerHTML = FX.dinoHTML(id, { color: COLORS[SPECIES.indexOf(id) % COLORS.length], state: 'happy' }); };
       const museum = collectRow('dg-museum', 'sp', musIds, musMap, '<i>🦕</i>', musArt);
 
-      const chip = el('div', 'lv-chip', '⛏ Soft sand · 2 m');
+      const chip = el('div', 'lv-chip', '🖌 Soft sand · 2 m');
       ctx.goal('Bones found', GOAL);
       const hud = (window.Park.liveHud && Park.liveHud()) || ctx.area;
       hud.append(chip, helpBtn(showMe));
@@ -434,7 +432,7 @@
         }
         cell.classList.add('gone'); cell.setAttribute('aria-label', 'Taken');
         const c = centreOf(cell);
-        if (kind === 'gem') { FX.sfx.sparkle(); FX.burst(c.x, c.y, { kind: 'stars', n: 12 }); ctx.say('A sparkly gem! Bonus star!'); ctx.bonus(1, cell, 'Gem!'); }
+        if (kind === 'gem') { FX.sfx.sparkle(); FX.burst(c.x, c.y, { kind: 'stars', n: 12 }); ctx.say('A sparkly crystal! Bonus star!'); ctx.bonus(1, cell, 'Crystal!'); }
         else if (kind === 'amber') { FX.sfx.coin(); FX.burst(c.x, c.y, { kind: 'stars', n: 16 }); ctx.say('Golden amber — there is a tiny gnat stuck inside!'); ctx.bonus(2, cell, 'Amber!'); }
         else if (kind === 'shell') { FX.sfx.splash(); FX.burst(c.x, c.y, { kind: 'bubbles', n: 12 }); ctx.say('A sea shell! This desert was under water once.'); ctx.bonus(1, cell, 'Shell!'); }
         else if (kind === 'fern') { FX.sfx.whoosh(); FX.burst(c.x, c.y, { kind: 'leaves', n: 12 }); ctx.say('A leaf fossil! Something leafy grew here.'); ctx.bonus(1, cell, 'Fern!'); }
@@ -448,9 +446,9 @@
             FX.sfx.chirp(); FX.burst(centreOf(cell).x, centreOf(cell).y, { kind: 'hearts', n: 8 });
             ctx.say('It hatched! Hello, baby!'); ctx.bonus(1, cell, 'Egg!'); ctx.life.visit();
           }, 850);
-        } else if (kind === 'worm' || kind === 'beetle' || kind === 'lizard') {
+        } else if (kind === 'snail' || kind === 'turtle' || kind === 'lizard') {
           const F = FINDS[kind]; FX.sfx[F.sfx]();
-          ctx.say(kind === 'worm' ? 'Wiggly worm! He says hello.' : kind === 'beetle' ? 'A beetle zooms away!' : 'A little lizard dashes off!');
+          ctx.say(kind === 'snail' ? 'A snail! It waves its feelers, then hides in its shell.' : kind === 'turtle' ? 'A baby turtle scuttles away!' : 'A little lizard dashes off!');
         } else { FX.sfx.tap(); FX.burst(c.x, c.y, { kind: 'dust', n: 4 }); ctx.say(pick(['Only dust here — keep brushing!', 'Empty sand. The bones are somewhere close!', 'Nothing this time. Brush on!'])); }
       };
 
@@ -477,13 +475,13 @@
         dcol = pick(COLORS);
         ghost.innerHTML = FX.dinoHTML(species, { color: dcol, state: 'idle' });
         ghost.style.setProperty('--rev', 0);
-        chip.textContent = `⛏ ${S.name} · ${S.depth} m`;
+        chip.textContent = `🖌 ${S.name} · ${S.depth} m`;
         stratumBones = STRATUM_BONES[depth % STRATUM_BONES.length] + (depth >= STRATA.length ? 1 : 0);
         stratumGot = 0; bonesHere = [];
         const gems = 1 + (depth % 2), rocks = 4 + (depth % 3);
         const specials = [...Array(stratumBones).fill('bone'), ...Array(gems).fill('gem'), ...Array(depth % 2 === 0 ? 1 : 0).fill('egg'),
           ...Array(depth % 4 === 3 ? 1 : 0).fill('amber'), ...Array(depth % 2).fill('shell'), ...Array((depth + 1) % 2).fill('fern'),
-          'worm', 'beetle', ...Array(rocks).fill('rock')];
+          'snail', 'turtle', ...Array(rocks).fill('rock')];
         const cells = Math.max(specials.length, COLS * ROWS);
         const items = shuffle([...specials, ...Array(Math.max(0, cells - specials.length)).fill('dirt')]);
         face.style.background = `linear-gradient(${S.band[0]}, ${S.band[1]} 55%, ${S.band[2]})`;
@@ -516,7 +514,7 @@
         ghost.classList.add('alive'); FX.dinoState(ghost.firstChild, 'roar', 1500); FX.sfx.roar(); FX.celebrate();
         if (musV.set(species, skeletons) && stampInto(museum, musArt, species, skeletons, 'Dug up!')) {
           ctx.say(`${SPEC_NAME[species]} joins the museum — ${museum.dataset.got} of ${musIds.length} dug up!`);
-          if (museum.classList.contains('full')) { ctx.bonus(2, museum, 'Every dinosaur dug!'); cheer(2); }
+          if (museum.classList.contains('full')) { ctx.bonus(2, museum, 'Every dinosaur dug!'); }
         }
         await sleep(1500); if (!ctx.alive()) return;
         const a = FX.anim(face, [{ transform: 'none', opacity: 1 }, { transform: 'translateY(60%) scale(.92)', opacity: 0 }], { duration: 750, easing: 'ease-in' });
@@ -545,7 +543,7 @@
       /* Scuttlers cross the trench on their own errands. */
       ctx.every(9000, () => {
         if (!ctx.alive() || !face.isConnected) return;
-        const kind = pick(['worm', 'beetle', 'lizard']);
+        const kind = pick(['snail', 'turtle', 'lizard']);
         const F = FINDS[kind];
         const s = el('span', 'exc-scuttler', F.e);
         s.setAttribute('aria-label', 'A little friend crossing the trench');
@@ -593,7 +591,7 @@
     { name: 'Riverside mud', bg: 'linear-gradient(#c69a63,#8d5f37)', ink: '#5e4430', litter: ['🌾', '💧', '🪨', '🌿'] },
     { name: 'Beach sand', bg: 'linear-gradient(#f4e3b2,#cbb177)', ink: '#8a6a3a', litter: ['🐚', '🌊', '🌴', '⭐'] },
     { name: 'Volcanic ash', bg: 'linear-gradient(#96929c,#4a4a55)', ink: '#2b2b33', litter: ['🌋', '🪨', '🔥', '🍂'] },
-    { name: 'Moonlight bog', bg: 'radial-gradient(circle at 50% 24%, #4b3f8a, #241f52)', ink: '#dfe0ff', litter: ['🌙', '✨', '🪷', '🦟'], dark: 1 },
+    { name: 'Moonlight bog', bg: 'radial-gradient(circle at 50% 24%, #4b3f8a, #241f52)', ink: '#dfe0ff', litter: ['🌙', '✨', '🪷', '🐌'], dark: 1 },
   ];
   /* How a print gives its animal away — used to teach after a wrong guess instead of just buzzing. */
   const TOES = {
@@ -761,7 +759,6 @@
         if (rec.isNew) { FX.floatText(c.x, c.y - 30, `New best! ${rec.best}s`, { size: 24 }); FX.sfx.coin(); }
         else if (!rec.was) FX.floatText(c.x, c.y - 30, `First time: ${rec.best}s`, { size: 22 });
         if (!slips && secs < k * 9) ctx.bonus(1, mud, 'Quick feet!');
-        if (window.DUWONDER && DUWONDER.running && DUWONDER.running()) DUWONDER.mote(last ? 3 : 1);
         if (last && await keepGoing(ctx, 'Keep going?', 'A mystery trail leads off into the reeds.', 'Follow the prints!', '#d9694f', (host, d2) => bonusTrail(ctx, host, d2))) {
           ctx.done(`You matched every shadow, then solved a mystery trail in ${bestLine('lotto', ctx.round).replace('Best ⏱ ', '')}!`, 2600);
           return;
@@ -773,9 +770,9 @@
   });
 
   /* ====================================================================== 4. Dino Mixer */
-  const ACCS = [{ k: 'hat', e: '🎩', n: 'Top hat' }, { k: 'crown', e: '👑', n: 'Crown' }, { k: 'glasses', e: '🕶️', n: 'Sunglasses' }, { k: 'bow', e: '🎀', n: 'Bow' }, { k: 'flower', e: '🌸', n: 'Flower' }, { k: 'party', e: '🧢', n: 'Cap' }];
+  const ACCS = [{ k: 'plume', e: '🪶', n: 'Feather plume' }, { k: 'crystal', e: '💎', n: 'Crystal crown' }, { k: 'pendant', e: '🟠', n: 'Amber pendant' }, { k: 'shell', e: '🐚', n: 'Conch shell' }, { k: 'flower', e: '🌸', n: 'Flower' }, { k: 'beads', e: '📿', n: 'Bone beads' }];
   // [dx, dy, size, rotation] relative to the eye, drawn inside the head so it moves with it.
-  const ACC_POS = { hat: [-4, -38, 50, -10], crown: [-6, -36, 44, -8], glasses: [-14, 6, 40, 0], bow: [-14, 40, 32, 12], flower: [-10, -28, 34, 14], party: [-12, 8, 36, 0] };
+  const ACC_POS = { plume: [-4, -38, 50, -10], crystal: [-6, -36, 44, -8], pendant: [-14, 6, 40, 0], shell: [-14, 40, 32, 12], flower: [-10, -28, 34, 14], beads: [-12, 8, 36, 0] };
   const COLOUR_HEX = { green: '#91d09c', teal: '#7fd1c7', purple: '#b9a1e6', orange: '#f6b273', pink: '#f5a9c4', blue: '#8cc3ee', yellow: '#f3d56b', red: '#ee8a7c' };
   const dress = (dinoEl, accs) => {
     const svg = dinoEl && dinoEl.querySelector('svg'); if (!svg) return;
@@ -783,21 +780,22 @@
     const cx = +eye.getAttribute('cx'), cy = +eye.getAttribute('cy'), ns = 'http://www.w3.org/2000/svg';
     accs.forEach((k) => {
       const a = ACCS.find((x) => x.k === k), [dx, dy, size, rot] = ACC_POS[k];
-      const t = document.createElementNS(ns, 'text');
-      t.setAttribute('x', cx + dx); t.setAttribute('y', cy + dy); t.setAttribute('font-size', size); t.setAttribute('text-anchor', 'middle'); t.setAttribute('dominant-baseline', 'central');
-      t.setAttribute('transform', `rotate(${rot} ${cx + dx} ${cy + dy})`); t.textContent = a.e; head.append(t);
+      const t = document.createElementNS(ns, 'image');
+      t.setAttribute('href', window.DUFX.objects.url(a.e)); t.setAttribute('x', cx + dx - size / 2); t.setAttribute('y', cy + dy - size / 2);
+      t.setAttribute('width', size); t.setAttribute('height', size); t.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      t.setAttribute('transform', `rotate(${rot} ${cx + dx} ${cy + dy})`); head.append(t);
     });
   };
   /* Four backdrops to mix in front of, each with its own drifting litter. */
   const STAGES = [
-    { name: 'Meadow stage', bg: 'linear-gradient(#d8f3c9,#a2d68a)', litter: ['🌼', '🦋', '🍃', '🐞'] },
+    { name: 'Meadow stage', bg: 'linear-gradient(#d8f3c9,#a2d68a)', litter: ['🌼', '🦋', '🍃', '🐌'] },
     { name: 'Lagoon stage', bg: 'linear-gradient(#c7f2f7,#7fc9dd)', litter: ['🐟', '🌴', '💧', '🪷'] },
     { name: 'Volcano stage', bg: 'linear-gradient(#f6c9a0,#c9714f)', litter: ['🌋', '🔥', '🪨', '🍂'] },
-    { name: 'Starry stage', bg: 'linear-gradient(#3b3378,#1b1740)', litter: ['⭐', '🌙', '✨', '🪐'] },
+    { name: 'Starry stage', bg: 'linear-gradient(#3b3378,#1b1740)', litter: ['⭐', '🌙', '🌌', '🌠'] },
   ];
   /* Free-play rounds give a silly wish to grant; matching it pays a bonus. */
   const WISHES = [
-    { t: 'wear a hat or a crown', ok: (s) => s.acc.includes('hat') || s.acc.includes('crown') },
+    { t: 'wear a feather plume or a crystal crown', ok: (s) => s.acc.includes('plume') || s.acc.includes('crystal') },
     { t: 'be pink or purple', ok: (s) => s.c === 'pink' || s.c === 'purple' },
     { t: 'have a tiny head on a big body', ok: (s) => (s.h === 'raptor' || s.h === 'ptero') && (s.b === 'bronto' || s.b === 'trex') },
     { t: 'mix two different dinosaurs', ok: (s) => s.h !== s.b },
@@ -867,7 +865,7 @@
         wrap.append(tEl);
         FX.anim(tEl, [{ transform: 'translateY(-12px) scale(.92)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 480, easing: 'cubic-bezier(.2,.9,.3,1.25)' });
         if (memory) {
-          const peek = el('button', 'btn small', '👁 Peek again'); peek.hidden = true;
+          const peek = el('button', 'btn small', '👀 Peek again'); peek.hidden = true;
           const hide = () => { tEl.classList.add('hiding'); $('.mt-txt', tEl).textContent = 'Can you remember?'; peek.hidden = false; FX.sfx.tap(); };
           setTimeout(() => { if (ctx.alive()) hide(); }, 5200);
           peek.onclick = () => { FX.sfx.whoosh(); tEl.classList.remove('hiding'); $('.mt-txt', tEl).textContent = label(target); peek.hidden = true; setTimeout(() => { if (ctx.alive()) hide(); }, 2200); };
@@ -982,7 +980,6 @@
         }
         await sleep(1200); if (!ctx.alive()) return;
         d.setAttribute('data-base', 'happy'); FX.dinoState(d, 'happy');
-        if (window.DUWONDER && DUWONDER.running && DUWONDER.running()) DUWONDER.mote(R === ctx.rounds ? 3 : 1);
         const last = R === ctx.rounds;
         if (last && await keepGoing(ctx, 'Keep going?', 'Spin a brand-new twin for your Dino Den and give it a fancy style.', 'Mix a twin!', '#2fa58a', (host, d2) => bonusTwin(ctx, host, d2))) {
           ctx.done(`You built every mission and filled the den — ${st.name} and its twin are awake!`, 2600);

@@ -13,9 +13,13 @@
 
 const EXTRAS_KEY = "du-adv-extras-v1";
 
-export const STICKERS = ["🦖", "🦕", "🐊", "🦎", "🐢", "🦴", "🥚", "🌋", "🌴", "🌿", "🍃", "🦋", "🐞", "🐝", "🌈", "☀️",
-  "🌙", "⭐", "🌟", "💎", "🔮", "🪨", "🍓", "🍎", "🥕", "🐟", "🦐", "🐚", "🌸", "🌻", "🍄", "🎈",
-  "🎁", "🎺", "🥁", "🎨", "🧩", "🔭", "🚀", "🛸", "🦜", "🦉", "🐙", "🦈", "🐳", "🦀", "🪽", "👑"];
+/* One photograph per family, so no two stickers in the album are the same
+ * picture wearing a different name. This list used to carry a ladybird, a
+ * balloon, a shrimp and a crab — things that never lived here. */
+export const STICKERS = ["🦖", "🥚", "🦴", "🌋", "🌴", "🌿", "🍂", "🦋", "🐝", "🌈", "☀️",
+  "🌙", "⭐", "💎", "🔮", "🪨", "🐌", "🐢", "🦈", "🐟", "🍓", "🍄", "🌰", "🪵", "🪹",
+  "🐚", "🌾", "☘️", "🪴", "🌵", "🪶", "🌺", "🧺", "🏺", "🪔", "🎋", "🌗", "⬛", "🪓",
+  "☄️", "🌀", "🦶", "🧡", "🟢"];
 
 function fx() { return window.DUFX || {}; }
 function motionOK() { const F = fx(); return !F.motionOK || F.motionOK(); }
@@ -85,19 +89,21 @@ export function albumHTML() {
 const THEMES = {
   meadow: { sun: "☀️", fly: "🦋", cls: "pk-meadow" },
   night: { sun: "🌙", fly: "✨", cls: "pk-night" },
-  cave: { sun: "💎", fly: "🦇", cls: "pk-cave" },
+  cave: { sun: "💎", fly: "🍃", cls: "pk-cave" },
   water: { sun: "🫧", fly: "🐟", cls: "pk-water" },
-  sky: { sun: "☀️", fly: "🪁", cls: "pk-sky" },
+  sky: { sun: "🔆", fly: "☁️", cls: "pk-sky" },
   dig: { sun: "☀️", fly: "🦎", cls: "pk-dig" },
   rain: { sun: "🌧️", fly: "🌈", cls: "pk-rain" },
-  party: { sun: "🎉", fly: "🎈", cls: "pk-party" }
+  // A balloon is a birthday prop, not a thing from this valley; a feather on
+  // the wind is what the party theme actually has drifting past.
+  party: { sun: "🎉", fly: "🪽", cls: "pk-party" }
 };
 const BUDDIES = ["tricera", "stego", "bronto", "raptor", "trex"];
 const WANDERERS = ["tricera", "stego", "bronto", "raptor", "trex"];
 const COLORS = ["green", "teal", "purple", "orange", "pink", "blue", "yellow"];
-const KIND = ["Nearly! Try another 💛", "Oops, that one's shy. Have another go!", "So close! You can do it 🌟", "Hmm, not that one. Look again!", "That's okay, keep exploring!"];
+const KIND = ["Nearly! Try another ✨", "Oops, that one's shy. Have another go!", "So close! You can do it 🌟", "Hmm, not that one. Look again!", "That's okay, keep exploring!"];
 const PRAISE = ["Yay!", "Great!", "Lovely!", "Super!", "Wow!", "Roarsome!", "Brilliant!", "Dino-mite!"];
-const STREAK_WORDS = { 3: "Hat-trick! 🔥", 5: "On fire! 🔥🔥", 8: "Unstoppable! 🚀", 12: "Legend! 👑" };
+const STREAK_WORDS = { 3: "Hat-trick! 🔥", 5: "On fire! 🔥🔥", 8: "Unstoppable! 🚀", 12: "Legend! ⭐" };
 
 export function createPlay(context, o) {
   o = o || {};
@@ -123,6 +129,13 @@ export function createPlay(context, o) {
 
   const scene = stage.querySelector(".pk-scene");
   const board = stage.querySelector(".pk-board");
+  const photoTheme = /night|moon|star/.test(o.theme || '') ? 'night' : /snow|ice/.test(o.theme || '') ? 'ice' : /ocean|water/.test(o.theme || '') ? 'underwater' : 'jungle';
+  scene.style.backgroundImage = `url('${new URL('../../../assets/environments/'+photoTheme+'.webp',import.meta.url).href}')`;
+  scene.style.backgroundSize = 'cover';
+  scene.style.backgroundPosition = 'center bottom';
+  scene.querySelector('.pk-back').style.display = 'none';
+  scene.querySelector('.pk-grass').style.display = 'none';
+
   const ground = stage.querySelector(".pk-ground");
   const sayEl = stage.querySelector(".pk-say");
   const hintEl = stage.querySelector(".pk-hint");
@@ -151,7 +164,7 @@ export function createPlay(context, o) {
       sfx("chirp");
       const r = buddyEl.getBoundingClientRect();
       burst(r.left + r.width * 0.55, r.top + r.height * 0.3, { kind: "hearts", n: 6 });
-      play.say(pickOne(["Hello, friend! 💚", "I'm cheering for you!", "You're doing great!", "Tickle tickle! 🦖"]));
+      play.say(pickOne(["Hello, friend! ✨", "I'm cheering for you!", "You're doing great!", "Tickle tickle! 🦖"]));
     });
   }
 
@@ -309,7 +322,7 @@ export function createPlay(context, o) {
     cheerAll("happy", 1800);
     const banner = document.createElement("div");
     banner.className = "pk-banner";
-    banner.innerHTML = '<div class="pk-banner-stars">' + [1, 2, 3].map(function (n) { return '<i class="' + (n <= stars ? "on" : "") + '" style="--i:' + n + '">' + (n <= stars ? "⭐" : "☆") + "</i>"; }).join("") + '</div>' +
+    banner.innerHTML = '<div class="pk-banner-stars">' + [1, 2, 3].map(function (n) { return '<i class="' + (n <= stars ? "on" : "") + '" style="--i:' + n + '">' + window.DUICONS.i('star', { size: 20, filled: n <= stars }) + "</i>"; }).join("") + '</div>' +
       '<strong>' + escapeText(stars === 3 ? "Perfect!" : stars === 2 ? "Well done!" : "Good effort!") + '</strong>' +
       (state.best >= 3 ? '<small>Best streak: ' + state.best + ' 🔥</small>' : "");
     scene.appendChild(banner);

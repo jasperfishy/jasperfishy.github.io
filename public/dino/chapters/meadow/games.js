@@ -5,14 +5,23 @@ import {dinoSVG} from './art.js';
 import * as E from './engine.js';
 
 export const games={};
+const withArticle=(name)=>(/^[aeiou]/i.test(name)?'an ':'a ')+name;
 const el=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};
-const NAME={'🥚':'egg','🍓':'strawberry','🍃':'leaf','🌻':'sunflower','🦋':'butterfly','🍄':'mushroom','🐚':'shell','🍎':'apple','🥕':'carrot','⭐':'star','🌈':'rainbow','🐞':'ladybird','🍇':'grapes','🐟':'fish','🌙':'moon','🍌':'banana'};
+/* The valley's own things, because each of these is a photograph the universe
+ * already has. It used to hold apples, carrots and ladybirds, which have no
+ * picture here and so showed the child a cartoon next to a photoreal dinosaur. */
+const NAME={'🥚':'egg','🍓':'berry','🌿':'fern','🌰':'seed cone','🐚':'shell','🦋':'butterfly','🍄':'mushroom','🌼':'flower','⭐':'star','🌈':'rainbow','🪨':'stone','🐟':'fish','🌙':'moon','🪶':'feather','☘️':'moss','🐌':'snail'};
 const POOL=Object.keys(NAME);
-function cards(g,items,{cls='',labels=[],onPick}){
+function cards(g,items,{cls='',labels=[],values=[],onPick}){
  const box=el('div','choices '+cls);
  items.forEach((html,i)=>{
   const b=el('button','choice',html);
   if(labels[i])b.setAttribute('aria-label',labels[i]);
+  /* Which thing this card really is, kept off its text: fx/du-objects.js swaps an
+   * emoji text node for an <img class="du-obj"> as soon as the photograph decodes,
+   * so textContent is empty long before a child can tap anything. A game that asks
+   * the DOM what a card shows is asking a question the DOM can no longer answer. */
+  if(values[i])b.dataset.value=values[i];
   b.onclick=()=>{if(b.classList.contains('gone')||box.classList.contains('locked'))return;onPick(i,b);};
   box.append(b);
  });
@@ -20,66 +29,127 @@ function cards(g,items,{cls='',labels=[],onPick}){
  return box;
 }
 
+/* ---------- living fields: things that actually move ----------
+ * These rounds used to lay their pictures out in a tidy row, so the only verb a
+ * child had was to scan left to right and tap. Here the crowd is walked by
+ * g.loop every frame, so finding the right specimen means tracking something
+ * that is really going about its business in the grass — and no two rounds ever
+ * arrive in the same shape. Nothing counts down and nothing is lost when a
+ * thing wanders past: the meadow still keeps its promise of no clocks. */
+const ROLLERS = new Set(['🥚', '🍓', '🌰', '🐚', '🪨', '🍄', '🌼', '⭐']);
+const FLOATERS = new Set(['🦋', '🌈', '🪶', '🌙', '☘️', '🌿']);
+function roamField(g, items, o = {}) {
+  const box = el('div', 'roam-field' + (o.cls || ''));
+  box.style.setProperty('--rh', (o.height || 250) + 'px');
+  g.play.append(box);
+  const base = (o.speed ?? (g.easy ? .04 : .058)) + g.round * (o.ramp ?? .007);
+  const crowd = items.map((it, i) => {
+    const b = el('button', 'roamer', it.html);
+    b.style.setProperty('--rs', (it.size || 84) + 'px');
+    if (it.value) b.dataset.value = it.value;
+    if (it.label) b.setAttribute('aria-label', it.label);
+    const p = { b, it, i, x: .08 + Math.random() * .84, y: .12 + Math.random() * .74,
+      a: Math.random() * 6.28, v: base * (.78 + Math.random() * .5),
+      wob: .5 + Math.random() * .9, ph: Math.random() * 6.28,
+      roll: ROLLERS.has(it.value), dist: 0, held: false };
+    b.onclick = () => { if (box.classList.contains('still') || b.classList.contains('gone')) return; o.onPick(it, p, b); };
+    box.append(b);
+    return p;
+  });
+  let t = Math.random() * 9, w = 0, h = 0, rt = 0;
+  g.loop(dt => {
+    t += dt; rt += dt;
+    if (rt > .4 || !w) { rt = 0; w = box.clientWidth || 520; h = box.clientHeight || 250; }
+    if (box.classList.contains('still')) return;
+    for (const p of crowd) {
+      if (p.b.classList.contains('gone')) continue;
+      p.a += Math.sin(t * p.wob + p.ph) * dt * 1.4;
+      const v = p.held ? 0 : p.v, dx = Math.cos(p.a) * v * dt, dy = Math.sin(p.a) * v * dt * .55;
+      p.x += dx; p.y += dy; p.dist += dx * w;
+      if (p.x < .04) { p.x = .04; p.a = Math.PI - p.a; }
+      if (p.x > .96) { p.x = .96; p.a = Math.PI - p.a; }
+      if (p.y < .05) { p.y = .05; p.a = -p.a; }
+      if (p.y > .95) { p.y = .95; p.a = -p.a; }
+      const face = Math.cos(p.a) < 0 ? -1 : 1;
+      const lift = (p.roll || p.held) ? 0 : Math.sin(t * 2.1 + p.ph) * (FLOATERS.has(p.it.value) ? 9 : 5);
+      p.px = p.x * w; p.py = p.y * h + lift;
+      /* Written as the separate translate/rotate/scale properties, not one
+       * transform string: the cheer in g.right animates `transform`, and a
+       * transform keyframe replaces the whole property, which would yank the
+       * thing to the corner of the field for 380ms in the middle of praising
+       * the child for finding it. */
+      p.b.style.translate = `${p.px.toFixed(1)}px ${p.py.toFixed(1)}px`;
+      p.b.style.rotate = `${(p.roll ? p.dist * .9 : 0).toFixed(1)}deg`;
+      p.b.style.scale = `${p.it.flip === false ? 1 : face}`;
+    }
+    if (o.tick) o.tick(t, crowd);
+  });
+  return { box, crowd,
+    still() { box.classList.add('still'); },
+    live() { return crowd.filter(p => !p.b.classList.contains('gone')); } };
+}
 /* ---------- Matching: same picture, shadow, odd one out, pairs ---------- */
-games.match=g=>{
- const t=POOL[(g.level*4+g.round*3)%POOL.length];
- const mode=['same','same','shadow','odd','pairs'][g.round];
- const others=g.shuffle(POOL.filter(x=>x!==t));
- if(mode==='same'||mode==='shadow'){
-  const shadow=mode==='shadow';
-  const count=g.easy?(g.round===0?2:3):4;
-  g.say(shadow?`Who is making this shadow? Find the ${NAME[t]}.`:`Find the ${NAME[t]}.`);
-  const target=el('div','target-card'+(shadow?' shadow':''),`<span>${t}</span><small>${shadow?'a shadow':'look at me!'}</small>`);
-  g.play.append(target);
-  const opts=g.shuffle([t,...others.slice(0,count-1)]);
-  const box=cards(g,opts,{labels:opts.map(o=>NAME[o]),onPick:(i,b)=>{
-   if(opts[i]!==t){b.classList.add('gone');g.wrong(b);return;}
-   box.classList.add('locked');
-   g.right(b);
-   g.fly(b,target,t).then(()=>{target.classList.remove('shadow');target.classList.add('lit');E.burstAt(target,{kind:'sparkle',n:16});E.sfx('sparkle');g.win();});
-  }});
-  g.onAssist(()=>g.hint(box.children[opts.indexOf(t)]));
-  return;
- }
- if(mode==='odd'){
-  const odd=others[0];
-  g.say('One of these is different. Which one?');
-  const items=[t,t,t,t,t,odd],order=g.shuffle(items.map((x,i)=>i));
-  const box=cards(g,order.map(i=>items[i]),{cls:'odd-grid',labels:order.map(i=>NAME[items[i]]),onPick:(i,b)=>{
-   if(items[order[i]]!==odd){g.wrong(b,{text:'That one is the same as the others. Look again!'});E.animate(b,[{transform:'scale(1)'},{transform:'scale(.9)'},{transform:'scale(1)'}],{duration:240});return;}
-   box.classList.add('locked');g.right(b,{kind:'sparkle'});b.classList.add('lit');
-   [...box.children].forEach(c=>{if(c!==b)c.classList.add('fade');});
-   g.win();
-  }});
-  g.onAssist(()=>g.hint(box.children[order.findIndex(i=>items[i]===odd)]));
-  return;
- }
- // pairs: eight open cards, tap two that are the same
- const kinds=g.shuffle(POOL).slice(0,g.easy?3:4);
- const deck=g.shuffle([...kinds,...kinds]);
- let first=null,left=kinds.length;
- g.say('Tap two pictures that are the same.');
- const box=cards(g,deck,{cls:'pairs-grid',labels:deck.map(d=>NAME[d]),onPick:(i,b)=>{
-  if(first===b){b.classList.remove('selected');first=null;return;}
-  if(!first){first=b;b.classList.add('selected');E.sfx('tap');return;}
-  const a=first;first=null;a.classList.remove('selected');
-  if(a.textContent===b.textContent){
-   box.classList.add('locked');
-   g.right(b,{kind:'sparkle',n:12});E.burstAt(a,{kind:'sparkle',n:10});
-   [a,b].forEach(x=>x.classList.add('lit'));
-   g.later(()=>{[a,b].forEach(x=>{x.classList.add('gone');x.classList.add('vanish');});box.classList.remove('locked');if(--left===0)g.win();},520);
-  }else{
-   g.wrong(b,{text:'Those are different. Try two more!'});E.animate(a,[{transform:'scale(1)'},{transform:'scale(.9)'},{transform:'scale(1)'}],{duration:260});
+games.match = g => {
+  const t = POOL[(g.level * 4 + g.round * 3) % POOL.length];
+  const mode = ['same', 'same', 'shadow', 'odd', 'pairs'][g.round];
+  const others = g.shuffle(POOL.filter(x => x !== t));
+  if (mode === 'same' || mode === 'shadow') {
+    const shadow = mode === 'shadow';
+    const count = g.easy ? (g.round === 0 ? 3 : 4) : 5;
+    g.say(shadow ? `Who is making this shadow? Catch the ${NAME[t]}.` : `Find the ${NAME[t]} — it is moving about in the grass!`);
+    const target = el('div', 'target-card' + (shadow ? ' shadow' : ''), `<span>${t}</span><small>${shadow ? 'a shadow' : 'look at me!'}</small>`);
+    g.play.append(target);
+    const opts = g.shuffle([t, ...others.slice(0, count - 1)]);
+    const f = roamField(g, opts.map(v => ({ html: v, value: v, label: NAME[v] })), {
+      onPick: (it, p, b) => {
+        if (it.value !== t) { b.classList.add('gone'); g.wrong(b, { text: `That is a ${NAME[it.value]}. Look for the ${NAME[t]}!` }); return; }
+        f.still();
+        f.crowd.forEach(p => { if (p.it.value !== t) p.b.classList.add('fade'); });
+        g.right(b);
+        g.fly(b, target, t).then(() => { target.classList.remove('shadow'); target.classList.add('lit'); E.burstAt(target, { kind: 'sparkle', n: 16 }); E.sfx('sparkle'); g.win(); });
+      } });
+    g.onAssist(() => g.hint(f.crowd[opts.indexOf(t)].b));
+    return;
   }
- }});
- g.onAssist(()=>{const f=[...box.children].filter(c=>!c.classList.contains('gone'));const m=f.find((c,i)=>f.some((d,j)=>j!==i&&d.textContent===c.textContent));if(m)g.hint(m);});
+  if (mode === 'odd') {
+    const odd = others[0];
+    g.say('One of these is not like the others. Which one, as they go by?');
+    const items = g.shuffle([t, t, t, t, odd]);
+    const f = roamField(g, items.map(v => ({ html: v, value: v, label: NAME[v] })), {
+      height: 270, onPick: (it, p, b) => {
+        if (it.value !== odd) { b.classList.add('gone'); g.wrong(b, { text: 'That one is the same as the others. Look again!' }); return; }
+        f.still(); g.right(b, { kind: 'sparkle' }); b.classList.add('lit');
+        f.crowd.forEach(p => { if (p.b !== b) p.b.classList.add('fade'); });
+        g.win();
+      } });
+    g.onAssist(() => g.hint(f.crowd[items.indexOf(odd)].b));
+    return;
+  }
+  // pairs: the whole deck is loose in the meadow — tap two of the same kind
+  const kinds = g.shuffle(POOL).slice(0, g.easy ? 3 : 4);
+  const deck = g.shuffle([...kinds, ...kinds]);
+  let first = null, left = kinds.length;
+  g.say('Tap two of the same kind. Hold one still and find its partner!');
+  const f = roamField(g, deck.map(v => ({ html: v, value: v, label: NAME[v] })), {
+    height: 300, speed: g.easy ? .05 : .072, onPick: (it, p, b) => {
+      if (first === p) { p.held = false; b.classList.remove('selected'); first = null; return; }
+      if (!first) { first = p; p.held = true; b.classList.add('selected'); E.sfx('tap'); return; }
+      const a = first; first = null; a.held = false; a.b.classList.remove('selected');
+      if (a.it.value === it.value) {
+        g.right(b, { kind: 'sparkle', n: 12 }); E.burstAt(a.b, { kind: 'sparkle', n: 10 });
+        [a.b, b].forEach(x => x.classList.add('lit'));
+        g.later(() => { [a.b, b].forEach(x => x.classList.add('gone')); if (--left === 0) g.win(); }, 520);
+      } else g.wrong(b, { text: 'Those are different. Try two more!' });
+    } });
+  g.onAssist(() => { const l = f.live(); const m = l.find((c, i) => l.some((d, j) => j !== i && d.it.value === c.it.value)); if (m) g.hint(m.b); });
 };
+
 
 
 /* ---------- Counting: tap to count, give the right number, which pile is more ---------- */
 const WORDS=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
-const COUNT_ITEMS=['🥚','🍓','🍎','🌻','⭐'];
-const PLURAL={'🥚':'eggs','🍓':'strawberries','🍎':'apples','🌻':'sunflowers','⭐':'stars'};
+const COUNT_ITEMS=['🥚','🍓','🌿','🐚','⭐'];
+const PLURAL={'🥚':'eggs','🍓':'berries','🌿':'ferns','🐚':'shells','⭐':'stars'};
 function numberCards(g,answer,onRight,note='How many in all?'){
  g.say(note);
  const opts=g.shuffle([answer,...g.shuffle([answer-2,answer-1,answer+1,answer+2].filter(n=>n>=1)).slice(0,2)]);
@@ -195,7 +265,7 @@ games.colours=g=>{
   const list=g.shuffle([...Array(want).fill(target),...Array(g.easy?3:5).fill(0).map((_,i)=>others[i%2])]);
   g.say(`Pop all the ${lower} balloons!`);
   const field=el('div','balloons');g.play.append(field);
-  const bar=el('div','want',`${'🎈'.repeat(0)}<span id="left">${want} to find</span>`);g.play.append(bar);
+  const bar=el('div','want',`<span id="left">${want} to find</span>`);g.play.append(bar);
   let left=want;
   list.forEach((c,i)=>{
    const b=el('button','balloon',`<svg viewBox="0 0 60 92" aria-hidden="true"><ellipse cx="30" cy="32" rx="26" ry="30" fill="${c[1]}" stroke="#285357" stroke-width="3"/><path d="M30 62l-6 9h12z" fill="${c[1]}" stroke="#285357" stroke-width="3" stroke-linejoin="round"/><path d="M30 71q-9 9 0 20" stroke="#285357" stroke-width="2" fill="none"/><ellipse cx="19" cy="20" rx="6" ry="9" fill="#fff" opacity=".5"/></svg>`);
@@ -366,7 +436,9 @@ games.shapes=g=>{
 };
 
 /* ---------- Big & small: biggest, smallest, longest log, line them up, heavy and light ---------- */
-const SEESAW=[['🐘','🐭'],['🪨','🪶'],['🍉','🍒'],['🦕','🥚'],['🚗','🎈'],['🐻','🐥']];
+/* Heavy and light, both sides photographed, and never the same picture
+ * facing itself across the plank. */
+const SEESAW=[['🪨','🪶'],['🦕','🥚'],['🥁','🍃'],['🧺','🌼'],['🏺','💧'],['🌳','🍂']];
 games.size=g=>{
  const mode=['big','small','log','line','heavy'][g.round];
  const bigger=g.level%2===0;
@@ -396,7 +468,7 @@ games.size=g=>{
   const want=longest?250:90;
   const col=el('div','logs');g.play.append(col);
   lens.forEach(w=>{
-   const b=el('button','log',`<span class="log-end"></span>`);b.style.width=`${w}px`;b.setAttribute('aria-label',w===250?'Long log':w===170?'Medium log':'Short log');
+   const b=el('button','log photo-log',`<span class="log-end"></span>`);b.style.width=`${w}px`;b.setAttribute('aria-label',w===250?'Long log':w===170?'Medium log':'Short log');
    b.onclick=()=>{
     if(w!==want){g.wrong(b,{text:`That one is ${longest?'shorter':'longer'}. Which is the ${longest?'longest':'shortest'}?`});return;}
     col.classList.add('locked');g.right(b);b.classList.add('lit');g.win();
@@ -435,19 +507,20 @@ games.size=g=>{
  const ss=el('div','seesaw',`<div class="plank"><span class="end l">${heavyLeft?pair[0]:pair[1]}</span><span class="end r">${heavyLeft?pair[1]:pair[0]}</span></div><div class="pivot"></div>`);g.play.append(ss);
  const plank=ss.querySelector('.plank');
  const want=heavier?pair[0]:pair[1];
- const box=cards(g,g.shuffle([pair[0],pair[1]]),{cls:'seesaw-choices',onPick:(i,b)=>{
-  const picked=b.textContent;
+ const picks=g.shuffle([pair[0],pair[1]]);
+ const box=cards(g,picks,{cls:'seesaw-choices',values:picks,onPick:(i,b)=>{
+  const picked=b.dataset.value;
   if(picked!==want){g.wrong(b,{text:`Hmm, ${heavier?'that one is lighter':'that one is heavier'}. Which is ${heavier?'heavier':'lighter'}?`});return;}
   box.classList.add('locked');g.right(b);
   const sideLeft=heavyLeft;plank.style.transform=`rotate(${sideLeft?-11:11}deg)`;E.sfx('thud');b.classList.add('lit');
   g.speak(heavier?'Heavy!':'Light!');
   g.win({delay:2200});
  }});
- g.onAssist(()=>g.hint([...box.children].find(c=>c.textContent===want)));
+ g.onAssist(()=>g.hint([...box.children].find(c=>c.dataset.value===want)));
 };
 
 /* ---------- Patterns: what comes next, two gaps, copy the pattern. Every bead plays a note. ---------- */
-const PAT=['🍓','🍃','🌻','🦋','🍄','🍎','⭐','🐚'];
+const PAT=['🍓','🌿','🌼','🦋','🍄','🥚','⭐','🐚'];
 games.pattern=g=>{
  const mode=['next','next','next','gaps','copy'][g.round];
  const pool=g.shuffle(PAT.slice(g.level%3,g.level%3+5));
@@ -502,15 +575,19 @@ games.pattern=g=>{
 };
 
 /* ---------- Sorting: drag (or tap) each thing into its basket ---------- */
-const FRUIT=['🍎','🍓','🍌','🍇','🍐','🍒'],VEG=['🥕','🥦','🌽','🍆','🥬','🥒'];
-const BIG=['🐘','🐋','🦒','🦕','🐻','🐄'],SMALL=['🐜','🐞','🐝','🐛','🐭','🐌'];
+/* What grows here against what the valley keeps, and big against small —
+ * the old fruit basket and vegetable crate were a supermarket on a dinosaur.
+ * Both lists are one picture per thing: two glyphs of one family would be the
+ * same photograph twice, and a sorting game teaches nothing from a duplicate. */
+const GROWS=['🌿','🍄','☘️','🌱','🌰','🌾'],KEEPS=['🐚','💎','🪨','🦴','🪶','🥌'];
+const BIG=['🦕','🌳','🌋','🧺','🐢','🪵'],SMALL=['🐌','🪶','🌰','🥚','🐚','💧'];
 const BALLS=[['Red','#e95b65'],['Blue','#55a5d9'],['Yellow','#f6ce4d'],['Green','#66b882']];
 function sortSet(g){
  const easy=g.easy,pickN=(arr,n)=>g.shuffle(arr).slice(0,n);
  const per=easy?2:3;
  if(g.round===0){const [A,B]=g.shuffle(POOL).slice(0,2);return {say:`Sort the pictures. Put each one with its friend.`,baskets:[{html:A,label:NAME[A]},{html:B,label:NAME[B]}],items:g.shuffle([...Array(per+1).fill(0).map(()=>({html:A,to:0})),...Array(per+1).fill(0).map(()=>({html:B,to:1}))])};}
- if(g.round===1)return {say:'Fruit goes in one basket. Vegetables go in the other.',baskets:[{html:'🍎',label:'Fruit'},{html:'🥕',label:'Vegetables'}],items:g.shuffle([...pickN(FRUIT,per+1).map(h=>({html:h,to:0})),...pickN(VEG,per+1).map(h=>({html:h,to:1}))])};
- if(g.round===2)return {say:'Big things go in one basket. Small things go in the other.',baskets:[{html:'🐘',label:'Big'},{html:'🐜',label:'Small'}],items:g.shuffle([...pickN(BIG,per+1).map(h=>({html:h,to:0})),...pickN(SMALL,per+1).map(h=>({html:h,to:1}))])};
+ if(g.round===1)return {say:'Things that grow go in one basket. Things the valley keeps go in the other.',baskets:[{html:'🌿',label:'Grows here'},{html:'💎',label:'Treasure'}],items:g.shuffle([...pickN(GROWS,per+1).map(h=>({html:h,to:0})),...pickN(KEEPS,per+1).map(h=>({html:h,to:1}))])};
+ if(g.round===2)return {say:'Big things go in one basket. Small things go in the other.',baskets:[{html:'🦕',label:'Big'},{html:'🐌',label:'Small'}],items:g.shuffle([...pickN(BIG,per+1).map(h=>({html:h,to:0})),...pickN(SMALL,per+1).map(h=>({html:h,to:1}))])};
  if(g.round===3){const [A,B,C]=g.shuffle(POOL).slice(0,3);return {say:'Three baskets! Sort each picture.',baskets:[A,B,C].map(h=>({html:h,label:NAME[h]})),items:g.shuffle([A,B,C].flatMap((h,i)=>Array(per).fill(0).map(()=>({html:h,to:i}))))};}
  const cols=BALLS.slice(0,3);
  return {say:'Sort the balls by colour.',baskets:cols.map(c=>({html:`<span class="ball" style="--c:${c[1]}"></span>`,label:c[0]})),items:g.shuffle(cols.flatMap((c,i)=>Array(per).fill(0).map(()=>({html:`<span class="ball" style="--c:${c[1]}"></span>`,to:i,label:c[0]}))))};
@@ -564,48 +641,59 @@ games.sort=g=>{
  showNext();
 };
 
-/* ---------- Number trail: hop along the stones in order (counting up, down, from a number, in twos) ---------- */
+/* ---------- Number trail: the sequences a child hops in order (up, down, from a number, in twos) ---------- */
 function trailSequence(g){
  const easy=g.easy,r=g.round;
  const range=(a,b,s=1)=>{const o=[];if(s>0)for(let i=a;i<=b;i+=s)o.push(i);else for(let i=a;i>=b;i+=s)o.push(i);return o;};
- if(r===0)return {seq:range(1,easy?3:5),say:'Hop along the stones. Start with one!'};
+ if(r===0)return {seq:range(1,easy?3:5),say:'Hop down the river. Start with one!'};
  if(r===1)return {seq:range(1,easy?5:7),say:'Follow the numbers. Start with one.'};
  if(r===2){const s=easy?3:4;return {seq:range(s,s+(easy?3:4)),say:`Start at ${s} and count on!`};}
  if(r===3)return {seq:range(easy?4:6,1,-1),say:`Count down! Start with ${easy?4:6}.`};
  return {seq:range(2,easy?8:12,2),say:'Count in twos! Start with two.'};
 }
-games.order=g=>{
- const {seq,say}=trailSequence(g);
- g.say(say);
- // phones get three roomier columns and a taller trail so the stones never overlap
- const narrow=innerWidth<560,cols=narrow?3:4,rows=Math.max(2,Math.ceil(seq.length/cols)),cells=g.shuffle(Array.from({length:cols*rows},(_,i)=>i)).slice(0,seq.length);
- const trail=el('div','trail');trail.style.aspectRatio=`${cols*1.6}/${rows*(narrow?1.5:1.1)}`;g.play.append(trail);
- const pos=cells.map(c=>({x:(c%cols+.5)/cols*100+(Math.random()*6-3),y:(Math.floor(c/cols)+.5)/rows*100+(Math.random()*6-3)}));
- const hopper=el('div','hopper',dinoSVG(g.level));hopper.style.left=narrow?'14%':'4%';hopper.style.top='92%';trail.append(hopper);
- let at=0;
- const stones=seq.map((n,i)=>{
-  const b=el('button','stone',`<b>${n}</b>`);b.style.left=pos[i].x+'%';b.style.top=pos[i].y+'%';b.style.animationDelay=(i*.08)+'s';b.setAttribute('aria-label',String(n));
-  b.onclick=()=>{
-   if(b.classList.contains('visited'))return;
-   if(i!==at){g.wrong(b,{text:`Not that one yet. Look for ${seq[at]}!`,speech:`Find ${WORDS[seq[at]]||seq[at]}.`});return;}
-   b.classList.add('visited');
-   hopper.style.left=pos[i].x+'%';hopper.style.top=(pos[i].y-9)+'%';
-   E.animate(hopper,[{translate:'0 0'},{translate:'0 -26px'},{translate:'0 0'}],{duration:420});
-   E.sfx('boing');E.step(at,.2);g.speak(WORDS[n]||String(n));
-   g.right(b,{kind:'sparkle',n:8,pitch:at,text:false});
-   b.insertAdjacentHTML('beforeend','<span class="flower">'+FLOWERS_STONE[at%4]+'</span>');
-   at++;
-   if(at===seq.length){const last=el('span','nest-egg','🥚');b.append(last);g.later(()=>{E.sfx('sparkle');E.burstAt(b,{kind:'hearts',n:12});g.win({delay:1700});},500);}
-   else g.say(`Now ${seq[at]}.`);
-  };
-  trail.append(b);return b;
- });
- g.onAssist(()=>g.hint(stones[at]));
+/* ---------- the number trail, on a river that is actually flowing ----------
+ * This round used to be a board of standing stones: read the row, tap them in
+ * order, done — the very same verb as every other pick-the-right-card round.
+ * Here the numbers ride lily pads drifting with the current and the dinosaur
+ * rides whichever pad you last sent it to, so "which is next" is a moving
+ * problem and no two rivers run the same. Nothing sinks and nothing is timed:
+ * a pad that floats past simply comes round again. */
+games.order = g => {
+  const { seq, say } = trailSequence(g);
+  let at = 0, over = false;
+  const dino = el('div', 'river-dino', dinoSVG(g.level));
+  const f = roamField(g, seq.map(n => ({ html: `<b class="padnum">${n}</b>`, value: String(n), label: String(n), size: 92, flip: false })), {
+    cls: ' river', height: g.easy ? 250 : 300, speed: g.easy ? .026 : .038, ramp: .005,
+    tick(t, crowd) {
+      const p = crowd[Math.min(at, crowd.length - 1)];
+      if (!p || p.px == null) return;
+      dino.style.translate = `${(p.px - 4).toFixed(1)}px ${(p.py - 46).toFixed(1)}px`;
+    },
+    onPick: (it, p, b) => {
+      if (over || b.classList.contains('visited')) return;
+      if (p.i !== at) { g.wrong(b, { text: `Not that one yet. Look for ${seq[at]}!`, speech: `Find ${WORDS[seq[at]] || seq[at]}.` }); return; }
+      b.classList.add('visited');
+      E.sfx('boing'); E.step(at, .2); g.speak(WORDS[seq[p.i]] || String(seq[p.i]));
+      g.right(b, { kind: 'sparkle', n: 8, pitch: at, text: false });
+      E.burstAt(b, { kind: 'drops', n: 9 });
+      b.append(el('span', 'bloom', TRAIL_BLOOM[at % 4]));
+      at++;
+      if (at === seq.length) {
+        over = true;
+        const last = el('span', 'nest-egg', '🥚'); b.append(last);
+        g.later(() => { E.sfx('sparkle'); E.burstAt(b, { kind: 'hearts', n: 12 }); g.win({ delay: 1700 }); }, 500);
+      } else g.say(`Now ${seq[at]}.`);
+    } });
+  f.box.append(dino);
+  g.say(say + ' The lily pads are drifting — hop them in order!');
+  g.onAssist(() => g.hint(f.crowd[Math.min(at, f.crowd.length - 1)].b));
 };
-const FLOWERS_STONE=['🌸','🌼','🌷','🌻'];
+/* Four different plants, not four flowers: the old list was one photograph
+ * repeated four times, so the trail never actually changed as you hopped it. */
+const TRAIL_BLOOM=['🌼','🌿','🌱','🍄'];
 
 /* ---------- Memory eggs: flip the eggs, find the pairs ---------- */
-const MEM_FACES=['🦋','🍓','🌻','🍄','🐚','🍎','🐞','⭐','🌈','🐟','🍇','🌙'];
+const MEM_FACES=['🦋','🍓','🌼','🍄','🐚','🌿','⭐','🌈','🐟','🥚','🌙','🪶'];
 games.memory=g=>{
  const pairs=g.easy?[2,3,3,4,4][g.round]:[3,4,5,6,6][g.round];
  const peek=g.round<2;
@@ -867,73 +955,161 @@ games.bubbles=g=>{
 };
 
 /* ---------- Dino picnic: a hungry dinosaur asks for particular food; feed it into its mouth ---------- */
-const FOOD_NAME={'🍓':'strawberry','🥕':'carrot','🍎':'apple','🍇':'grapes','🍌':'banana','🍉':'watermelon','🍅':'tomato','🥦':'broccoli','🍐':'pear','🌽':'corn','🍒':'cherries','🌶️':'chilli'};
+const FOOD_NAME={'🍓':'berry','🌿':'fern leaf','☘️':'moss cup','🌱':'sprout','🍄':'mushroom','🥚':'egg','🐟':'little fish','🌰':'seed cone','🌾':'seed head','🪻':'ginkgo leaf','🪴':'ivy leaf','🍯':'honey','💧':'water'};
 const FOODS=Object.keys(FOOD_NAME);
-const MASS=new Set(['🍇','🥦','🌽']);
-const FOOD_PLURAL={'🍓':'strawberries','🥕':'carrots','🍎':'apples','🍇':'grapes','🍌':'bananas','🍉':'watermelons','🍅':'tomatoes','🥦':'broccoli','🍐':'pears','🌽':'corn','🍒':'cherries','🌶️':'chillies'};
-const REDS=['🍓','🍎','🍅','🍒','🌶️'],NONREDS=['🥕','🍇','🍌','🍉','🥦','🍐','🌽'];
+const MASS=new Set(['🍯','💧']);
+const FOOD_PLURAL={'🍓':'berries','🌿':'fern leaves','☘️':'moss cups','🌱':'sprouts','🍄':'mushrooms','🥚':'eggs','🐟':'little fish','🌰':'seed cones','🌾':'seed heads','🪻':'ginkgo leaves','🪴':'ivy leaves','🍯':'spoonfuls of honey','💧':'drops of water'};
+/* A round that teaches a colour may only claim what the photographs actually
+ * show, so these two sets are the measured mean pixel of every specimen picture
+ * in this vocabulary, not a guess from the glyph. 🥍 is a rust-coloured stone
+ * (149,83,59) and 🌾 has dried to straw (114,121,62), so neither belongs among
+ * the greens; 🐚 has no food name at all and never reaches a blanket. */
+const GREENS=['🌿','☘️','🌱','🪴','🪻'],NOTGREENS=['🍓','🥚','🐟','🌰','🍄','🍯','💧'];
 const SPECIES_BY_LEVEL=['trex','tricera','stego','bronto','raptor'];
-games.feed=g=>{
- const pool=g.shuffle(FOODS);
- let queue=[],bubbleText=()=>'',options;
- const nm=f=>FOOD_NAME[f];
- if(g.round<=1){
-  const n=g.round===0?2:3;const picks=pool.slice(0,n);
-  queue=picks.map(f=>({ok:x=>x===f,say:`I would like ${MASS.has(f)?'some':'a'} ${nm(f)}, please!`,html:f,target:f}));
-  options=g.shuffle([...new Set([...picks,...pool.slice(n,n+(g.easy?1:3))])]);
- }else if(g.round===2){
-  const f=pool[0],n=g.easy?3:4;
-  queue=Array.from({length:n},(_,i)=>({ok:x=>x===f,say:i===0?`I am very hungry! ${WORDS[n]} ${FOOD_PLURAL[f]}, please!`:`${WORDS[n-i]} more ${n-i>1?FOOD_PLURAL[f]:nm(f)}, please!`,html:`<b>${n-i}</b> × ${f}`,target:f}));
-  options=g.shuffle([f,...pool.slice(1,g.easy?3:5)]);
- }else if(g.round===3){
-  const reds=g.shuffle(REDS).slice(0,3);
-  queue=reds.map((_,i)=>({ok:x=>REDS.includes(x),say:i===0?'I want something red!':'Something red again, please!',html:'<span class="pot" style="--c:#e95b65"></span>'}));
-  options=g.shuffle([...reds,...g.shuffle(NONREDS).slice(0,g.easy?2:3)]);
- }else{
-  const picks=pool.slice(0,g.easy?3:4);
-  queue=picks.map(f=>({ok:x=>x===f,say:`${nm(f)}, please!`,html:f,target:f,seq:true}));
-  options=g.shuffle([...new Set([...picks,...pool.slice(picks.length,picks.length+2)])]);
- }
- const total=queue.length;let fed=0;
- g.say(queue[0].say);
- const scene=el('div','feed-scene');g.play.append(scene);
- const dino=D_dino(SPECIES_BY_LEVEL[g.level%5],{state:'idle',size:230});
- const dwrap=el('div','feed-dino');dwrap.append(dino);
- const bubble=el('div','feed-bubble','');
- scene.append(dwrap,bubble);
- const meter=el('div','tummy',Array.from({length:total},()=>'<span>♡</span>').join(''));g.play.append(meter);
- const plate=el('div','blanket');g.play.append(plate);
- const showRequest=()=>{
-  const q=queue[fed];
-  bubble.innerHTML=g.round===4?queue.map((x,i)=>`<span class="${i<fed?'done':i===fed?'now':''}">${x.html}</span>`).join(' '):q.html;
-  E.animate(bubble,[{transform:'scale(.6)',opacity:0},{transform:'scale(1.08)',opacity:1},{transform:'scale(1)'}],{duration:360});
-  g.say(q.say);
- };
- const btns=options.map(f=>{
-  const b=el('button','food',f);b.setAttribute('aria-label',nm(f));
-  b.onclick=()=>{
-   if(fed>=total||b.classList.contains('busy'))return;
-   const q=queue[fed];
-   if(!q.ok(f)){
-    E.sfx('boing');safe2(()=>window.DUFX.dinoState(dino,'sad',900));
-    g.wrong(b,{text:`Dino does not want the ${nm(f)} right now. Look at the picture!`,speech:`Dino does not want that right now.`});return;
-   }
-   b.classList.add('busy');
-   const mouth=dwrap.getBoundingClientRect();
-   g.fly(b,{x:mouth.left+mouth.width*.7,y:mouth.top+mouth.height*.35},f).then(()=>{
-    b.classList.remove('busy');
-    safe2(()=>window.DUFX.dinoState(dino,'eat',900));E.sfx('chomp');E.burstAt(dwrap,{kind:'dust',n:6,scale:.6});
-    meter.children[fed].textContent='♥';meter.children[fed].classList.add('full');
-    fed++;g.right(dwrap,{kind:'hearts',n:8,pitch:fed-1});
-    if(fed===total){
-     g.later(()=>{safe2(()=>window.DUFX.dinoState(dino,'happy'));E.sfx('roar');E.floatText(innerWidth/2,innerHeight/2,'Yum yum!',{size:34});g.speak('Yum yum! Thank you!');g.win({delay:2100});},500);
-    }else showRequest();
-   });
-  };
-  plate.append(b);return b;
- });
- g.onAssist(()=>{const q=queue[fed];if(q)g.hint(btns.find(b=>q.ok(b.textContent)));});
- showRequest();
+/* ---------- Dinner in the paddock: a brood that wanders, each with its own appetite ----------
+ * There used to be one patient dinosaur standing still, asking for one thing at
+ * a time, and the round was over after a few taps. Now the whole brood is loose
+ * in the paddock: every baby wants something different, they keep walking while
+ * you decide, and the food you picked has to be carried to the right moving
+ * animal. Appetite only grows — it never takes a star away and nothing is ever
+ * lost, because the meadow still promises no clocks and no losing screens. */
+games.feed = g => {
+  const pool = g.shuffle(FOODS);
+  const nm = f => FOOD_NAME[f] || window.DUFX.objects.spoken(f);
+  /* "a egg" is what the old fixed article said out loud to a child. */
+  const article = f => MASS.has(f) ? 'some' : (/^[aeiou]/i.test(nm(f)) ? 'an' : 'a');
+  const n = g.easy ? (g.round < 2 ? 2 : 3) : (g.round === 2 ? 3 : 4);
+  /* One appetite per baby, built from the five rules this round has always
+   * taught: name a food, name a food, count a portion, name a colour, name a
+   * food under time pressure. The rules are unchanged; only the body around
+   * them moved. */
+  const babies = [];
+  if (g.round === 3) {
+    const greens = g.shuffle(GREENS).slice(0, n);
+    greens.forEach((f, i) => babies.push({ ok: x => GREENS.includes(x), food: f, need: 1, got: 0, done: false, want: 'something green',
+      say: i === 0 ? 'I want something green!' : 'Something green too, please!', html: f }));
+  } else if (g.round === 2) {
+    const f = pool[0], k = g.easy ? 2 : 3;
+    for (let i = 0; i < n; i++) babies.push({ ok: x => x === f, food: f, need: k, got: 0, done: false, want: `${WORDS[k]} ${k > 1 ? FOOD_PLURAL[f] : nm(f)}`,
+      say: `${WORDS[k]} ${k > 1 ? FOOD_PLURAL[f] : nm(f)}, please!`, html: f });
+  } else {
+    pool.slice(0, n).forEach(f => babies.push({ ok: x => x === f, food: f, need: 1, got: 0, done: false, want: `${article(f)} ${nm(f)}`,
+      say: `I would like ${article(f)} ${nm(f)}, please!`, html: f }));
+  }
+  const wanted = [...new Set(babies.map(b => b.food))];
+  /* In the colour round the wrong answers have to be things that really are not
+   * green, or a picture that plainly looks green is marked wrong and the lesson
+   * contradicts itself. */
+  const shelf = g.round === 3 ? NOTGREENS : FOODS;
+  const decoys = g.shuffle(shelf.filter(f => !wanted.includes(f))).slice(0, g.easy ? 1 : 3);
+  const options = g.shuffle([...wanted, ...decoys]);
+  const total = babies.length;
+  let held = null, heldBtn = null, full = 0;
+
+  const meter = el('div', 'tummy', '');
+  const plate = el('div', 'blanket');
+  const pad = roamField(g, babies.map((b, i) => ({ html: '', value: String(i), label: 'Hungry baby dinosaur' })), {
+    cls: ' paddock', height: g.easy ? 300 : 340, speed: g.easy ? .05 : .072, ramp: .008,
+    tick(t) {
+      for (const p of pad.crowd) {
+        const b = p.baby;
+        if (!b || b.done) continue;
+        b.hunger = Math.min(1, (t - b.born) / b.rate);
+        if (b.bar) b.bar.style.setProperty('--hunger', (b.hunger * 100).toFixed(1) + '%');
+        if (b.hunger >= 1) {
+          b.born = t - b.rate * .45;
+          b.dino.setState('sad', 900); E.sfx('chirp');
+          p.b.classList.add('calling');
+          g.later(() => p.b.classList.remove('calling'), 1400);
+        }
+      }
+    },
+    onPick: (it, p, b) => {
+      const q = p.baby;
+      /* A child taps twice. The cheer only lands when the food arrives, so
+       * without this the same baby is counted full twice and the round waits
+       * for a third tummy that never fills. */
+      if (!q || q.done || q.busy) return;
+      if (!held) { g.note('Pick up a food from the blanket first!'); g.speak('Pick up a food first.'); E.sfx('tap'); E.animate(plate, [{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }], { duration: 260 }); return; }
+      if (!q.ok(held)) {
+        q.dino.setState('sad', 800);
+        g.wrong(b, { text: `Not this one — it wants ${q.want}.`, speech: `This one wants ${q.want}.` });
+        return;
+      }
+      const head = b.getBoundingClientRect();
+      const from = heldBtn;
+      held = null; heldBtn = null;
+      [...plate.children].forEach(x => x.classList.remove('selected'));
+      q.got++;
+      q.busy = true;
+      g.fly(from, { x: head.left + head.width * .62, y: head.top + head.height * .34 }, q.food).then(() => {
+        q.busy = false;
+        if (q.done) return;
+        q.dino.setState('eat', 900); E.sfx('chomp'); E.burstAt(b, { kind: 'dust', n: 6 });
+        if (q.got >= q.need) {
+          q.done = true; b.classList.add('full');
+          q.bubble.remove(); q.bar.remove();
+          q.dino.setState('happy', 1600);
+          E.floatText(head.left + head.width / 2, head.top, 'Yum!', { size: 26 });
+          full++; g.right(b, { kind: 'hearts', n: 10, pitch: full - 1 });
+          meter.innerHTML = window.DUICONS.stars(full, { max: total, size: 26 });
+          if (full === total) g.later(() => { E.sfx('roar'); g.speak('Thank you! Every tummy is full.'); g.win({ delay: 2100 }); }, 600);
+        } else {
+          g.right(b, { kind: 'hearts', n: 5, pitch: q.got - 1, text: `${q.need - q.got} more` });
+          setWant(q);
+        }
+      });
+    } });
+
+  function setWant(q) {
+    if (!q.bubble) return;
+    q.bubble.textContent = '';
+    if (q.need > 1) { const b = el('b', '', String(q.need - q.got)); q.bubble.append(b, ' × '); }
+    q.bubble.append(document.createTextNode(q.food));
+  }
+
+  pad.crowd.forEach((p, i) => {
+    const b = babies[i];
+    b.dino = D_dino(SPECIES_BY_LEVEL[(g.level + i) % 5], { state: 'walk', size: 158 });
+    b.dino.setAttribute('data-base', 'walk');
+    b.bubble = el('span', 'feed-want');
+    b.bar = el('i', 'hunger');
+    p.b.append(b.dino, b.bubble, b.bar);
+    p.b.classList.add('roamer-animal');
+    b.born = -Math.random() * 6; b.rate = g.easy ? 30 : 24; b.hunger = 0;
+    b.call = i === 0 ? b.say : (g.round === 3 ? 'Something green, please!' : `I want ${nm(b.food)}, please!`);
+    setWant(b);
+    p.baby = b;
+    /* a baby you tap is a baby you have to reach, so the spoken ask comes from
+     * the crowd entry rather than a single queue position */
+    if (g.round === 0 && i === 0) b.born = -b.rate * .7;
+  });
+  function heldClear() { held = null; heldBtn = null; [...plate.children].forEach(x => x.classList.remove('selected')); }
+  options.forEach(f => {
+    const btn = el('button', 'food', f);
+    btn.setAttribute('aria-label', nm(f)); btn.dataset.food = f;
+    btn.onclick = () => {
+      if (full >= total) return;
+      if (held === f) { heldClear(); E.sfx('tap'); return; }
+      held = f; heldBtn = btn;
+      [...plate.children].forEach(x => x.classList.toggle('selected', x === btn));
+      E.sfx('tap'); g.speak(nm(f));
+      g.note(`Now carry the ${nm(f)} to the baby that wants it.`);
+    };
+    plate.append(btn);
+  });
+  g.play.append(meter, plate);
+  meter.innerHTML = window.DUICONS.stars(0, { max: total, size: 26 });
+  const asking = babies.find(b => !b.done);
+  g.say(total > 1 ? `${total} hungry babies are wandering the paddock. ${asking.call}` : asking.call);
+  g.onAssist(() => {
+    const q = babies.find(b => !b.done);
+    if (!q) return;
+    if (!held) { const o = [...plate.children].find(x => q.ok(x.dataset.food)); if (o) g.hint(o); return; }
+    const p = pad.crowd.find(c => c.baby === q);
+    if (p && q.ok(held)) g.hint(p.b);
+    else { const o = [...plate.children].find(x => q.ok(x.dataset.food)); if (o) g.hint(o); }
+  });
 };
 const safe2=fn=>{try{fn();}catch{}};
 const D_dino=(sp,o)=>{const d=window.DUFX?.dino?window.DUFX.dino(sp,o):document.createElement('span');return d;};
@@ -944,13 +1120,13 @@ games.wash=g=>{
  const W=420,H=360,mode=['mud','mud','soap','rinse','dry'][g.round];
  const K=g.easy?[3,4,3,3,4][g.round]:[5,6,5,5,6][g.round];
  const zones=ZONES.slice(0,K).map(([x,y])=>({x,y,done:false,r:46}));
- const say={mud:'Rub the mud away with the sponge!',soap:'Rub soap on the dirty spots!',rinse:'Rinse the bubbles away with the shower!',dry:'Rub the towel to dry your dinosaur!'}[mode];
+ const say={mud:'Scrub the mud away with the rough leaf!',soap:'Rub the bubbles over the dirty spots!',rinse:'Rinse the bubbles away with clean water!',dry:'Let the sun dry your dinosaur!'}[mode];
  g.say(mode==='mud'&&g.round===1?'More mud! Scrub it all clean.':say);
  const box=el('div','wash-dino');box.style.setProperty('--ar',`${W}/${H}`);
  box.innerHTML=dinoSVG(g.level,['#76c7a2','#ebac7f','#aa9cda','#79b8d3','#dc9bb6'][g.level%5]);
  const cv=el('canvas','wash-cv');cv.width=W;cv.height=H;box.append(cv);g.play.append(box);
  const ctx=cv.getContext('2d');
- const tool={mud:'🧽',soap:'🧼',rinse:'🚿',dry:'🧣'}[mode];
+ const tool={mud:'🍂',soap:'🫧',rinse:'💧',dry:'☀️'}[mode];
  const cursor=el('div','brush',tool);box.append(cursor);
  const rnd=(a,b)=>a+Math.random()*(b-a);
  const mud=(x,y,r)=>{const gr=ctx.createRadialGradient(x,y,r*.1,x,y,r);gr.addColorStop(0,'#6b4a2b');gr.addColorStop(.75,'#7d5a36');gr.addColorStop(1,'#7d5a3600');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();};
@@ -989,7 +1165,7 @@ games.wash=g=>{
    if(--left===0){
     box.classList.add('shiny');
     g.later(()=>{
-     if(mode==='dry'){const bow=el('span','bow','🎀');box.append(bow);}
+     if(mode==='dry'){const bow=el('span','bow','🌼');box.append(bow);}
      E.sfx('splash');E.burstAt(box,{kind:mode==='rinse'||mode==='soap'?'bubbles':'stars',n:22});g.speak(mode==='dry'?'All clean and fluffy!':'Lovely!');
      g.win({delay:1900});
     },350);
@@ -1024,21 +1200,26 @@ games.wash=g=>{
  g.onAssist(()=>{const z=zones.find(z=>!z.done);if(z){const r=cv.getBoundingClientRect();E.burst(r.left+z.x*r.width/W,r.top+z.y*r.height/H,{kind:'sparkle',n:10,power:.4});}});
 };
 
-/* ---------- Little kitchen: follow the recipe, stir, bake and serve a hungry dinosaur ---------- */
+/* ---------- Valley kitchen: follow the recipe, stir, cook it over the fire and serve a hungry dinosaur ---------- */
+/* A dinosaur's larder, so every ingredient is something the valley actually
+ * grows and every one of them is a photograph the universe already has. Note
+ * that the berry, fish, leaf and pine families are each *one* picture, so a
+ * dish never lists two glyphs of the same family — that would show the child
+ * the same thing twice under two different names. */
 const DISHES=[
- {n:'berry smoothie',ing:['🥛','🍓','🫐'],result:'🥤',bake:false},
- {n:'fruit salad',ing:['🍎','🍌','🍇','🍓'],result:'🥗',bake:false},
- {n:'veggie soup',ing:['🥕','🥦','🌽','🧅'],result:'🍲',bake:false},
- {n:'pizza',ing:['🫓','🍅','🧀','🌿'],result:'🍕',bake:true},
- {n:'sandwich',ing:['🍞','🧀','🥬','🍅'],result:'🥪',bake:false},
- {n:'carrot cake',ing:['🥕','🥚','🥛','🍯'],result:'🍰',bake:true},
- {n:'pancakes',ing:['🥚','🥛','🫐'],result:'🥞',bake:true},
- {n:'cookies',ing:['🥚','🍯','🥛'],result:'🍪',bake:true},
- {n:'apple pie',ing:['🍎','🍯','🥛'],result:'🥧',bake:true},
- {n:'banana muffins',ing:['🍌','🥚','🥛'],result:'🧁',bake:true}
+ {n:'fern and berry salad',ing:['🌿','🍓','💧'],result:'🧺',bake:false},
+ {n:'claypot fish stew',ing:['🐟','🌿','🍄'],result:'🏺',bake:true},
+ {n:'wild berry crush',ing:['🍓','🍯','🌰'],result:'🧺',bake:false},
+ {n:'warm egg pudding',ing:['🥚','🍯','🌾'],result:'🍳',bake:true},
+ {n:'pine cone roast',ing:['🌰','🌲','🍂'],result:'🧺',bake:true},
+ {n:'mushroom and moss bake',ing:['🍄','☘️','🌱'],result:'🏺',bake:true},
+ {n:'berry nest cup',ing:['🍓','🌿','🥚'],result:'🪹',bake:true},
+ {n:'soft leaf mash',ing:['🍂','🌱','💧'],result:'🏺',bake:false},
+ {n:'fish and seeds',ing:['🐟','🌾','🌵'],result:'🧺',bake:true},
+ {n:'ginkgo and honey treat',ing:['🪻','🍯','🌱'],result:'🪹',bake:false}
 ];
-const PANTRY=['🥛','🍓','🫐','🍎','🍌','🍇','🥕','🥦','🌽','🧅','🫓','🍅','🧀','🌿','🍞','🥬','🥚','🍯'];
-const ING_NAME={'🥛':'milk','🍓':'strawberries','🫐':'blueberries','🍎':'apple','🍌':'banana','🍇':'grapes','🥕':'carrot','🥦':'broccoli','🌽':'corn','🧅':'onion','🫓':'flatbread','🍅':'tomato','🧀':'cheese','🌿':'herbs','🍞':'bread','🥬':'lettuce','🥚':'egg','🍯':'honey'};
+const PANTRY=['🍓','🌿','🍂','🌱','🌰','🌲','🌵','🌾','☘️','🍄','🐟','🪻','🪴','🥚','🍯','💧'];
+const ING_NAME={'🍓':'berries','🌿':'a fern leaf','🍂':'a dry leaf','🌱':'a green sprout','🌰':'a seed cone','🌲':'a pine branch','🌵':'a cycad frond','🌾':'a seed head','☘️':'a moss cup','🍄':'a mushroom','🐟':'a little fish','🪻':'a ginkgo leaf','🪴':'an ivy leaf','🥚':'an egg','🍯':'honey','💧':'cool water'};
 games.cook=g=>{
  const dish=DISHES[(g.level*2+g.round)%DISHES.length];
  const recipe=g.round===2?[...dish.ing,dish.ing[1]]:dish.ing;
@@ -1048,7 +1229,7 @@ games.cook=g=>{
  const kitchen=el('div','kitchen');g.play.append(kitchen);
  const bowl=el('div','cook-bowl','<div class="bowl-in"></div><span class="bowl-rim"></span>');
  const dinoEl=D_dino(SPECIES_BY_LEVEL[(g.level+1)%5],{state:'idle',size:150});
- const guest=el('div','guest');guest.append(dinoEl,el('div','guest-say','🤤'));
+ const guest=el('div','guest');guest.append(dinoEl,el('div','guest-say','hungry!'));
  kitchen.append(bowl,guest);
  const controls=el('div','controls-row');g.play.append(controls);
  let at=0,peek=!hidden;
@@ -1065,7 +1246,7 @@ games.cook=g=>{
  const opts=g.shuffle([...new Set(recipe),...decoys]);
  const shelf=el('div','shelf');controls.append(shelf);
  const btns=opts.map(x=>{
-  const b=el('button','ingredient',x);b.setAttribute('aria-label',ING_NAME[x]||x);
+  const b=el('button','ingredient',x);b.setAttribute('aria-label',ING_NAME[x]||x);b.dataset.food=x;
   b.onclick=()=>{
    if(at>=recipe.length)return;
    if(x!==recipe[at]){g.wrong(b,{text:peek||!hidden?`Not yet! Next is ${ING_NAME[recipe[at]]}.`:'Not that one. Peek at the recipe!',speech:'Not that one.'});return;}
@@ -1080,32 +1261,32 @@ games.cook=g=>{
   };
   shelf.append(b);return b;
  });
- g.onAssist(()=>{if(at<recipe.length)g.hint(btns.find(b=>b.textContent===recipe[at]));});
+ g.onAssist(()=>{if(at<recipe.length)g.hint(btns.find(b=>b.dataset.food===recipe[at]));});
  // phase 2: stir
  function stir(){
-  controls.innerHTML='';g.say('Now stir it all together! Tap the spoon.');
+  controls.innerHTML='';g.say('Now stir it all together! Tap the stick.');
   let n=0;const need=g.easy?4:6;
-  const spoon=el('button','spoon','🥄');const meter=el('div','want',`Stir: <span id="stirs">0</span> / ${need}`);
-  controls.append(spoon,meter);
-  g.onAssist(()=>g.hint(spoon));
-  spoon.onclick=()=>{
+  const stick=el('button','stir','🪵');stick.setAttribute('aria-label','wooden stirring stick');const meter=el('div','want',`Stir: <span id="stirs">0</span> / ${need}`);
+  controls.append(stick,meter);
+  g.onAssist(()=>g.hint(stick));
+  stick.onclick=()=>{
    n++;meter.querySelector('#stirs').textContent=n;E.sfx('whoosh');E.step(n,.12);
    bowl.classList.remove('stirring');void bowl.offsetWidth;bowl.classList.add('stirring');
-   E.animate(spoon,[{transform:'rotate(0)'},{transform:'rotate(-30deg) translateX(-14px)'},{transform:'rotate(30deg) translateX(14px)'},{transform:'rotate(0)'}],{duration:420});
+   E.animate(stick,[{transform:'rotate(0)'},{transform:'rotate(-30deg) translateX(-14px)'},{transform:'rotate(30deg) translateX(14px)'},{transform:'rotate(0)'}],{duration:420});
    E.burstAt(bowl,{kind:'sparkle',n:4});
-   if(n>=need){spoon.disabled=true;g.later(()=>dish.bake?bake():serve(),500);}
+   if(n>=need){stick.disabled=true;g.later(()=>dish.bake?hearthServe():serve(),500);}
   };
  }
- // phase 3: bake
- function bake(){
-  controls.innerHTML='';g.say('Pop it in the oven! Tap the oven.');
-  const oven=el('button','oven','<span class="oven-door"></span><span class="oven-label">🔥 Oven</span>');controls.append(oven);
-  g.onAssist(()=>g.hint(oven));
-  oven.onclick=()=>{
-   oven.disabled=true;oven.classList.add('baking');E.sfx('whoosh');bowl.classList.add('away');
-   const t=el('div','want','Baking… 🔥');controls.append(t);
-   g.speak('Baking!');
-   g.later(()=>{oven.classList.remove('baking');oven.classList.add('done');t.textContent='Ding! 🔔';E.sfx('good');E.step(7,.3);bowlIn.innerHTML=`<span class="bi big">${dish.result}</span>`;bowl.classList.remove('away');g.later(serve,900);},2600);
+ // phase 3: cook it over the fire
+ function hearthServe(){
+  controls.innerHTML='';g.say('Set it on the fire! Tap the hearth.');
+  const hearth=el('button','hearth','<span class="hearth-fire"></span><span class="hearth-label">🔥 Fire pit</span>');controls.append(hearth);
+  g.onAssist(()=>g.hint(hearth));
+  hearth.onclick=()=>{
+   hearth.disabled=true;hearth.classList.add('baking');E.sfx('whoosh');bowl.classList.add('away');
+   const t=el('div','want','Cooking… 🔥');controls.append(t);
+   g.speak('Cooking on the fire!');
+   g.later(()=>{hearth.classList.remove('baking');hearth.classList.add('done');t.textContent='Ready! ✨';E.sfx('good');E.step(7,.3);bowlIn.innerHTML=`<span class="bi big">${dish.result}</span>`;bowl.classList.remove('away');g.later(serve,900);},2600);
   };
  }
  // phase 4: serve
@@ -1119,27 +1300,31 @@ games.cook=g=>{
    plate.disabled=true;
    const m=guest.getBoundingClientRect();
    g.fly(bowl,{x:m.left+m.width*.55,y:m.top+m.height*.35},dish.result).then(()=>{
-    safe2(()=>window.DUFX.dinoState(dinoEl,'eat',1200));E.sfx('chomp');E.burstAt(guest,{kind:'hearts',n:10});
-    bowlIn.innerHTML='';guest.querySelector('.guest-say').textContent='😋';
+    safe2(()=>window.DUFX.dinoState(dinoEl,'eat',1200));E.sfx('chomp');E.burstAt(guest,{kind:'sparkle',n:10});
+    bowlIn.innerHTML='';guest.querySelector('.guest-say').textContent='yum!';
     g.later(()=>{safe2(()=>window.DUFX.dinoState(dinoEl,'happy'));E.sfx('roar');g.speak('Yum! Delicious!');g.right(guest,{kind:'stars',n:16,text:'Yummy!'});g.win({delay:2000});},900);
    });
   };
  }
 };
 
-/* ---------- Dress up: dress the dinosaur for the weather and the day, then style it freely and take a photo ---------- */
+/* ---------- Dress up: get Dino ready for the day in the valley, then style it freely and take a photo ---------- */
+/* The old wardrobe was a holiday shop: sunglasses, a graduation cap, mittens
+ * and ice cream, on a dinosaur. These are things the valley has, every one of
+ * them a photograph, and no family appears in two slots — a shell hat and a
+ * shell visor would be the same picture on two parts of the same animal. */
 const WARDROBE={
- '🕶️':{slot:'face',name:'sunglasses'},'👓':{slot:'face',name:'glasses'},
- '👒':{slot:'hat',name:'sun hat'},'🧢':{slot:'hat',name:'woolly hat'},'👑':{slot:'hat',name:'crown'},'🎩':{slot:'hat',name:'top hat'},'🎓':{slot:'hat',name:'graduation hat'},
- '🧣':{slot:'neck',name:'scarf'},'🎀':{slot:'neck',name:'bow'},
- '🏐':{slot:'hold',name:'beach ball'},'🧤':{slot:'hold',name:'mittens'},'🎈':{slot:'hold',name:'balloon'},'🧸':{slot:'hold',name:'teddy bear'},'🎒':{slot:'hold',name:'school bag'},'🍦':{slot:'hold',name:'ice cream'},'🎁':{slot:'hold',name:'present'}
+ '🪶':{slot:'hat',name:'feather crest'},'🌺':{slot:'hat',name:'wildflower'},'🌰':{slot:'hat',name:'seed cone cap'},'☘️':{slot:'hat',name:'moss hat'},'🐚':{slot:'hat',name:'shell hat'},
+ '🌿':{slot:'face',name:'fern veil'},'🪻':{slot:'face',name:'ginkgo shades'},'💎':{slot:'face',name:'quartz monocle'},'🌈':{slot:'face',name:'rainbow visor'},
+ '📿':{slot:'neck',name:'bone beads'},'🪢':{slot:'neck',name:'knotted cord'},'🟠':{slot:'neck',name:'amber pendant'},
+ '🧺':{slot:'hold',name:'basket'},'🎒':{slot:'hold',name:'satchel'},'🥁':{slot:'hold',name:'hide drum'},'💡':{slot:'hold',name:'oil lamp'},'🏺':{slot:'hold',name:'clay pot'},'🥌':{slot:'hold',name:'round stone'}
 };
 const SCENARIOS=[
- {id:'beach',icon:'🏖️',say:'Dino is going to the beach! What will Dino need?',need:['🕶️','👒','🏐']},
- {id:'snow',icon:'❄️',say:'It is snowing! Wrap Dino up warm.',need:['🧣','🧢','🧤']},
- {id:'party',icon:'🎉',say:'Dino is going to a birthday party! Get Dino ready.',need:['👑','🎀','🎈']},
- {id:'bedtime',icon:'🌙',say:'It is bedtime! What does Dino need for a cosy night?',need:['👓','🧣','🧸']},
- {id:'school',icon:'🏫',say:'Dino is off to school! What does Dino need?',need:['🎓','👓','🎒']}
+ {id:'river',icon:'🌊',say:'Dino is paddling in the river! What will Dino need?',need:['🌿','🐚','🧺']},
+ {id:'night',icon:'🌙',say:'It is growing dark in the valley! What will light Dino the way?',need:['📿','🪶','💡']},
+ {id:'feast',icon:'🍯',say:'It is the valley feast! What will Dino bring?',need:['🌺','🏺','🥁']},
+ {id:'learn',icon:'📜',say:'Dino is off to the elders for lessons! What does Dino take?',need:['🌰','🪻','🎒']},
+ {id:'walk',icon:'☀️',say:'Dino is setting off on a long walk! What goes in the bag?',need:['🪢','🥌','🧺']}
 ];
 const SLOT_XY={face:[345,160,44],hat:[318,105,70],neck:[296,222,50],hold:[262,296,54]};
 const SLOT_XY_LONG={face:[336,72,40],hat:[316,24,66],neck:[285,140,50],hold:[262,296,54]};
@@ -1150,7 +1335,7 @@ games.dress=g=>{
  const long=g.level%12===0;
  const xy=long?SLOT_XY_LONG:SLOT_XY;
  g.say(free?'Free dress-up! Choose your favourite things, then take a photo.':sc.say);
- const scene=el('div','dress-scene');scene.dataset.icon=free?'🌈':sc.icon;g.play.append(scene);
+ const scene=el('div','dress-scene');scene.append(el('span','dress-tag',free?'🌈':sc.icon));g.play.append(scene);
  const box=el('div','dress-dino',dinoSVG(g.level,['#76c7a2','#ebac7f','#aa9cda','#79b8d3','#dc9bb6'][g.level%5]));scene.append(box);
  const worn={};
  const place=(item)=>{
@@ -1181,14 +1366,14 @@ games.dress=g=>{
    if(!need.includes(item)){
     place(item);E.sfx('boing');
     const bad=worn[w.slot];setTimeout(()=>{if(bad&&bad.isConnected&&bad.dataset.item===item){bad.remove();if(worn[w.slot]===bad)delete worn[w.slot];}},650);
-    g.wrong(b,{text:`Dino does not need ${w.name==='ice cream'?'ice cream':'a '+w.name} for this. Try something else!`,speech:'Dino does not need that.'});return;
+    g.wrong(b,{text:`Dino does not need ${withArticle(w.name)} for this. Try something else!`,speech:'Dino does not need that.'});return;
    }
    place(item);b.classList.add('on');got++;
    const c=checklist.children[need.indexOf(item)];c.classList.add('ok');c.innerHTML=`<i>${item}</i>`;
-   g.right(box,{kind:'sparkle',n:10,text:false,pitch:got-1});g.speak(w.name);
+   g.right(box,{kind:'sparkle',n:10,text:false,pitch:got-1});g.speak(withArticle(w.name));
    if(got===need.length){
     wardrobe.classList.add('locked');E.sfx('sparkle');
-    const kind={beach:'bubbles',snow:'sparkle',party:'confetti',bedtime:'stars',school:'leaves'}[sc.id];
+    const kind={river:'bubbles',night:'stars',feast:'confetti',learn:'leaves',walk:'dust'}[sc.id];
     g.later(()=>{E.burstAt(box,{kind,n:30});E.sfx('roar');g.speak('Perfect! Dino looks great!');g.win({delay:2100});},500);
    }
   };

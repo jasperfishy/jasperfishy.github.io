@@ -89,6 +89,40 @@
 /* flip to face left */
 .du-dino.d-flip { transform: scaleX(-1); }
 
+/* ---------- photoreal dinosaurs: a photograph wears the animal, the whole
+ * sprite moves as one (bounce, sway, squash) the way the arcade worlds do.
+ * Drawn art stays for anything that paints paths or swaps heads. ---------- */
+.du-dino-photo { position: relative; aspect-ratio: 2 / 1; }
+.du-dino-photo .dp-body {
+  position: absolute; inset: 0; display: block;
+  background: var(--d-photo) center bottom / contain no-repeat;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,.28));
+  transform-origin: 50% 100%;
+  animation: dup-breathe 3.2s ease-in-out infinite; animation-delay: var(--d-delay, 0s);
+}
+.du-dino-photo .dp-shadow {
+  position: absolute; left: 12%; right: 12%; bottom: 0; height: 6%;
+  background: radial-gradient(ellipse at center, rgba(20,60,58,.2), transparent 72%);
+}
+.du-dino-photo[data-state="walk"] .dp-body { animation: dup-step .8s ease-in-out infinite; }
+.du-dino-photo[data-state="run"] .dp-body { animation: dup-run .34s ease-in-out infinite; }
+.du-dino-photo[data-state="happy"] .dp-body { animation: dup-hop .55s cubic-bezier(.3,.7,.4,1) infinite; }
+.du-dino-photo[data-state="sad"] .dp-body { animation: dup-droop 2.6s ease-in-out infinite; }
+.du-dino-photo[data-state="roar"] .dp-body { animation: dup-roar .22s linear infinite; }
+.du-dino-photo[data-state="eat"] .dp-body { animation: dup-eat .5s ease-in-out infinite; }
+.du-dino-photo[data-state="sleep"] .dp-body { animation: dup-snooze 4s ease-in-out infinite; }
+.du-dino-photo[data-species="ptero"] .dp-body { animation: dup-glide 3s ease-in-out infinite; }
+.du-dino-photo[data-species="ptero"] .dp-shadow { opacity: 0; }
+@keyframes dup-breathe { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.02); } }
+@keyframes dup-step { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-3%) rotate(1deg); } }
+@keyframes dup-run { 0%,100% { transform: translateY(0) rotate(-2deg) scale(1.02, .97); } 50% { transform: translateY(-7%) rotate(2deg) scale(.98, 1.03); } }
+@keyframes dup-hop { 0%,100% { transform: translateY(0) scale(1.03, .96); } 45% { transform: translateY(-14%) scale(.97, 1.05); } }
+@keyframes dup-droop { 0%,100% { transform: translateY(1.5%) scale(1, .97); } 50% { transform: translateY(2.5%) scale(1, .95); } }
+@keyframes dup-roar { 0% { transform: translate(0, 0) scale(1.06); } 25% { transform: translate(-1.5%, .5%) scale(1.07); } 50% { transform: translate(1.5%, -.5%) scale(1.06); } 75% { transform: translate(-1%, -1%) scale(1.07); } 100% { transform: translate(0, 0) scale(1.06); } }
+@keyframes dup-eat { 0%,100% { transform: translateY(0) rotate(2deg); } 50% { transform: translateY(3%) rotate(4deg); } }
+@keyframes dup-snooze { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.04) translateY(1%); } }
+@keyframes dup-glide { 0%,100% { transform: translateY(-4%) rotate(-2deg); } 50% { transform: translateY(5%) rotate(3deg); } }
+
 /* ---------- reusable motion helpers ---------- */
 .du-float { animation: du-float 4s ease-in-out infinite; animation-delay: var(--du-delay, 0s); }
 @keyframes du-float { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-7px) rotate(1.5deg); } }

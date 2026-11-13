@@ -2,36 +2,35 @@
  * Drag (or tap) the right food. Requests grow from names ("berries!") to kinds, colours, feels, drinks and puddings,
  * so a long table wants a dish, a sip and a sweet finish. The weather changes the table each round, a wrong dish
  * earns a teaching nudge, a free hint glows the right plate, and a fed table can unlock a dessert dash. */
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
+// The picnic grocery: every dish is a specimen the valley actually has, and no two dishes share a photograph.
 const FOODS = [
-  { icon: "🥬", label: "leafy greens", color: "green", feel: "leafy", kind: "plants" },
-  { icon: "🍓", label: "berries", color: "red", feel: "sweet", kind: "plants" },
-  { icon: "🐟", label: "a fish", color: "silver", feel: "fishy", kind: "fish" },
-  { icon: "🍎", label: "an apple", color: "red", feel: "crunchy", kind: "plants" },
-  { icon: "🥕", label: "a carrot", color: "orange", feel: "crunchy", kind: "plants" },
-  { icon: "🦐", label: "a shrimp", color: "pink", feel: "fishy", kind: "fish" },
-  { icon: "🍌", label: "a banana", color: "yellow", feel: "sweet", kind: "plants" },
-  { icon: "🍇", label: "grapes", color: "purple", feel: "sweet", kind: "plants" },
-  { icon: "🥦", label: "broccoli", color: "green", feel: "crunchy", kind: "plants" },
-  { icon: "🌽", label: "corn", color: "yellow", feel: "crunchy", kind: "plants" },
-  { icon: "🍉", label: "watermelon", color: "red", feel: "juicy", kind: "plants" },
-  { icon: "🍋", label: "a lemon", color: "yellow", feel: "sour", kind: "plants" },
-  { icon: "🐠", label: "a little fish", color: "orange", feel: "fishy", kind: "fish" },
-  { icon: "🍑", label: "a peach", color: "orange", feel: "juicy", kind: "plants" },
-  { icon: "🍒", label: "cherries", color: "red", feel: "sweet", kind: "plants" },
-  { icon: "🍄", label: "a mushroom", color: "brown", feel: "soft", kind: "plants" },
-  { icon: "🥥", label: "a coconut", color: "brown", feel: "hard", kind: "plants" },
   { icon: "🌿", label: "a fern top", color: "green", feel: "leafy", kind: "plants" },
-  { icon: "🦀", label: "a crab", color: "red", feel: "fishy", kind: "fish" },
+  { icon: "🍓", label: "berries", color: "red", feel: "sweet", kind: "plants" },
+  { icon: "🌱", label: "fresh sprouts", color: "green", feel: "crunchy", kind: "plants" },
+  { icon: "🐟", label: "a fish", color: "silver", feel: "fishy", kind: "fish" },
+  { icon: "🍄", label: "a mushroom", color: "brown", feel: "soft", kind: "plants" },
+  { icon: "🌰", label: "a seed cone", color: "brown", feel: "hard", kind: "plants" },
+  { icon: "🌾", label: "grain ears", color: "yellow", feel: "crunchy", kind: "plants" },
+  { icon: "🌼", label: "flower petals", color: "yellow", feel: "soft", kind: "plants" },
+  { icon: "☘️", label: "green moss", color: "green", feel: "soft", kind: "plants" },
+  { icon: "🪻", label: "ginkgo leaves", color: "yellow", feel: "leafy", kind: "plants" },
+  { icon: "🎍", label: "a bamboo shoot", color: "green", feel: "crunchy", kind: "plants" },
+  { icon: "🌴", label: "a palm frond", color: "green", feel: "leafy", kind: "plants" },
+  { icon: "🎋", label: "a reed stalk", color: "brown", feel: "crunchy", kind: "plants" },
+  { icon: "🌵", label: "a cycad cone", color: "orange", feel: "spiky", kind: "plants" },
+  { icon: "🍂", label: "a fallen leaf", color: "brown", feel: "crunchy", kind: "plants" },
+  { icon: "🪴", label: "an ivy leaf", color: "green", feel: "leafy", kind: "plants" },
+  { icon: "🐌", label: "a river snail", color: "pink", feel: "slippery", kind: "fish" },
+  { icon: "🦋", label: "a dragonfly", color: "blue", feel: "crunchy", kind: "fish" },
   { icon: "💧", label: "cool water", color: "blue", feel: "sip", kind: "drink" },
-  { icon: "🧃", label: "berry juice", color: "purple", feel: "sip", kind: "drink" },
-  { icon: "🥛", label: "a milky shell", color: "white", feel: "sip", kind: "drink" },
+  { icon: "🏺", label: "a claypot of berry juice", color: "purple", feel: "sip", kind: "drink" },
+  { icon: "🫧", label: "a bubbly spring drink", color: "white", feel: "sip", kind: "drink" },
   { icon: "🍯", label: "a pot of honey", color: "yellow", feel: "sticky", kind: "sweet" },
-  { icon: "🍰", label: "a cake", color: "pink", feel: "soft", kind: "sweet" },
-  { icon: "🍪", label: "a biscuit", color: "brown", feel: "crunchy", kind: "sweet" },
-  { icon: "🍨", label: "ice cream", color: "white", feel: "cold", kind: "sweet" },
-  { icon: "🥧", label: "a berry pie", color: "orange", feel: "warm", kind: "sweet" }
+  { icon: "🥚", label: "a soft egg custard", color: "white", feel: "soft", kind: "sweet" },
+  { icon: "🧊", label: "a snow cone", color: "white", feel: "cold", kind: "sweet" },
+  { icon: "🍳", label: "a warm egg pudding", color: "orange", feel: "warm", kind: "sweet" }
 ];
 const POOLS = {
   main: FOODS.filter(function (f) { return f.kind === "plants" || f.kind === "fish"; }),
@@ -49,7 +48,7 @@ const WEATHERS = [
   { icon: "🌧️", name: "a little showery", theme: "rain", note: "Pitter patter! Everyone is extra thirsty today.", drinks: true },
   { icon: "🌈", name: "rainbow after rain", theme: "rain", note: "A rainbow over the blanket — the puddle is full of fish!" }
 ];
-const COURSE_ICON = { main: "💚", drink: "💧", sweet: "🍮" };
+const COURSE_ICON = { main: "🍃", drink: "💧", sweet: "🍯" };
 const SWEETS_ASK = ["Save me a pudding, please — something sweet!", "And now, may I have something sweet?"];
 
 function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
@@ -81,7 +80,7 @@ function makeRequest(level, type, pool) {
 function nudge(guest, food, req) {
   if (req.by === "kind") {
     if (food.kind === req.value) return "That is " + req.value + "! Have another look — one of these is not.";
-    return "Not quite — " + food.label + " isn't " + whatItIs(req.value) + ". Look again 💛";
+    return "Not quite — " + food.label + " isn't " + whatItIs(req.value) + ". Look again ✨";
   }
   if (req.by === "color" && food.color === req.value) return "Ooh, that IS " + req.value + " — but " + guest[2] + " wanted " + req.target.label + ".";
   if (req.by === "feel" && food.feel === req.value) return "That IS " + req.value + "! " + guest[2] + " is looking for " + req.target.label + ", though.";
@@ -155,7 +154,7 @@ export function mountPicnic(context) {
     window.setTimeout(function () { F.dinoState(d, "idle"); busy = false; ask(); }, 1100);
   }
   function renderMeter() {
-    meter.innerHTML = plan.map(function (t, i) { return '<i class="' + (i < course ? "on" : "") + '">' + (i < course ? COURSE_ICON[t] : "🤍") + "</i>"; }).join("") +
+    meter.innerHTML = plan.map(function (t, i) { return '<i class="' + (i < course ? "on" : "") + '">' + (i < course ? COURSE_ICON[t] : "⚪") + "</i>"; }).join("") +
       '<span style="font-size:11px;font-weight:800;color:#5b6b5d;margin-left:6px">course ' + Math.min(course + 1, plan.length) + " of " + plan.length + "</span>";
   }
   function ask() {
@@ -194,7 +193,7 @@ export function mountPicnic(context) {
       if (F.anim) F.anim(b, [{ transform: "scale(1)" }, { transform: "scale(1.16)" }, { transform: "scale(1)" }], { duration: 620, easing: "ease-in-out" });
     });
     play.say("Look for the one that matches: " + req.text, 3200);
-    play.hint("A glow shows the dish " + guest[2] + " asked for 💛", true);
+    play.hint("A glow shows the dish " + guest[2] + " asked for ✨", true);
   });
   function choose(btn, food) {
     if (busy || btn.disabled) return;
@@ -217,7 +216,7 @@ export function mountPicnic(context) {
         if (course < plan.length) { window.setTimeout(function () { busy = false; play.say("Mmm! And what else, " + guest[2] + "?"); window.setTimeout(ask, 600); }, 1100); return; }
         window.setTimeout(function () {
           F.dinoState(d, "happy", 1200);
-          play.say(guest[2] + " is full and happy! 💚");
+          play.say(guest[2] + " is full and happy! ✨");
           const chip = document.createElement("span"); chip.className = "pn-chip"; chip.innerHTML = F.dinoHTML(guest[0], { color: guest[1], state: "happy", size: "100%" }); fedEl.appendChild(chip); F.pop && F.pop(chip);
           // the plate the guest finished with, so the table fills up as the picnic goes on
           const plate = document.createElement("span");
@@ -245,14 +244,14 @@ export function mountPicnic(context) {
     guestEl.innerHTML = ""; bubble.hidden = true; helpBtn.disabled = false;
     helpBtn.textContent = "Skip the dessert dash →";
     basket.hidden = false;
-    basketLabel.textContent = "🍨 Dessert dash! Tap the pudding each guest points at.";
+    basketLabel.textContent = "🧊 Dessert dash! Tap the pudding each guest points at.";
     const sweets = shuffle(POOLS.sweet.slice());
     let i = 0;
     function dash() {
       busy = true;
       const want = sweets[i % sweets.length];
       const others = shuffle(POOLS.sweet.filter(function (s) { return s !== want; })).slice(0, 2);
-      meter.innerHTML = '<i class="on">🍨</i>'.repeat(i) + "<i>🤍</i>".repeat(Math.max(0, 3 - i));
+      meter.innerHTML = '<i class="on">🧊</i>'.repeat(i) + "<i>⚪</i>".repeat(Math.max(0, 3 - i));
       guestEl.innerHTML = F.dinoHTML(order[i % order.length][0], { color: "pink", state: "happy", size: "100%" });
       play.hint("Dessert " + (i + 1) + " of 3 — " + want.label + "!", true);
       play.say("I would love " + want.label + "!", 2600);
@@ -291,7 +290,7 @@ export function mountPicnic(context) {
     fedEl.classList.add("pn-party");
     if (F.sfx) F.sfx.win();
     fedEl.querySelectorAll(".du-dino").forEach(function (d, i) { window.setTimeout(function () { F.dinoState(d, "happy", 9999); }, i * 120); });
-    play.say("Picnic party! 🎉🍰", 3000);
+    play.say("Picnic party! What a sweet finish!", 3000);
     const r = fedEl.getBoundingClientRect();
     if (F.burst) F.burst(r.left + r.width / 2, r.top, { kind: "confetti", n: 40 });
     collect("picnic-runs", { fed: order.length, mixups: play.state.misses, stars: play.rating(), dash: !!dashed });

@@ -5,6 +5,22 @@ export const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 export const rnd = (a, b) => a + Math.random() * (b - a);
 export const tile = (svg, w, h) => "url('data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' + svg + '</svg>') + "')";
 
+// Wise Owl is a character this story invented, not a specimen, so assets/objects has no
+// photograph of her and no hydration layer would ever claim an 🦉 typed here. She is drawn
+// once and shared: the same drawing sits in the trees and on her caption face, sized in em
+// so each place renders her at the size its own type asks for.
+export const OWL = '<svg viewBox="0 0 44 52" width="1em" height="1.18em" aria-hidden="true" focusable="false" style="vertical-align:-0.12em">' +
+  '<g stroke="#5a4630" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">' +
+  '<path d="M13 11 9 2l8 5Z" fill="#8c6c46"/><path d="M31 11l4-9-8 5Z" fill="#8c6c46"/>' +
+  '<path d="M22 8c8 0 13 7 13 17 0 12-6 21-13 21S9 37 9 25C9 15 14 8 22 8Z" fill="#a9855b"/>' +
+  '<path d="M22 27c5 0 8 4 8 9 0 6-3 9-8 9s-8-3-8-9c0-5 3-9 8-9Z" fill="#e7cfa6" stroke="none"/>' +
+  '<circle cx="16" cy="21" r="6" fill="#fff6e0"/><circle cx="28" cy="21" r="6" fill="#fff6e0"/>' +
+  '<circle cx="16.6" cy="21" r="2.6" fill="#33271a" stroke="none"/><circle cx="27.4" cy="21" r="2.6" fill="#33271a" stroke="none"/>' +
+  '<path d="M22 24.5 25 29h-6Z" fill="#e8a13c"/>' +
+  '<path d="M12 32c-2 4-2 8 0 11M32 32c2 4 2 8 0 11" fill="none" stroke="#7c5e3d"/>' +
+  '<path d="M18 46v4M26 46v4" fill="none"/>' +
+  '</g></svg>';
+
 export const MOUNTS = [
   { id: 'trex', name: 'Rex the T-rex', color: 'green', blurb: 'Strong, loud and brave.' },
   { id: 'tricera', name: 'Bumper the Triceratops', color: 'orange', blurb: 'Bumps through anything.' },
@@ -83,6 +99,9 @@ export function createEngine(context) {
   E.scene = function (html, opts) {
     opts = opts || {};
     E.world.innerHTML = html; E.world.className = 'rs-world' + (opts.cls ? ' ' + opts.cls : '');
+    const environment=({cave:'cave',lava:'volcanic',sky:'mountain',storm:'night',forest:'night',bridge:'coast'})[opts.music] || 'jungle';
+    E.world.style.background=`url('${new URL('../../../../../assets/environments/'+environment+'.webp',import.meta.url).href}') center / cover`;
+    E.world.querySelectorAll('.rs-sky,.rs-sun,.rs-cavebg').forEach(layer=>layer.style.display='none');
     if (opts.ambient && FX.ambient) FX.ambient(opts.ambient);
     if (opts.music) E.music(opts.music);
     E.hush(); E.skip = null;
@@ -100,7 +119,9 @@ export function createEngine(context) {
   };
 
   // ---------------------------------------------------------------- words
-  const FACES = { narrator: '📖', mummy: '<i class="rs-head m"></i>', daddy: '<i class="rs-head d"></i>', pip: '🐦', child: '🧒', bumper: '🦕', grumble: '⛈️', owl: '🦉', volcano: '🌋' };
+  // Pip is a pterosaur, not a songbird, and the story already flies her on screen as an
+  // animated render — a 🐦 caption would have been a different animal, in someone else's font.
+  const FACES = { narrator: '📖', mummy: '<i class="rs-head m"></i>', daddy: '<i class="rs-head d"></i>', pip: FX.dinoHTML('ptero', { state: 'happy', size: '1em' }), child: '🧒', bumper: '🦕', grumble: '⛈️', owl: OWL, volcano: '🌋' };
   E.say = async function (text, who, hold) {
     if (!E.alive) return;
     E.cap.hidden = false; E.cap.classList.remove('pop'); void E.cap.offsetWidth; E.cap.classList.add('pop');

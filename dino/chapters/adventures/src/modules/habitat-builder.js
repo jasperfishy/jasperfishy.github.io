@@ -4,18 +4,18 @@
  * still missing, the weather drifts across the land, and every kind of thing lands with its own sound and sparkle.
  * When the home is ready the dinosaur moves in, sunset turns to starry night, you may catch the night stars, and then
  * it falls asleep. */
-import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
 const HABITATS = [
-  { dino: "Brachiosaurus", sp: "bronto", color: "orange", place: "Fern Forest", cls: "hb-forest", base: ["water", "ferns", "tallTrees"], extras: ["sunnyRocks", "flowers"], note: "A long neck reaches the tallest leaves!" },
-  { dino: "Spinosaurus", sp: "raptor", color: "blue", place: "River Lagoon", cls: "hb-lagoon", base: ["water", "reeds", "shade"], extras: ["shells", "sunnyRocks"], note: "Spinosaurus hunted fish in the rivers." },
+  { dino: "Brachiosaurus", sp: "brachiosaurus", color: "orange", place: "Fern Forest", cls: "hb-forest", base: ["water", "ferns", "tallTrees"], extras: ["sunnyRocks", "flowers"], note: "A long neck reaches the tallest leaves!" },
+  { dino: "Spinosaurus", sp: "spinosaurus", color: "blue", place: "River Lagoon", cls: "hb-lagoon", base: ["water", "reeds", "shade"], extras: ["shells", "sunnyRocks"], note: "Spinosaurus hunted fish in the rivers." },
   { dino: "Triceratops", sp: "tricera", color: "teal", place: "Open Meadow", cls: "hb-meadow", base: ["ferns", "flowers", "sunnyRocks"], extras: ["water", "shade"], note: "Three horns and a big frill — quite a face!" },
   { dino: "Stegosaurus", sp: "stego", color: "purple", place: "Warm Valley", cls: "hb-valley", base: ["water", "ferns", "sunnyRocks"], extras: ["flowers", "shade"], note: "Its back plates warmed up in the sun." },
   { dino: "Pteranodon", sp: "ptero", color: "pink", place: "Cliffside Coast", cls: "hb-coast", base: ["water", "sunnyRocks", "tallTrees"], extras: ["shells", "shade"], note: "A flying reptile, not a dinosaur — it loved the sea air." },
-  { dino: "Ankylosaurus", sp: "stego", color: "green", place: "Armoured Ridge", cls: "hb-valley", base: ["water", "ferns", "shade"], extras: ["sunnyRocks", "shells"], note: "Bony armour and a clubby tail for keeping safe." },
-  { dino: "Maiasaura", sp: "tricera", color: "yellow", place: "Nesting Grounds", cls: "hb-meadow", base: ["ferns", "tallTrees", "water"], extras: ["flowers", "sunnyRocks"], note: "Maiasaura looked after its babies in big nests." },
-  { dino: "Diplodocus", sp: "bronto", color: "teal", place: "Riverbank Grove", cls: "hb-lagoon", base: ["water", "tallTrees", "ferns"], extras: ["reeds", "shade"], note: "A whip-long tail and a neck like a ladder." },
-  { dino: "Oviraptor", sp: "raptor", color: "red", place: "Feathered Hollow", cls: "hb-forest", base: ["tallTrees", "shade", "water"], extras: ["nest", "flowers"], note: "It had feathers, and it sat on its own eggs." }
+  { dino: "Ankylosaurus", sp: "ankylosaurus", color: "green", place: "Armoured Ridge", cls: "hb-valley", base: ["water", "ferns", "shade"], extras: ["sunnyRocks", "shells"], note: "Bony armour and a clubby tail for keeping safe." },
+  { dino: "Maiasaura", sp: "maiasaura", color: "yellow", place: "Nesting Grounds", cls: "hb-meadow", base: ["ferns", "tallTrees", "water"], extras: ["flowers", "sunnyRocks"], note: "Maiasaura looked after its babies in big nests." },
+  { dino: "Diplodocus", sp: "diplodocus", color: "teal", place: "Riverbank Grove", cls: "hb-lagoon", base: ["water", "tallTrees", "ferns"], extras: ["reeds", "shade"], note: "A whip-long tail and a neck like a ladder." },
+  { dino: "Oviraptor", sp: "oviraptor", color: "red", place: "Feathered Hollow", cls: "hb-forest", base: ["tallTrees", "shade", "water"], extras: ["nest", "flowers"], note: "It had feathers, and it sat on its own eggs." }
 ];
 const FEATURES = [
   { id: "water", icon: "🌊", name: "fresh water", size: 64, group: "water" },
@@ -23,15 +23,23 @@ const FEATURES = [
   { id: "tallTrees", icon: "🌳", name: "tall trees", size: 72, group: "plant" },
   { id: "sunnyRocks", icon: "🪨", name: "sunny rocks", size: 46, group: "stone" },
   { id: "flowers", icon: "🌼", name: "wild flowers", size: 38, group: "plant" },
-  { id: "reeds", icon: "🪷", name: "river reeds", size: 42, group: "plant" },
+  /* 🪷 is a lotus, which the library files under the same photograph as the wild
+   * flowers below it — two toolbox slots showing one picture. Reeds have their
+   * own specimen, so the river bank finally looks like the name it carries. */
+  { id: "reeds", icon: "🎋", name: "river reeds", size: 42, group: "plant" },
   { id: "shade", icon: "🌴", name: "cool shade", size: 68, group: "plant" },
   { id: "shells", icon: "🐚", name: "seashells", size: 32, group: "stone" },
   { id: "nest", icon: "🪺", name: "a family nest", size: 40, group: "stone" },
   { id: "d-mush", icon: "🍄", name: "mushrooms", size: 34, decor: true },
-  { id: "d-frog", icon: "🐸", name: "a froggy friend", size: 34, decor: true },
+  /* The specimen library has no frog — 🐸 would have stayed a font glyph — so the
+   * pond-side friend is a turtle, which it does photograph, and which cannot be
+   * mistaken for the snail, hatchling or dragonfly sharing the decoration draw. */
+  { id: "d-turtle", icon: "🐢", name: "a turtle friend", size: 34, decor: true },
   { id: "d-rainbow", icon: "🌈", name: "a rainbow", size: 66, decor: true },
   { id: "d-butter", icon: "🦋", name: "butterflies", size: 32, decor: true },
-  { id: "d-lamp", icon: "🏮", name: "a glowing lantern", size: 36, decor: true },
+  /* 🏮 is a paper lantern nobody owns; the lamp family (💡🔦🕯️) photographs a real
+   * oil lamp, which is the thing a dinosaur-side camp would actually glow with. */
+  { id: "d-lamp", icon: "🕯️", name: "a glowing lantern", size: 36, decor: true },
   { id: "d-log", icon: "🪵", name: "a log pile", size: 38, decor: true },
   { id: "d-track", icon: "👣", name: "a footprint path", size: 34, decor: true },
   { id: "d-feather", icon: "🪶", name: "a soft feather", size: 32, decor: true },

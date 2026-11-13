@@ -110,17 +110,28 @@
     cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   const CONFETTI = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#c77dff', '#ff9f43', '#2ec4b6'];
+  /* No particle below is a font glyph. An emoji particle is drawn by the
+   * operating system, so it looks different on every device and never looks
+   * like it belongs in the scene; these are drawn from light, geometry or a
+   * photograph, and are lit to match the world they are falling in. */
   const KINDS = {
     confetti: { shape: 'rect', g: 420, drag: .6, size: [7, 12], life: [1.6, 2.6], speed: [220, 560], spread: 1 },
-    stars: { emoji: ['⭐', '✨', '🌟', '💫'], g: 120, drag: 1.2, size: [16, 26], life: [.8, 1.4], speed: [120, 320], spread: 1 },
-    hearts: { emoji: ['💚', '💛', '🧡', '💖', '💜'], g: -90, drag: 1.4, size: [16, 26], life: [1, 1.6], speed: [60, 190], spread: 1, up: true },
-    leaves: { emoji: ['🍃', '🌿', '🍀'], g: 160, drag: 1.1, size: [16, 24], life: [1.2, 2], speed: [90, 240], spread: 1, flutter: true },
+    /* a lens flare caught mid-fall: warm white core, anamorphic streaks */
+    stars: { shape: 'flare', g: 120, drag: 1.2, size: [9, 20], life: [.8, 1.4], speed: [120, 320], spread: 1, add: true, tint: ['255,252,236', '255,206,120'] },
+    /* affection reads as warmth lifting off the scene, not as a coloured heart */
+    hearts: { shape: 'glow', g: -90, drag: 1.4, size: [10, 22], life: [1, 1.6], speed: [60, 190], spread: 1, up: true, add: true, tint: ['255,186,120', '255,96,52'] },
+    /* a real blade, tapered and veined, tumbling end over end */
+    leaves: { shape: 'leaf', g: 160, drag: 1.1, size: [13, 22], life: [1.2, 2], speed: [90, 240], spread: 1, flutter: true, tint: ['126,178,96', '196,166,74'] },
     bubbles: { shape: 'bubble', g: -110, drag: .8, size: [8, 22], life: [1.2, 2.2], speed: [30, 120], spread: 1, up: true },
     sparkle: { shape: 'spark', g: 0, drag: 2.2, size: [3, 7], life: [.4, .9], speed: [60, 260], spread: 1, add: true },
     dust: { shape: 'dust', g: -20, drag: 2.6, size: [10, 22], life: [.5, .9], speed: [30, 110], spread: 1 },
-    drops: { emoji: ['💧'], g: 520, drag: .4, size: [12, 18], life: [.7, 1.1], speed: [120, 300], spread: 1 },
-    notes: { emoji: ['🎵', '🎶'], g: -70, drag: 1, size: [18, 28], life: [1, 1.6], speed: [50, 140], spread: 1, up: true },
-    bones: { emoji: ['🦴'], g: 380, drag: .5, size: [18, 26], life: [1, 1.5], speed: [140, 340], spread: 1 },
+    /* water with a meniscus and a highlight, not a blue cartoon teardrop */
+    drops: { shape: 'drop', g: 520, drag: .4, size: [9, 16], life: [.7, 1.1], speed: [120, 300], spread: 1, tint: ['168,224,244', '84,160,206'] },
+    /* sound made visible: a thin arc widening out of the point it was struck */
+    notes: { shape: 'ring', g: -70, drag: 1, size: [10, 26], life: [1, 1.6], speed: [50, 140], spread: 1, up: true, add: true, tint: ['255,232,170', '176,214,255'] },
+    /* a photograph from assets/objects, so a dig yields the same bone the
+     * museum shelves */
+    bones: { img: 'bone', g: 380, drag: .5, size: [22, 34], life: [1, 1.5], speed: [140, 340], spread: 1 },
     embers: { shape: 'spark', g: -60, drag: .9, size: [2, 5], life: [.8, 1.6], speed: [30, 100], spread: 1, add: true, hot: true },
   };
   DUFX.burst = function (x, y, o) {
@@ -138,7 +149,8 @@
       parts.push({
         k: K, x: x + rnd(-4, 4), y: y + rnd(-4, 4), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (K.up ? 0 : sp * .25),
         r: rnd(TAU), vr: rnd(-6, 6), life, max: life, size: rnd(K.size[0], K.size[1]) * (o.scale || 1),
-        color: o.color || pick(CONFETTI), e: K.emoji ? pick(K.emoji) : '', ph: rnd(TAU), text: null,
+        color: o.color || pick(CONFETTI), tint: K.tint || null, im: K.img ? objectImage(K.img) : null,
+        ph: rnd(TAU),
       });
     }
     kick();
@@ -160,12 +172,119 @@
       return;
     }
     const left = o.x !== undefined ? o.x : W * .15, right = o.x !== undefined ? o.x : W * .85, by = o.y !== undefined ? o.y : H * .95;
-    DUFX.burst(left, by, { kind: 'confetti', n: 46, angle: -Math.PI * .38, spread: .45, power: 1.5 });
-    DUFX.burst(right, by, { kind: 'confetti', n: 46, angle: -Math.PI * .62, spread: .45, power: 1.5 });
-    for (let i = 0; i < 6; i++) setTimeout(() => DUFX.burst(rnd(W * .15, W * .85), -10, { kind: 'confetti', n: 10, angle: Math.PI / 2, spread: 1.2, power: .4 }), 250 + i * 180);
-    setTimeout(() => DUFX.burst(W / 2, H * .4, { kind: 'stars', n: 18, power: 1.1 }), 180);
+    /* Not paper: a win throws up the stuff of the world itself — dust lit by
+     * a low sun, embers from a fire, and one flare off the lens. */
+    DUFX.burst(left, by, { kind: 'dust', n: 30, angle: -Math.PI * .42, spread: .5, power: 1.4, color: '#e8c9a0' });
+    DUFX.burst(right, by, { kind: 'dust', n: 30, angle: -Math.PI * .58, spread: .5, power: 1.4, color: '#e8c9a0' });
+    for (let i = 0; i < 6; i++) setTimeout(() => DUFX.burst(rnd(W * .15, W * .85), H * .98, { kind: 'embers', n: 14, angle: -Math.PI / 2, spread: .8, power: .7 }), 180 + i * 150);
+    setTimeout(() => DUFX.burst(W / 2, H * .4, { kind: 'stars', n: 12, power: 1.1 }), 180);
   };
+  /* A photograph asked for by name, if du-objects has it decoded already;
+   * before then the particle simply does not draw, rather than showing a box. */
+  function objectImage(slug) {
+    const O = DUFX.objects;
+    if (!O || !O.image) return null;
+    try { return O.image(slug); } catch (e) { return null; }
+  }
+  /* What a camera does to a point of light: a core, an anamorphic streak and
+   * four spikes. Used wherever the games used to scatter a star emoji. */
+  function lensFlare(p, a) {
+    const t = p.tint || ['255,252,236', '255,206,120'];
+    cx.save();
+    cx.globalCompositeOperation = 'lighter';
+    cx.translate(p.x, p.y);
+    cx.rotate(p.r * .12);
+    const s = p.size;
+    let g = cx.createRadialGradient(0, 0, 0, 0, 0, s);
+    g.addColorStop(0, `rgba(${t[0]},${a})`);
+    g.addColorStop(.35, `rgba(${t[1]},${a * .5})`);
+    g.addColorStop(1, `rgba(${t[1]},0)`);
+    cx.fillStyle = g;
+    cx.beginPath(); cx.arc(0, 0, s, 0, TAU); cx.fill();
+    cx.strokeStyle = `rgba(${t[0]},${a * .5})`;
+    cx.lineWidth = Math.max(1, s * .07);
+    cx.beginPath(); cx.moveTo(-s * 2.6, 0); cx.lineTo(s * 2.6, 0); cx.stroke();
+    cx.beginPath(); cx.moveTo(0, -s * .9); cx.lineTo(0, s * .9); cx.stroke();
+    cx.strokeStyle = `rgba(${t[0]},${a * .32})`;
+    cx.lineWidth = Math.max(1, s * .05);
+    for (let k = 0; k < 4; k++) {
+      const ang = TAU * (k / 8) + .4;
+      cx.beginPath(); cx.moveTo(Math.cos(ang) * -s * 1.5, Math.sin(ang) * -s * 1.5);
+      cx.lineTo(Math.cos(ang) * s * 1.5, Math.sin(ang) * s * 1.5); cx.stroke();
+    }
+    cx.restore();
+  }
+  /* Warmth lifting off a scene — what "love" looks like when it is light. */
+  function softGlow(p, a, t) {
+    const tint = t || ['255,186,120', '255,96,52'];
+    const s = p.size;
+    cx.save();
+    cx.globalCompositeOperation = 'lighter';
+    const g = cx.createRadialGradient(p.x, p.y, 0, p.x, p.y, s);
+    g.addColorStop(0, `rgba(${tint[0]},${a})`);
+    g.addColorStop(.55, `rgba(${tint[1]},${a * .45})`);
+    g.addColorStop(1, `rgba(${tint[1]},0)`);
+    cx.fillStyle = g;
+    cx.beginPath(); cx.arc(p.x, p.y, s, 0, TAU); cx.fill();
+    cx.restore();
+  }
+  /* A blade with a midrib that actually narrows to a tip. */
+  function leafShape(p, a) {
+    const t = p.tint || ['126,178,96', '196,166,74'];
+    const s = p.size;
+    cx.save();
+    cx.globalAlpha = a;
+    cx.translate(p.x, p.y);
+    cx.rotate(p.r);
+    cx.scale(1, .45 + Math.abs(Math.cos(p.ph + p.life * 5)) * .55);
+    cx.beginPath();
+    cx.moveTo(0, -s * .8);
+    cx.bezierCurveTo(s * .62, -s * .4, s * .62, s * .4, 0, s * .8);
+    cx.bezierCurveTo(-s * .62, s * .4, -s * .62, -s * .4, 0, -s * .8);
+    const g = cx.createLinearGradient(-s * .5, 0, s * .5, 0);
+    g.addColorStop(0, `rgb(${t[1]})`);
+    g.addColorStop(.5, `rgb(${t[0]})`);
+    g.addColorStop(1, `rgb(${t[1]})`);
+    cx.fillStyle = g; cx.fill();
+    cx.strokeStyle = 'rgba(28,58,34,.5)';
+    cx.lineWidth = Math.max(.6, s * .06);
+    cx.beginPath(); cx.moveTo(0, -s * .72); cx.lineTo(0, s * .72); cx.stroke();
+    cx.restore();
+  }
+  /* Water holds its shape and throws back one bright highlight. */
+  function waterDrop(p, a) {
+    const t = p.tint || ['168,224,244', '84,160,206'];
+    const s = p.size;
+    cx.save();
+    cx.globalAlpha = a;
+    cx.translate(p.x, p.y);
+    cx.rotate(p.r * .18);
+    cx.beginPath();
+    cx.moveTo(0, -s);
+    cx.bezierCurveTo(s * .8, -s * .1, s * .68, s * .9, 0, s);
+    cx.bezierCurveTo(-s * .68, s * .9, -s * .8, -s * .1, 0, -s);
+    const g = cx.createLinearGradient(0, -s, 0, s);
+    g.addColorStop(0, `rgba(${t[0]},.95)`);
+    g.addColorStop(1, `rgba(${t[1]},.85)`);
+    cx.fillStyle = g; cx.fill();
+    cx.fillStyle = 'rgba(255,255,255,.9)';
+    cx.beginPath(); cx.ellipse(-s * .22, s * .18, s * .16, s * .26, -.4, 0, TAU); cx.fill();
+    cx.restore();
+  }
+  /* A struck note is the sound moving outward, not a picture of a note. */
+  function soundRing(p, a) {
+    const t = p.tint || ['255,232,170', '176,214,255'];
+    const grow = 1 - clamp(p.life / p.max, 0, 1);
+    cx.save();
+    cx.globalCompositeOperation = 'lighter';
+    cx.globalAlpha = a * .8;
+    cx.strokeStyle = `rgb(${t[(grow * 2 | 0) % 2]})`;
+    cx.lineWidth = Math.max(1, p.size * .12 * (1 - grow));
+    cx.beginPath(); cx.arc(p.x, p.y, p.size * (.3 + grow * 1.6), -.7, .7); cx.stroke();
+    cx.restore();
+  }
   function kick() { if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(tick); } }
+
   function tick(t) {
     const dt = Math.min(.04, (t - lastT) / 1000 || .016); lastT = t;
     cx.clearRect(0, 0, W, H);
@@ -179,7 +298,15 @@
       const a = clamp(p.life / p.max * 2.2, 0, 1);
       cx.globalAlpha = a;
       if (p.text) { cx.font = `900 ${p.size}px system-ui,sans-serif`; cx.textAlign = 'center'; cx.lineWidth = 5; cx.strokeStyle = 'rgba(30,60,50,.55)'; cx.strokeText(p.text, p.x, p.y); cx.fillStyle = p.color; cx.fillText(p.text, p.x, p.y); continue; }
-      if (K.emoji) { cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r * .25); cx.font = `${p.size}px serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(p.e, 0, 0); cx.restore(); continue; }
+      if (p.im) {
+        cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = a;
+        cx.drawImage(p.im, -p.size / 2, -p.size / 2, p.size, p.size); cx.restore(); continue;
+      }
+      if (K.shape === 'flare') { lensFlare(p, a); continue; }
+      if (K.shape === 'glow') { softGlow(p, a, K.tint); continue; }
+      if (K.shape === 'leaf') { leafShape(p, a); continue; }
+      if (K.shape === 'drop') { waterDrop(p, a); continue; }
+      if (K.shape === 'ring') { soundRing(p, a); continue; }
       if (K.shape === 'rect') { cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.scale(1, Math.cos(p.r * 1.7)); cx.fillStyle = p.color; cx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2); cx.restore(); continue; }
       if (K.shape === 'bubble') { cx.beginPath(); cx.arc(p.x, p.y, p.size, 0, TAU); cx.fillStyle = 'rgba(180,230,255,.28)'; cx.fill(); cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,255,255,.8)'; cx.stroke(); cx.beginPath(); cx.arc(p.x - p.size * .3, p.y - p.size * .3, p.size * .22, 0, TAU); cx.fillStyle = 'rgba(255,255,255,.85)'; cx.fill(); continue; }
       if (K.shape === 'dust') { const s = p.size * (1.6 - a * .6); cx.beginPath(); cx.arc(p.x, p.y, s, 0, TAU); cx.fillStyle = 'rgba(200,180,150,.5)'; cx.fill(); continue; }
@@ -214,7 +341,22 @@
       const a = from && from.getBoundingClientRect ? centre(from) : from, b = to && to.getBoundingClientRect ? centre(to) : to;
       if (!a || !b || S.reduce || !doc.body.animate) return resolve();
       const f = doc.createElement('div');
-      f.className = 'du-flyer'; f.textContent = o.emoji || (from && from.textContent) || '⭐';
+      f.className = 'du-flyer';
+      /* Fly the picture the child tapped. The object layer has usually already
+       * swapped the tile's glyph for a photograph, which leaves the tile with no
+       * text at all — and a cartoon star flying over this meadow is exactly what
+       * the photoreal upgrade was for. */
+      const shot = from && from.querySelector ? from.querySelector('img.du-obj') : null;
+      const obj = DUFX.objects;
+      if (shot) {
+        const im = doc.createElement('img');
+        im.className = 'du-obj'; im.alt = '';
+        im.width = im.height = o.size || 38;
+        im.style.cssText = 'width:' + (o.size || 38) + 'px;height:' + (o.size || 38) + 'px;object-fit:contain';
+        im.src = shot.src;
+        f.append(im);
+      } else if (o.emoji && obj && obj.has(o.emoji)) f.innerHTML = obj.img(o.emoji, o.size || 38);
+      else f.textContent = o.emoji || (from && from.textContent) || '⭐'; // du-display words for a tile that holds no photograph
       f.style.fontSize = (o.size || 38) + 'px'; f.style.lineHeight = 1; f.style.marginLeft = '-.5em'; f.style.marginTop = '-.5em';
       doc.body.appendChild(f);
       const dur = o.duration || 650, lift = o.lift !== undefined ? o.lift : Math.min(160, Math.hypot(b.x - a.x, b.y - a.y) * .5);
@@ -289,4 +431,26 @@
     items.slice(0, 40).forEach((el, i) => anim(el, [{ opacity: 0, transform: 'translateY(16px) scale(.8)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 420, delay: i * 38, easing: 'cubic-bezier(.2,.9,.3,1.25)', fill: 'backwards' }));
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', () => DUFX.juice(true)); else DUFX.juice(true);
+
+  /* ---------- the recorded bank ----------
+   * Every page in the collection already loads this file, so the sample player
+   * hangs itself off this script's own URL instead of asking forty chapters'
+   * worth of HTML for a new tag. If du-audio.js cannot be fetched nothing
+   * notices: the synthesizers above carry on exactly as they always did. */
+  (function loadBank() {
+    if (window.DUAudio) return;
+    let src = (document.currentScript && /du-fx\.js/.test(document.currentScript.src))
+      ? document.currentScript.src : null;
+    if (!src) {
+      const list = doc.scripts || [];
+      for (let i = list.length - 1; i >= 0; i--) {
+        if (/du-fx\.js/.test(list[i].src || '')) { src = list[i].src; break; }
+      }
+    }
+    if (!src) return;
+    const s = doc.createElement('script');
+    s.src = src.replace(/du-fx\.js.*/, 'du-audio.js');
+    s.async = true;
+    (doc.head || doc.documentElement).appendChild(s);
+  })();
 })();

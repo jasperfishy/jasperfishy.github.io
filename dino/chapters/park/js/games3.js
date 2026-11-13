@@ -1,6 +1,7 @@
 /* Dino Park games 9–12: Colouring, Dino Café, Dino Dash, Egg Catch. */
 (function () {
   'use strict';
+  const environmentBase = new URL('../../../assets/environments/', document.currentScript.src).href;
   const { $, $$, rnd, pick, shuffle, sleep, el, store, NAMES, SPECIES, COLORS, FX } = window.Park;
   const centreOf = (e) => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
   /* Personal records live under hyphenated keys so the hub's /^dino_[a-z]+$/ star count never sees them. */
@@ -9,9 +10,13 @@
     hi(k, v) { const o = rec.get(k); if (o === null || v > o) { store.set('dino_x-rec-' + k, Math.round(v * 10) / 10); return true; } return false; },
     lo(k, v) { const o = rec.get(k); if (o === null || v < o) { store.set('dino_x-rec-' + k, Math.round(v * 10) / 10); return true; } return false; },
   };
-  const recordBar = (txt) => { const r = el('div', 'col-goal', '🏆 ' + txt); r.style.background = 'linear-gradient(90deg,#fdf1d4,#f6e2ae)'; FX.pop(r); return r; };
+  const recordBar = (txt) => { const r = el('div', 'col-goal', window.DUICONS.i('trophy', { size: 18 }) + ' ' + txt); r.style.background = 'linear-gradient(90deg,#fdf1d4,#f6e2ae)'; FX.pop(r); return r; };
+  /* The word for a photographed thing, so a spoken line or aria-label never reads a glyph:
+   * a child hears "berry", never "red strawberry". */
+  const objWord = (g) => (window.DUFX && window.DUFX.objects && window.DUFX.objects.word(g)) || String(g);
+  /* An empty collectible slot is a drawn padlock, the same mark every wall in the park uses. */
+  const lockedSlot = () => '<i>' + window.DUICONS.i('lock', { size: 16 }) + '</i>';
   /* A few collectible stars drift in when the child does something wonderful. */
-  const cheer = (n) => { if (window.DUWONDER && DUWONDER.mote) DUWONDER.mote(n); };
 
   /* ---------- premium furniture, shared by the four games in this file ---------- */
   /* The status strip every board hangs under: level, what is on it, your best, your collection. */
@@ -83,7 +88,7 @@
   /* ====================================================================== 9. Colouring */
   const PAINTS = ['#ff6b6b', '#ff9f43', '#ffd93d', '#6bcb77', '#2ec4b6', '#4d96ff', '#9b6fe0', '#ff8fc7', '#a0522d', '#ffffff'];
   const PAINT_NAMES = ['Red', 'Orange', 'Yellow', 'Green', 'Teal', 'Blue', 'Purple', 'Pink', 'Brown', 'White'];
-  const STICKERS = ['⭐', '🌸', '🦋', '🌈', '🍓', '☀️', '🎈', '💖', '🍄', '🐞', '🍀', '🌟'];
+  const STICKERS = ['⭐', '🌸', '🦋', '🌈', '🍓', '☀️', '🐢', '🍄', '🐌', '🍀', '🪶', '💎'];
   // Each round opens up a bigger box of paints, and a background to paint onto.
   const SCENES = [['🌳', 'linear-gradient(#cdebbf,#8fd07a 65%,#5fa85a)'], ['🌊', 'linear-gradient(#bfe9ff,#79c6ef 60%,#3f9bd0)'], ['🌋', 'linear-gradient(#ffd7a8,#e08a4a 60%,#8a4326)'], ['🌙', 'linear-gradient(#2b2a63,#5753a8 65%,#8f7fd0)'], ['🌈', 'linear-gradient(#ffd6e8,#fff3c4 35%,#cdf7d0 62%,#cfe6ff)'], ['❄️', 'linear-gradient(#f2fbff,#cfe6f7 60%,#a9cde8)']];
   let colSpecies = [], colGallery = [];
@@ -107,7 +112,7 @@
       const bookV = ledger('color-book'), bookMap = bookV.all();
       const bookIds = STICKERS.slice(0, Math.min(STICKERS.length, 3 + R));
       const bookArt = (s, id) => { s.innerHTML = '<i>' + id + '</i>'; };
-      const book = collectRow('stk-book', 'st', bookIds, bookMap, '<i>➕</i>', bookArt);
+      const book = collectRow('stk-book', 'st', bookIds, bookMap, lockedSlot(), bookArt);
       const head = statusBar([`Level ${R}`, `${PAL.length} paints · ${SCENES.length} scenes`,
         bestPal === null ? 'No record yet' : `Best ${bestPal} colours`, `Book ${book.dataset.got}/${bookIds.length}`], '#e0508f');
       ctx.area.append(head, book);
@@ -125,7 +130,7 @@
       dino.style.animationPlayState = 'paused';
       $$('.d-all, .d-tail, .d-head, .d-plate, .d-arm, .d-eye', dino).forEach((n) => { n.style.animationPlayState = 'paused'; });
       let color = PAL[0], ci = 0, rainbow = false, ri = 0, eraser = false, glit = false; const painted = new Map(), used = new Set(); let phase = 'paint', stickers = 0, stickerSel = null, wentBack = false;
-      let rubGuard = 0;   // the rubber only costs once per stroke, never once per swept pixel
+      let rubGuard = 0;   // the eraser only costs once per stroke, never once per swept pixel
       const need = Math.ceil(regions.length * .85);   // the magic finishes the last few tiny parts
       const update = () => { counter.textContent = phase === 'paint' ? `${Math.min(100, Math.round(painted.size / need * 100))}% coloured` : `${stickers} sticker${stickers === 1 ? '' : 's'} placed`; if (bar) bar.style.width = Math.min(100, painted.size / need * 100) + '%'; };
       // Glitter paints leave tiny catchlights inside the shape itself.
@@ -180,8 +185,8 @@
       PAL.forEach((c, i) => { const s = el('button', 'swatch' + (i === 0 ? ' on' : '')); s.style.background = c; s.setAttribute('aria-label', PAINT_NAMES[i]); s.onclick = () => { color = c; ci = i; rainbow = false; eraser = false; if (glit) { glit = false; } pickSwatch(s); FX.sfx.pop(); ctx.say(`${PAINT_NAMES[i]}! Tap a part to paint it.`); }; pal.append(s); });
       const rb = el('button', 'swatch rainbow', '🌈'); rb.setAttribute('aria-label', 'Rainbow colours');
       rb.onclick = () => { rainbow = true; eraser = false; glit = false; pickSwatch(rb); FX.sfx.sparkle(); ctx.say('Rainbow paint! Every tap is a new colour.'); }; pal.append(rb);
-      const er = el('button', 'swatch eraser', '🧽'); er.setAttribute('aria-label', 'Rubber');
-      er.onclick = () => { eraser = true; rainbow = false; glit = false; pickSwatch(er); FX.sfx.tap(); ctx.say('The rubber wipes a part clean.'); }; pal.append(er);
+      const er = el('button', 'swatch eraser', '✕'); er.setAttribute('aria-label', 'Eraser');
+      er.onclick = () => { eraser = true; rainbow = false; glit = false; pickSwatch(er); FX.sfx.tap(); ctx.say('The eraser wipes a part clean.'); }; pal.append(er);
       let gt = null;
       if (glitterOn) {
         gt = el('button', 'swatch glitter', '✨'); gt.setAttribute('aria-label', 'Glitter brush');
@@ -194,7 +199,7 @@
         pal.append(gt);
       }
       const counter = el('div', 'col-count', '0% coloured'), barWrap = el('div', 'col-bar', '<i></i>'), bar = barWrap.firstChild;
-      const goal = mission ? el('div', 'col-goal', '🎯 ' + mission.text) : null;
+      const goal = mission ? el('div', 'col-goal', window.DUICONS.i('star', { size: 17 }) + ' ' + mission.text) : null;
       // Backgrounds: pick a scene and the picture sits in front of it.
       const scenes = el('div', 'col-pal');
       scenes.style.cssText = 'display:flex;gap:8px;justify-content:center;flex-wrap:wrap';
@@ -217,7 +222,7 @@
         if (phase !== 'stickers') return;
         const have = bookV.all();
         const ask = bookIds.find((s) => !have[s]);
-        const btn = ask ? [...tray.children].find((b) => b.textContent === ask) : null;
+        const btn = ask ? [...tray.children].find((b) => b.dataset.st === ask) : null;
         if (btn) {
           btn.classList.add('on'); stickerSel = ask; FX.pulse(btn); FX.sfx.sparkle();
           ctx.say(`Your book is still missing ${ask}! Pick it, then tap your dinosaur.`);
@@ -238,7 +243,6 @@
         left.forEach((r, k) => setTimeout(() => { if (ctx.alive()) { r.setAttribute('fill', PAINTS[usedList[k % usedList.length]]); } }, 60 + k * 50));
         if (left.length) { FX.sfx.sparkle(); ctx.life.flutter(2); } $$('.swatch', pal).forEach((x) => { x.disabled = true; }); pal.classList.add('off');
         FX.sfx.win(); ctx.say('All coloured! Pick a sticker, then tap the picture to stick it.'); update();
-        if (used.size >= 3) cheer(1);
         if (rec.hi('color', used.size)) ctx.bonus(1, stage, `${used.size} colours — a record!`);
         if (mission && (mission.n ? used.size >= mission.n : [...painted.values()].every((v) => v === mission.one))) ctx.bonus(1, stage, 'Painter bonus!');
         barWrap.classList.add('full');
@@ -266,8 +270,8 @@
         /* The first time you use a kind of sticker, it is pressed into the book for good. */
         if (bookIds.includes(stickerSel) && bookV.set(stickerSel, R) && stampInto(book, bookArt, stickerSel, R, 'Stuck in the book!')) {
           if (bookBit) bookBit.textContent = `Book ${book.dataset.got}/${bookIds.length}`;
-          ctx.say(`${stickerSel} keeps its page in your sticker book — ${book.dataset.got} of ${bookIds.length} collected!`);
-          if (book.classList.contains('full')) { ctx.bonus(2, book, 'The whole book is filled!'); cheer(2); }
+          ctx.say(`A ${objWord(stickerSel)} keeps its page in your sticker book — ${book.dataset.got} of ${bookIds.length} collected!`);
+          if (book.classList.contains('full')) { ctx.bonus(2, book, 'The whole book is filled!'); }
         }
         if (stickers === 3) { doneBtn.classList.remove('hidden'); FX.pop(doneBtn); ctx.say('Lovely! Add more, paint more, or press All done!'); }
       });
@@ -299,7 +303,10 @@
     },
   });
 
-  const PLANTS = ['🍎', '🥕', '🍓', '🍌', '🥬', '🍇', '🍉', '🍐'], MEATS = ['🍖', '🐟', '🍗', '🥩', '🍤'];
+  /* What the café kitchen actually has: the valley's own plants, and for the meat
+   * eaters river fish, a meaty bone, and eggs — one photograph each, never two
+   * of the same kind on one menu. */
+  const PLANTS = ['🍓', '🌿', '🍄', '🌰', '☘️', '🌱', '🌾', '🍂'], MEATS = ['🐟', '🦴', '🐔', '🍳', '🐚'];
   const SPNAME = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
   /* ---------------------------------------------------------------------------
    * 10. Dino Café — a live world. No rounds, no "Level 3", no belt that stops
@@ -322,7 +329,7 @@
       const plateV = ledger('cafe-plates'), plateMap = plateV.all();
       const plateIds = SPECIES.filter((s) => s !== 'ptero');
       const plateArt = (slot, id) => { slot.innerHTML = FX.dinoHTML(id, { color: COLORS[SPECIES.indexOf(id) % COLORS.length], state: 'happy' }); };
-      const wall = collectRow('cafe-wall', 'sp', plateIds, plateMap, '<i>🍽️</i>', plateArt);
+      const wall = collectRow('cafe-wall', 'sp', plateIds, plateMap, lockedSlot(), plateArt);
 
       const cafe = el('div', 'cafe');
       cafe.append(el('div', 'cafe-sign', 'DINO CAFÉ'), el('div', 'cafe-lights', '<i></i><i></i><i></i><i></i><i></i><i></i>'));
@@ -336,13 +343,13 @@
       for (let i = 0; i < SEATS; i++) {
         const box = el('div', 'cafe-guest empty');
         box.style.width = '29%'; box.style.left = (2 + i * 34) + '%'; box.style.right = 'auto';
-        box.innerHTML = '<span class="cafe-chair">🪑</span>';
+        box.innerHTML = '<span class="cafe-chair">🪵</span>';
         cafe.append(box);
         seats.push({ i, box, guest: null });
       }
 
       const hud = (window.Park.liveHud && Park.liveHud()) || ctx.area;
-      const queueChip = el('div', 'lv-chip', '🚪 0 waiting');
+      const queueChip = el('div', 'lv-chip', '🐾 0 waiting');
       ctx.goal('Friends served', GOAL);
       hud.append(queueChip, helpBtn(showMe));
 
@@ -366,13 +373,13 @@
       function renderQueue() {
         queue.innerHTML = '';
         for (let i = 0; i < waiting; i++) queue.append(el('i', 'cafe-foot', '🐾'));
-        queueChip.textContent = `🚪 ${waiting} waiting`;
+        queueChip.textContent = `🐾 ${waiting} waiting`;
         queueChip.classList.toggle('low', waiting >= 3);
       }
       function clearSeat(s) {
         s.guest = null;
         s.box.className = 'cafe-guest empty';
-        s.box.innerHTML = '<span class="cafe-chair">🪑</span>';
+        s.box.innerHTML = '<span class="cafe-chair">🪵</span>';
         s.box.removeAttribute('aria-label');
       }
       function seatGuest(s, sp) {
@@ -386,20 +393,20 @@
         $('b', g.order).textContent = g.want;
         g.dinoBox = el('div', 'cafe-dino', FX.dinoHTML(sp, { color: pick(COLORS), state: 'walk' }));
         g.hearts = el('div', 'cafe-hearts');
-        for (let i = 0; i < MEALS; i++) g.hearts.append(el('i', '', '🤍'));
+        for (let i = 0; i < MEALS; i++) g.hearts.append(el('i', '', window.DUICONS.i('star', { size: 16 })));
         g.patEl = el('div', 'cafe-pat', '<i></i>');
         s.box.append(g.order, g.dinoBox, g.hearts, g.patEl);
         g.dEl = g.dinoBox.firstElementChild;
-        s.box.setAttribute('aria-label', `${SPNAME[sp]} is sitting down and wants ${g.want}`);
+        s.box.setAttribute('aria-label', `${SPNAME[sp]} is sitting down and wants ${objWord(g.want)}`);
         setTimeout(() => { if (ctx.alive()) s.box.classList.remove('arriving'); }, 900);
         FX.sfx.chirp();
-        ctx.say(`${SPNAME[sp]} walks in and sits at table ${s.i + 1} — they want ${g.want}!`);
+        ctx.say(`${SPNAME[sp]} walks in and sits at table ${s.i + 1} — they want ${objWord(g.want)}!`);
       }
       function servePlate(g) {
         if (!plateIds.includes(g.sp)) return;
         if (plateV.set(g.sp, served) && stampInto(wall, plateArt, g.sp, served, 'Plate washed!')) {
           ctx.say(`${SPNAME[g.sp]} is full and leaves a clean plate — ${wall.dataset.got} of ${plateIds.length} on the wall!`);
-          if (wall.classList.contains('full')) { ctx.bonus(2, wall, 'The whole wall is set!'); cheer(2); }
+          if (wall.classList.contains('full')) { ctx.bonus(2, wall, 'The whole wall is set!'); }
         }
       }
       function finishTable(s) {
@@ -407,7 +414,7 @@
         served++;
         FX.dinoState(g.dEl, 'happy', 1400); g.dEl.setAttribute('data-base', 'happy');
         s.box.classList.add('full');
-        g.order.innerHTML = '<span>Thank you!</span><b>💖</b>';
+        g.order.innerHTML = '<span>Thank you!</span><b>' + window.DUICONS.i('check', { size: 18 }) + '</b>';
         servePlate(g);
         urn.add(9);
         ctx.good(s.box);
@@ -433,7 +440,7 @@
         if (frac < .25 && !g.grumbled) {
           g.grumbled = true;
           FX.dinoState(g.dEl, 'sad', 900);
-          ctx.say(`${SPNAME[g.sp]} is getting cross! ${g.want}, please!`);
+          ctx.say(`${SPNAME[g.sp]} is getting cross! ${objWord(g.want)}, please!`);
         }
         if (g.patience <= 0) walkOut(s);
       }
@@ -444,11 +451,11 @@
         const roll = Math.random();
         if (ordered.length && roll < .58) f = pick(ordered);
         else if (roll < .68) { f = '🌟'; kind = 'gold'; }
-        else if (roll < .78) { f = '🧦'; kind = 'sock'; }
+        else if (roll < .78) { f = '🪢'; kind = 'junk'; }
         else { const pool = [...PLANTS, ...MEATS].filter((x) => !ordered.includes(x)); f = pick(pool.length ? pool : PLANTS); }
         const it = el('button', 'belt-item' + (kind === 'gold' ? ' gold' : ''), f);
         it.dataset.f = f;
-        it.setAttribute('aria-label', kind === 'gold' ? 'A golden star' : ordered.includes(f) ? `Food somebody ordered: ${f}` : 'Food nobody has ordered');
+        it.setAttribute('aria-label', kind === 'gold' ? 'A golden star' : kind === 'junk' ? 'Not food — an old coil of rope' : ordered.includes(f) ? `Food somebody ordered: ${objWord(f)}` : 'Food nobody has ordered');
         const o = { el: it, x: -90, f, kind };
         it.onclick = () => take(o);
         track.append(it); riding.push(o); FX.pop(it);
@@ -461,8 +468,8 @@
         drop(o);
         o.el.style.visibility = 'hidden';
         if (!matching.length) {
-          ctx.bad(o.kind === 'sock' ? 1 : .5, cafe);
-          ctx.say(o.kind === 'sock' ? 'Yuck, a sock! Nobody in this café eats socks!' : 'Nobody ordered that one — read the cards!');
+          ctx.bad(o.kind === 'junk' ? 1 : .5, cafe);
+          ctx.say(o.kind === 'junk' ? 'Yuck, a coil of old rope! Nobody in this café eats rope!' : 'Nobody ordered that one — read the cards!');
           await Park.fly(o.el, { x: innerWidth * (Math.random() < .5 ? .05 : .95), y: -30 }, { emoji: o.f, lift: 30, duration: 520, burst: false });
           o.el.remove(); busy = false; return;
         }
@@ -478,7 +485,7 @@
         o.el.remove();
         FX.sfx.chomp(); FX.dinoState(g.dEl, 'eat');
         g.fed++;
-        [...g.hearts.children].forEach((h, k) => { h.textContent = k < g.fed ? '💖' : '🤍'; });
+        [...g.hearts.children].forEach((h, k) => { h.innerHTML = window.DUICONS.i('star', { size: 16, filled: k < g.fed }); });
         g.patience = Math.min(g.patMax, g.patience + g.patMax * .45);
         g.grumbled = false;
         s.box.classList.remove('grumpy', 'impatient');
@@ -488,9 +495,9 @@
           const next = g.mine.filter((x) => x !== g.want);
           g.want = sharedWant(next.length ? next : g.mine) || (next.length ? pick(next) : g.want);
           $('b', g.order).textContent = g.want; FX.pop(g.order);
-          s.box.setAttribute('aria-label', `${SPNAME[g.sp]} now wants ${g.want}`);
+          s.box.setAttribute('aria-label', `${SPNAME[g.sp]} now wants ${objWord(g.want)}`);
           FX.dinoState(g.dEl, 'idle', 700);
-          ctx.say(`${SPNAME[g.sp]} munches and asks for a ${g.want} next!`);
+          ctx.say(`${SPNAME[g.sp]} munches and asks for a ${objWord(g.want)} next!`);
         }
         busy = false;
       }
@@ -504,7 +511,7 @@
         const it = riding.find((o) => o.f === urgent.guest.want);
         if (it) { it.el.classList.add('glow'); setTimeout(() => it.el.classList.remove('glow'), 2200); }
         FX.pulse(urgent.guest.order); FX.sfx.sparkle();
-        ctx.say(it ? `Tap the glowing ${it.f} — ${SPNAME[urgent.guest.sp]} at table ${urgent.i + 1} is the hungriest!` : `${SPNAME[urgent.guest.sp]} wants ${urgent.guest.want} — watch the belt for it!`);
+        ctx.say(it ? `Tap the glowing ${objWord(it.f)} — ${SPNAME[urgent.guest.sp]} at table ${urgent.i + 1} is the hungriest!` : `${SPNAME[urgent.guest.sp]} wants ${objWord(urgent.guest.want)} — watch the belt for it!`);
       }
       ctx.hint(showMe);
 
@@ -556,21 +563,37 @@
     { name: 'Rainbow Ridge', sky: ['#ffd6f2', '#d9f0ff'], m1: '#c9a0f0', m2: '#9fd8f5', ground: '#f3a8dd', ground2: '#d17cb8', obs: ['rock', 'bush', 'ice', 'mushroom', 'log'], len: 6900, amb: 'rainbow', fx: 'bubbles', tree: 'round' },
   ];
   /* Bold, outlined shapes so every obstacle stands out against the scenery. Each draws itself sitting on y = 0 at x = 0. */
+  /* Every obstacle now stands as its photograph — the bold outlined shapes were
+   * the last clip art left on the track. The declared w/h stays as the hitbox
+   * and the picture is drawn to its own shape inside it: art a touch smaller
+   * than the box reads as a generous game, never an unfair one. The park's
+   * canvases are plain scripts, so the prop module arrives on its own; a
+   * picture that is still decoding leaves the ground bare for a frame rather
+   * than put a drawing back. */
+  let drawProp = null;
+  import('../../../photoreal-textures.js?v=du-58e7197a7bd67562').then((m) => { drawProp = m.drawProp; }).catch(() => {});
+  const thing = (ctx, name, x, y, size, glow) => {
+    if (glow) { ctx.shadowColor = 'rgba(255,230,120,.9)'; ctx.shadowBlur = 14; }
+    window.DUFX.objects.draw(ctx, name, x, y, size);
+    if (glow) ctx.shadowBlur = 0;
+  };
   const OB = {
-    rock: { w: 52, h: 40, draw(c) { c.beginPath(); c.moveTo(-26, 0); c.lineTo(-22, -22); c.lineTo(-6, -38); c.lineTo(12, -34); c.lineTo(26, -14); c.lineTo(26, 0); c.closePath(); c.fillStyle = '#8f9aa8'; c.fill(); c.lineWidth = 3.5; c.strokeStyle = '#2f3540'; c.stroke(); c.fillStyle = '#b9c2cd'; c.beginPath(); c.moveTo(-18, -20); c.lineTo(-6, -33); c.lineTo(4, -26); c.lineTo(-8, -14); c.fill(); } },
-    log: { w: 70, h: 36, draw(c) { c.fillStyle = '#b5702f'; c.strokeStyle = '#3a2210'; c.lineWidth = 3.5; c.beginPath(); c.roundRect(-34, -34, 68, 34, 12); c.fill(); c.stroke(); c.strokeStyle = '#7d4719'; c.lineWidth = 2; for (let i = -18; i < 30; i += 14) { c.beginPath(); c.moveTo(i, -30); c.lineTo(i + 4, -4); c.stroke(); } c.fillStyle = '#e0aa6a'; c.strokeStyle = '#3a2210'; c.lineWidth = 3; c.beginPath(); c.ellipse(32, -17, 9, 16, 0, 0, 6.3); c.fill(); c.stroke(); c.strokeStyle = '#a8692f'; c.beginPath(); c.ellipse(32, -17, 4, 8, 0, 0, 6.3); c.stroke(); } },
-    bush: { w: 56, h: 42, draw(c) { c.fillStyle = '#3f9a4a'; c.strokeStyle = '#1f4d26'; c.lineWidth = 3.5; c.beginPath(); c.arc(-14, -16, 16, 0, 6.3); c.arc(8, -22, 20, 0, 6.3); c.arc(20, -12, 13, 0, 6.3); c.fill(); c.stroke(); c.fillStyle = '#ff5d6c'; [[-10, -18], [10, -26], [18, -12]].forEach((p) => { c.beginPath(); c.arc(p[0], p[1], 4, 0, 6.3); c.fill(); }); } },
-    cactus: { w: 40, h: 60, draw(c) { c.fillStyle = '#4caf5a'; c.strokeStyle = '#1d5a2a'; c.lineWidth = 3.5; c.beginPath(); c.roundRect(-9, -58, 18, 58, 9); c.fill(); c.stroke(); c.beginPath(); c.roundRect(-26, -40, 14, 8, 4); c.roundRect(-26, -48, 8, 16, 4); c.fill(); c.stroke(); c.beginPath(); c.roundRect(12, -34, 14, 8, 4); c.roundRect(18, -44, 8, 18, 4); c.fill(); c.stroke(); } },
-    fire: { w: 44, h: 56, draw(c, t) { c.fillStyle = '#4a4040'; c.strokeStyle = '#1d1818'; c.lineWidth = 3; c.beginPath(); c.roundRect(-20, -12, 40, 12, 5); c.fill(); c.stroke(); const f = Math.sin(t * 14) * 3; c.fillStyle = '#ff6a1f'; c.strokeStyle = '#8a2a00'; c.lineWidth = 3; c.beginPath(); c.moveTo(-16, -12); c.quadraticCurveTo(-22, -34 + f, -4, -48 - f); c.quadraticCurveTo(-4, -32, 4, -30); c.quadraticCurveTo(10, -44 + f, 12, -52); c.quadraticCurveTo(26, -30, 16, -12); c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#ffd23f'; c.beginPath(); c.moveTo(-6, -12); c.quadraticCurveTo(-10, -26, 0, -34 - f); c.quadraticCurveTo(10, -24, 6, -12); c.fill(); } },
-    snowman: { w: 44, h: 64, draw(c) { c.fillStyle = '#fff'; c.strokeStyle = '#3a5a78'; c.lineWidth = 3.5; c.beginPath(); c.arc(0, -16, 17, 0, 6.3); c.fill(); c.stroke(); c.beginPath(); c.arc(0, -44, 12, 0, 6.3); c.fill(); c.stroke(); c.fillStyle = '#ff8a2a'; c.beginPath(); c.moveTo(2, -45); c.lineTo(15, -42); c.lineTo(2, -40); c.fill(); c.fillStyle = '#222'; c.beginPath(); c.arc(-4, -48, 1.8, 0, 6.3); c.arc(5, -48, 1.8, 0, 6.3); c.fill(); c.fillStyle = '#d6453d'; c.fillRect(-12, -35, 24, 5); } },
-    ice: { w: 46, h: 52, draw(c) { c.fillStyle = '#9fe3ff'; c.strokeStyle = '#2d6d8e'; c.lineWidth = 3.5; c.beginPath(); c.moveTo(-22, 0); c.lineTo(-14, -30); c.lineTo(-6, -14); c.lineTo(2, -50); c.lineTo(12, -18); c.lineTo(18, -30); c.lineTo(24, 0); c.closePath(); c.fill(); c.stroke(); c.fillStyle = 'rgba(255,255,255,.7)'; c.beginPath(); c.moveTo(0, -44); c.lineTo(5, -22); c.lineTo(-2, -26); c.fill(); } },
-    mushroom: { w: 50, h: 48, draw(c) { c.fillStyle = '#f4ead2'; c.strokeStyle = '#4a2a2a'; c.lineWidth = 3.5; c.beginPath(); c.roundRect(-9, -24, 18, 24, 6); c.fill(); c.stroke(); c.fillStyle = '#e0414f'; c.beginPath(); c.moveTo(-26, -22); c.quadraticCurveTo(0, -62, 26, -22); c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#fff'; [[-10, -32], [8, -38], [14, -26]].forEach((p) => { c.beginPath(); c.arc(p[0], p[1], 4.2, 0, 6.3); c.fill(); }); } },
+    rock: { w: 52, h: 40, draw(c) { if (drawProp) drawProp(c, 'boulder', -29, -28, 58, 28); } },
+    log: { w: 70, h: 36, draw(c) { if (drawProp) drawProp(c, 'fallen-log', -36, -24, 72, 24); } },
+    bush: { w: 56, h: 42, draw(c) { if (drawProp) drawProp(c, 'fern', -28, -38, 56, 38); } },
+    cactus: { w: 40, h: 60, draw(c) { if (drawProp) drawProp(c, 'cactus', -20, -60, 40, 60); } },
+    fire: { w: 44, h: 56, draw(c) { thing(c, 'flame', 0, -27, 54); } },
+    snowman: { w: 44, h: 64, draw(c) { if (drawProp) drawProp(c, 'snowman', -22, -65, 44, 65); } },
+    ice: { w: 46, h: 52, draw(c) { thing(c, 'snowflake', 0, -26, 52); } },
+    mushroom: { w: 50, h: 48, draw(c) { thing(c, 'mushroom', 0, -24, 48); } },
   };
   window.Park.register({
     id: 'dash', name: 'Dino Dash', icon: 'trex', color: '#2f9e5e', rounds: 5, helper: 'trex', ambient: 'meadow',
     desc: 'Run, jump over things, and collect stars!',
     round(ctx) {
       const T = DASH_THEMES[ctx.round - 1];
+      const landscape = new Image();
+      landscape.src = environmentBase + ['jungle','volcanic','ice','night','mountain'][ctx.round-1] + '.webp';
       FX.ambient(null);
       ctx.say(T.name + '! Get ready to run!');
       const bestTime = rec.get('dash' + ctx.round);
@@ -579,7 +602,7 @@
       const trackV = ledger('dash-tracks'), trackMap = trackV.all();
       const trackIds = DASH_THEMES.map((_, i) => String(i + 1));
       const dashArt = (s, id) => { const i = Number(id) - 1; s.innerHTML = '<i>' + DASH_MARKS[i] + '</i><small>' + DASH_THEMES[i].name.split(' ')[0] + '</small>'; };
-      const dashCase = collectRow('dash-case', 't', trackIds, trackMap, '<i>🔒</i>', dashArt);
+      const dashCase = collectRow('dash-case', 't', trackIds, trackMap, '<i>' + window.DUICONS.i('lock', { size: 16 }) + '</i>', dashArt);
       const head = statusBar([`Level ${ctx.round}`, T.name,
         bestTime === null ? 'No time yet' : `Best ${bestTime}s`, `Tracks ${dashCase.dataset.got}/${trackIds.length}`], '#2f9e5e');
       const trackBit = $('.du-bar-3', head);
@@ -638,22 +661,14 @@
       const hills = (col, h, step, sp) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, GY); for (let x = -step * 2; x <= W + step * 2; x += step) { const px = x - ((P.x * sp) % (step * 2)); c.lineTo(px + step / 2, GY - h - (((Math.round(x / step)) % 2) ? 0 : h * .55)); c.lineTo(px + step, GY - h * .35); } c.lineTo(W + step * 2, GY); c.fill(); };
       const tree = (x, kind) => {
         const y = GY - 6;
-        if (kind === 'pine') { c.fillStyle = '#4f7d6a'; [[26, 60], [20, 44], [14, 30]].forEach((t, i) => { c.beginPath(); c.moveTo(x - t[0], y - i * 18); c.lineTo(x, y - t[1] - i * 14); c.lineTo(x + t[0], y - i * 18); c.fill(); }); c.fillStyle = '#6b4a2e'; c.fillRect(x - 3, y, 6, 8); }
-        else if (kind === 'dead') { c.strokeStyle = '#4a3226'; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y + 6); c.lineTo(x, y - 40); c.moveTo(x, y - 24); c.lineTo(x - 14, y - 38); c.moveTo(x, y - 30); c.lineTo(x + 12, y - 44); c.stroke(); }
-        else { c.fillStyle = '#6b4a2e'; c.fillRect(x - 4, y - 24, 8, 30); c.fillStyle = T.night ? '#2f8f70' : '#58b55f'; c.beginPath(); c.arc(x, y - 36, 20, 0, 6.3); c.arc(x - 12, y - 26, 13, 0, 6.3); c.arc(x + 12, y - 26, 13, 0, 6.3); c.fill(); }
+        if (kind === 'pine') { if (drawProp) drawProp(c, 'pine', x - 25, y - 72, 50, 78); }
+        else if (kind === 'dead') thing(c, 'driftwood', x, y - 20, 50);
+        else thing(c, 'pine', x, y - 30, 62);
       };
-      const star = (x, y, r, spin) => { c.save(); c.translate(x, y); c.rotate(spin); c.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .46 : r; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } c.closePath(); c.fillStyle = '#ffd21f'; c.fill(); c.lineWidth = 3.5; c.lineJoin = 'round'; c.strokeStyle = '#b36b00'; c.stroke(); c.fillStyle = 'rgba(255,255,255,.65)'; c.beginPath(); c.arc(-r * .18, -r * .22, r * .16, 0, 6.3); c.fill(); c.restore(); };
-      const egg = (x, y, bob) => { c.save(); c.translate(x, y + bob); c.shadowColor = '#fff2a8'; c.shadowBlur = 18; c.fillStyle = '#fff6d8'; c.strokeStyle = '#a8742a'; c.lineWidth = 3.5; c.beginPath(); c.ellipse(0, 0, 17, 22, 0, 0, 6.3); c.fill(); c.shadowBlur = 0; c.stroke(); c.fillStyle = '#ffb347'; [[-6, -6], [6, 2], [-3, 9]].forEach((p) => { c.beginPath(); c.arc(p[0], p[1], 3.6, 0, 6.3); c.fill(); }); c.restore(); };
+      const star = (x, y, r, spin) => { c.save(); c.translate(x, y); c.rotate(spin * .5); thing(c, 'star', 0, 0, r * 2.3, true); c.restore(); };
+      const egg = (x, y, bob) => { c.save(); c.translate(x, y + bob); thing(c, 'egg', 0, 0, 48, true); c.restore(); };
       // Balloons drift along the track: grab three for a bonus sparkle.
-      const balloon = (x, y, col, sway) => {
-        c.save(); c.translate(x + sway, y);
-        c.strokeStyle = 'rgba(70,50,40,.7)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, 16); c.quadraticCurveTo(-6, 30, 0, 42); c.stroke();
-        c.fillStyle = col; c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 3;
-        c.beginPath(); c.ellipse(0, 0, 15, 19, 0, 0, 6.3); c.fill(); c.stroke();
-        c.beginPath(); c.moveTo(-3, 17); c.lineTo(3, 17); c.lineTo(0, 23); c.closePath(); c.fill();
-        c.fillStyle = 'rgba(255,255,255,.6)'; c.beginPath(); c.ellipse(-5, -6, 4, 6, -.5, 0, 6.3); c.fill();
-        c.restore();
-      };
+      const balloon = (x, y, sway) => { if (drawProp) drawProp(c, 'balloon', x + sway - 26, y - 37, 52, 100); };
       function draw() {
         const g = c.createLinearGradient(0, 0, 0, GY); g.addColorStop(0, T.sky[0]); g.addColorStop(1, T.sky[1]); c.fillStyle = g; c.fillRect(0, 0, W, H);
         if (T.night) { c.fillStyle = '#fff'; for (let i = 0; i < 40; i++) { const sx = (i * 97) % W, sy = (i * 53) % 130, tw = .4 + .6 * Math.abs(Math.sin(time * 2 + i)); c.globalAlpha = tw; c.fillRect(sx, sy, 2, 2); } c.globalAlpha = 1; c.fillStyle = '#fff6d0'; c.beginPath(); c.arc(610, 56, 26, 0, 6.3); c.fill(); c.fillStyle = T.sky[0]; c.beginPath(); c.arc(620, 50, 24, 0, 6.3); c.fill(); }
@@ -666,6 +681,11 @@
         c.fillStyle = T.ground; c.fillRect(0, GY, W, H - GY); c.fillStyle = T.ground2;
         for (let i = -1; i < 18; i++) { const x = i * 48 - (P.x % 48); c.fillRect(x, GY + 14, 28, 5); c.fillRect(x + 20, GY + 40, 22, 4); }
         c.fillStyle = 'rgba(0,0,0,.14)'; c.fillRect(0, GY, W, 4);
+        if (landscape.complete && landscape.naturalWidth) {
+          const k=Math.max(W/landscape.naturalWidth,H/landscape.naturalHeight)*1.03;
+          const width=landscape.naturalWidth*k,height=landscape.naturalHeight*k;
+          c.drawImage(landscape,(W-width)/2+Math.sin(P.x*.0003)*W*.01,(H-height)/2,width,height);
+        }
         // Weather and little creatures, each theme has its own.
         bits.forEach((b) => {
           const sp = T.fx === 'snow' ? 40 : (T.fx === 'embers' || T.fx === 'bubbles') ? -50 : 0, x = ((b.x - P.x * .3 * b.s + Math.sin(time * b.s + b.p) * 14) % W + W) % W, y = ((b.y + sp * time * b.s) % (H - 60) + (H - 60)) % (H - 60);
@@ -673,7 +693,7 @@
           else if (T.fx === 'embers') { c.fillStyle = `rgba(255,${120 + (b.p * 20 | 0)},40,.85)`; c.beginPath(); c.arc(x, GY - 20 - (y % 160), 2 + b.s, 0, 6.3); c.fill(); }
           else if (T.fx === 'fireflies') { c.fillStyle = `rgba(255,248,150,${.4 + .6 * Math.abs(Math.sin(time * 2 + b.p))})`; c.shadowColor = '#fff59d'; c.shadowBlur = 10; c.beginPath(); c.arc(x, GY - 30 - (y % 110), 2.4, 0, 6.3); c.fill(); c.shadowBlur = 0; }
           else if (T.fx === 'bubbles') { c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 1.8; c.beginPath(); c.arc(x, y, 3 + b.s * 4, 0, 6.3); c.stroke(); c.fillStyle = 'rgba(255,255,255,.25)'; c.fill(); }
-          else if (b.s > .95) { c.globalAlpha = 1; c.font = '20px serif'; c.textAlign = 'center'; c.fillText('🦋', x, 70 + (y % 110)); }
+          else if (b.s > .95) { c.globalAlpha = 1; window.DUFX.objects.draw(c, 'dragonfly', x, 70 + (y % 110) - 11, 22); }
         });
         // Finish flag
         const fx = T.len - P.x + DX; if (fx < W + 60) { c.fillStyle = '#fff'; c.fillRect(fx, GY - 100, 6, 100); c.fillStyle = '#ff5d5d'; c.fillRect(fx + 6, GY - 100, 44, 28); c.fillStyle = '#fff'; c.fillRect(fx + 6, GY - 100, 14, 14); c.fillRect(fx + 34, GY - 86, 16, 14); }
@@ -685,7 +705,7 @@
           const ahead = ox - DX; if (ahead > 40 && ahead < 380 && !P.superT) { const by = GY - o.def.h - 20 + Math.sin(time * 7) * 4; c.fillStyle = '#ff7a1a'; c.strokeStyle = '#fff'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(ox - 9, by - 10); c.lineTo(ox + 9, by - 10); c.lineTo(ox, by + 4); c.closePath(); c.fill(); c.stroke(); }
         });
         // Stars and eggs
-        picks.forEach((p) => { if (p.got) return; const px = p.x - P.x + DX; if (px < -50 || px > W + 50) return; const py = GY - p.h + Math.sin(time * 5 + p.x * .05) * 4; if (p.egg) egg(px, py, 0); else if (p.balloon) balloon(px, py, p.col, Math.sin(time * 2 + p.x * .03) * 7); else { c.shadowColor = 'rgba(255,230,120,.9)'; c.shadowBlur = 14; star(px, py, 19, Math.sin(time * 3 + p.x) * .25); c.shadowBlur = 0; } });
+        picks.forEach((p) => { if (p.got) return; const px = p.x - P.x + DX; if (px < -50 || px > W + 50) return; const py = GY - p.h + Math.sin(time * 5 + p.x * .05) * 4; if (p.egg) egg(px, py, 0); else if (p.balloon) balloon(px, py, Math.sin(time * 2 + p.x * .03) * 7); else { c.shadowColor = 'rgba(255,230,120,.9)'; c.shadowBlur = 14; star(px, py, 19, Math.sin(time * 3 + p.x) * .25); c.shadowBlur = 0; } });
         // Sparks: rainbow trail while super, bursts when a rock is smashed
         for (let i = sparks.length - 1; i >= 0; i--) { const s = sparks[i]; s.life -= .016; if (s.life <= 0) { sparks.splice(i, 1); continue; } s.x += s.vx; s.y += s.vy; c.globalAlpha = Math.max(0, s.life * 2); c.fillStyle = s.col; c.beginPath(); c.arc(s.x, s.y, s.r, 0, 6.3); c.fill(); c.globalAlpha = 1; }
         // Dino shadow
@@ -718,7 +738,7 @@
           }
           if (eggIdx < 3 && P.x + 700 > eggAt[eggIdx]) { picks.push({ x: eggAt[eggIdx], h: 135, got: false, egg: true }); eggIdx++; }
           // Balloons drift past on the wind: a third little hunt along the track.
-          if (P.x > nextBalloon && P.x < T.len - 340) { picks.push({ x: P.x + 780, h: 92 + rnd(64), got: false, balloon: true, col: pick(rainbow) }); nextBalloon = P.x + 600 + rnd(430); }
+          if (P.x > nextBalloon && P.x < T.len - 340) { picks.push({ x: P.x + 780, h: 92 + rnd(64), got: false, balloon: true }); nextBalloon = P.x + 600 + rnd(430); }
           obs = obs.filter((o) => o.x - P.x > -200); picks = picks.filter((p) => p.x - P.x > -200);
           obs.forEach((o) => {
             const ox = o.x - P.x + DX, half = o.def.w * .42 + 10;
@@ -793,11 +813,11 @@
           if (trackV.set(String(ctx.round), ctx.round) && stampInto(dashCase, dashArt, String(ctx.round), ctx.round, 'Track won!')) {
             if (trackBit) trackBit.textContent = `Tracks ${dashCase.dataset.got}/${trackIds.length}`;
             ctx.say(`${T.name} stands in your track cabinet — ${dashCase.dataset.got} of ${trackIds.length} courses won!`);
-            if (dashCase.classList.contains('full')) { ctx.bonus(2, dashCase, 'Every track in the park!'); cheer(2); }
+            if (dashCase.classList.contains('full')) { ctx.bonus(2, dashCase, 'Every track in the park!'); }
           }
           const secs = Math.max(1, Math.round(runT * 10) / 10);
           const fresh = rec.lo('dash' + ctx.round, secs);
-          if (fresh) { ctx.bonus(2, sprite, 'Fastest run ever!'); cheer(2); }
+          if (fresh) { ctx.bonus(2, sprite, 'Fastest run ever!'); }
           ctx.done(`You made it to the flag in ${secs}s! ${P.stars} stars${P.eggs ? ' and ' + P.eggs + ' egg' + (P.eggs > 1 ? 's' : '') : ''}` + (P.boosted ? ' and big-jump legs' : '') + (fresh ? ' — a brand-new record!' : '!'), 2500); return;
         }
         requestAnimationFrame(frame);
@@ -924,13 +944,13 @@
         if (nestV.set(pat, R) && stampInto(nest, nestArt, pat, R, 'In the nest!')) {
           if (nestBit) nestBit.textContent = `Nest ${nest.dataset.got}/${nestIds.length}`;
           ctx.say(`A ${pat} egg settles in your nest — ${nest.dataset.got} of ${nestIds.length} patterns kept!`);
-          if (nest.classList.contains('full')) { ctx.bonus(2, nest, 'A beautiful full nest!'); cheer(2); }
+          if (nest.classList.contains('full')) { ctx.bonus(2, nest, 'A beautiful full nest!'); }
           want = nextWant(); setWant();
         }
       }
       function hatchling(px, py) {
         // A missed egg is not a disaster: the baby hatches and scampers off.
-        const b = el('div', 'catch-baby', pick(['🐣', '🐥'])); b.style.left = (px - 16) + 'px'; b.style.top = (py - 34) + 'px'; field.append(b);
+        const b = el('div', 'catch-baby', '🦕'); b.style.left = (px - 16) + 'px'; b.style.top = (py - 34) + 'px'; field.append(b);
         FX.sfx.chirp(); setTimeout(() => b.remove(), 1600);
       }
       function frame(now) {
@@ -984,7 +1004,7 @@
               if (got >= goal && !over) {
                 over = true; FX.celebrate(); ctx.flutter(5); FX.dinoState(hEl, 'happy'); hEl.setAttribute('data-base', 'happy');
                 if (!misses) ctx.bonus(1, basket, 'Never dropped one!');
-                if (rec.hi('catch', best)) { ctx.bonus(2, basket, `Longest streak ever: ${best}!`); cheer(2); }
+                if (rec.hi('catch', best)) { ctx.bonus(2, basket, `Longest streak ever: ${best}!`); }
                 ctx.done(`Basket full with ${got} eggs — best streak ${best}!`, 2000);
               }
             }

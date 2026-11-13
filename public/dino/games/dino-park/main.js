@@ -68,7 +68,9 @@ class DinoParkScene extends Phaser.Scene {
     item.setAngularVelocity(isRock ? 180 : 0);
   }
 
-  updateHUD() { this.hud.setText(`⭐ ${this.score}    ❤️ ${this.lives}`); }
+  // Phaser paints its text onto a canvas no picture layer can reach, so the two
+  // counts are simply named in words rather than led by an egg and a heart glyph.
+  updateHUD() { this.hud.setText(`Eggs ${this.score}    ${this.lives} lives left`); }
 
   update() {
     const speed = 320;
@@ -87,7 +89,7 @@ class DinoParkScene extends Phaser.Scene {
       window.DinoProgress.addPlaytime(Math.round((Date.now() - this.playStart) / 1000));
     }
     this.scene.pause();
-    this.add.text(400, 300, `Game Over!\n⭐ ${this.score}\nTap to play again`, { fontFamily: 'system-ui', fontSize: '40px', color: '#fff', align: 'center' }).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.restart());
+    this.add.text(400, 300, `Game Over!\n${this.score} eggs caught\nTap to play again`, { fontFamily: 'system-ui', fontSize: '40px', color: '#fff', align: 'center' }).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.restart());
   }
 }
 

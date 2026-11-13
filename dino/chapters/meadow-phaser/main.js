@@ -6,8 +6,13 @@ const EMBEDDED = window.self !== window.top;
 let skipTitle = false;
 // Tells the shared kit which story voice belongs to this scene: meadow.arcade.
 window.DU_WORLD_ID = "meadow";
-const FACES = ["🦕", "🦖", "🌼", "🦋", "🥚", "🍓", "🌻", "🐢", "🐾", "🍄", "🐛", "🪨"];
-const NAMES = ["dino", "hatchling", "flower", "butterfly", "egg", "berry", "sunflower", "turtle", "footprint", "mushroom", "caterpillar", "stone"];
+// Twelve pairs, twelve different photographs. Two glyphs of one specimen family
+// would print the same picture on two cards, which is why the board has a fern
+// and a snail rather than a second flower, and a shell rather than a second
+// dinosaur: 🦕 and 🦖 are both hatchlings, so a pair of them would be one
+// photograph dealt twice and a child matching dino to hatchling would be right.
+const FACES = ["🦕", "🐚", "🌼", "🦋", "🥚", "🍓", "🌿", "🐢", "🐾", "🍄", "🐌", "🪨"];
+const NAMES = ["dino", "conch", "flower", "butterfly", "egg", "berry", "fern", "turtle", "footprint", "mushroom", "snail", "stone"];
 // Six pairs is the scale the campaign map's 8/12 rule is written on, so every
 // board is scored on that same scale and a bigger one never costs earned stars.
 const TIERS = [
@@ -93,12 +98,8 @@ class MeadowScene extends Phaser.Scene {
     g.clear();
     g.fillStyle(0x2a9d8f, 1);
     g.fillRoundedRect(0, 0, 120, 120, 18);
-    g.fillStyle(0xffffff, 0.35);
-    g.fillCircle(60, 60, 26);
-    g.fillStyle(0xffffff, 0.7);
-    g.fillCircle(60, 60, 10);
-    g.fillStyle(0xffffff, 0.28);
-    for (let i = 0; i < 3; i++) g.fillRoundedRect(16, 14 + i * 36, 88, 9, 5);
+    g.lineStyle(5, 0x1f7a70, 1);
+    g.strokeRoundedRect(3, 3, 114, 114, 16);
     g.generateTexture("cardBack", 120, 120);
 
     g.clear();
@@ -117,8 +118,12 @@ class MeadowScene extends Phaser.Scene {
     // One painted texture per themed pair, so a match is a little picture, not a glyph.
     FACES.forEach((f, i) => DUKit.emoji(this, "face" + i, f, 64));
     DUKit.emoji(this, "butterfly", "🦋", 30);
-    DUKit.emoji(this, "dragonfly", "🪰", 26);
+    DUKit.emoji(this, "driftFeather", "🪶", 26);
     DUKit.emoji(this, "buddyBig", "🦕", 110);
+    /* The face-down card keeps its teal shape and border and gains a real
+     * ammonite pressed into the middle of it, so the deck looks like tiles
+     * chipped out of a fossil bed rather than coloured paper. */
+    DUKit.specimen(this, "cardBack", "ammonite", { keep: true, inset: 0.24 });
   }
 
   create() {
@@ -140,7 +145,7 @@ class MeadowScene extends Phaser.Scene {
     const sky = this.add.graphics();
     sky.fillGradientStyle(0x8fd3ff, 0x8fd3ff, 0xe4f6c9, 0xe4f6c9, 1);
     sky.fillRect(0, 0, W, H);
-    DUKit.sunRays(this, 840, 90, 220);
+    DUKit.scenery(DUKit.sunRays(this, 840, 90, 220));
     const sun = this.add.circle(840, 90, 46, 0xffe27a, 0.95);
     DUKit.sparkleField(this, 14, 40, 30, 920, 300, 0xffffff);
     this.tweens.add({ targets: sun, scale: 1.08, duration: 1800, yoyo: true, repeat: -1, ease: "sine.inOut" });
@@ -150,10 +155,11 @@ class MeadowScene extends Phaser.Scene {
     this.clouds2.tilePositionX = 48;
     this.trees = this.add.tileSprite(W / 2, 400, W, 130, "trees");
     this.grass = this.add.tileSprite(W / 2, H - 30, W, 80, "grass");
+    DUKit.scenery(sky, sun, this.mountains, this.clouds, this.clouds2, this.trees, this.grass);
 
-    // Ambient butterflies, dragonflies, pollen and drifting petals.
+    // Ambient butterflies, drifting feathers, pollen and petals.
     for (let i = 0; i < 4; i++) {
-      const b = this.add.image(Phaser.Math.Between(80, W - 80), Phaser.Math.Between(60, 200), i % 2 ? "butterfly" : "dragonfly");
+      const b = this.add.image(Phaser.Math.Between(80, W - 80), Phaser.Math.Between(60, 200), i % 2 ? "butterfly" : "driftFeather");
       this.tweens.add({ targets: b, x: b.x + Phaser.Math.Between(-160, 160), y: b.y + Phaser.Math.Between(-40, 60), duration: Phaser.Math.Between(2600, 4200), yoyo: true, repeat: -1, ease: "sine.inOut" });
     }
     this.add.particles(0, 0, "dot", {
@@ -165,18 +171,23 @@ class MeadowScene extends Phaser.Scene {
       scale: { start: 0.32, end: 0.08 }, alpha: { start: 0.75, end: 0 }, tint: [0xffb1c6, 0xffe27a, 0xffffff], frequency: 700
     });
 
+    DUKit.environment(this, 'jungle');
     // A meadow buddy who bounces whenever a pair turns up.
     this.buddy = this.add.image(56, 452, "buddyBig").setDepth(4);
     this.tweens.add({ targets: this.buddy, y: 446, angle: { from: -5, to: 5 }, duration: 1200, yoyo: true, repeat: -1, ease: "sine.inOut" });
 
     // HUD
     const style = { fontSize: "28px", fontFamily: "system-ui,sans-serif", color: "#fff", stroke: "#1f5d3a", strokeThickness: 6 };
-    this.movesText = this.add.text(150, 14, "Moves 0", style).setDepth(60);
+    // "Level 1" at 30px reaches past x=176, so "Moves" has to start beyond it —
+    // at 150 the two counters printed through each other as "Level 1oves 0".
+    this.movesText = this.add.text(205, 14, "Moves 0", style).setDepth(60);
     this.timeText = this.add.text(W - 18, 46, "", { fontSize: "18px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", stroke: "#1f5d3a", strokeThickness: 5 }).setOrigin(1, 0).setDepth(60);
     this.bestText = this.add.text(W - 18, 16, this.best ? "Best " + this.best : "", { fontSize: "18px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", stroke: "#1f5d3a", strokeThickness: 5 }).setOrigin(1, 0).setDepth(60);
 
-    // Swaying flowers along the bottom.
-    ["🌼", "🌸", "🌷", "🌻"].forEach((e, k) => DUKit.emoji(this, "fl" + k, e, 30));
+    // Swaying flowers along the bottom. Four different specimens, not four
+    // spellings of one flower: 🌼🌸🌷🌻 all print the same petal photograph, so
+    // a border of them read as one plant repeated instead of a meadow edge.
+    ["🌼", "🪻", "🍄", "☘️"].forEach((e, k) => DUKit.emoji(this, "fl" + k, e, 30));
     for (let i = 0; i < 16; i++) {
       const f = this.add.image(20 + i * 60 + Phaser.Math.Between(-10, 10), H - 28 + Phaser.Math.Between(-6, 8), "fl" + (i % 4)).setOrigin(0.5, 1).setDepth(3);
       this.tweens.add({ targets: f, angle: { from: -9, to: 9 }, duration: Phaser.Math.Between(900, 1500), yoyo: true, repeat: -1, ease: "sine.inOut", delay: i * 70 });
@@ -349,7 +360,6 @@ class MeadowScene extends Phaser.Scene {
     this.bestText.setText("Best " + STORE.best);
     // Book the match on the campaign map, and let a friend say how it went.
     if (window.DUJourney) DUJourney.record("meadow.arcade", { stars, level: this.tier + 1 });
-    if (window.DUWONDER) DUWONDER.mote(stars >= 3 ? 3 : 1);
     this.busy = true;
     this.totalTime += secs;
     DUKit.celebrate(this);

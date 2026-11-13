@@ -1,3 +1,4 @@
+import { addMaterialLayer } from '../../../photoreal-environments.js';
 // River Braid — the braided jungle river.
 // A hatchling goes downstream and may only spend breath where the water spends
 // it for them: the dark deep threads, and the lee of anything that drifts.
@@ -304,6 +305,7 @@ function create(scene) {
   const gWater = scene.add.graphics().setDepth(4);
   const gFlow = scene.add.graphics().setDepth(5).setBlendMode(Phaser.BlendModes.ADD);
   const gEdge = scene.add.graphics().setDepth(6);
+  addMaterialLayer(scene,gWater,'material-water',W,M.H,{alpha:.55,flow:true});
   const glow = scene.add.image(h.x, M.Y(h.y), 'arc-glow').setDepth(10).setScale(1.05 * K).setTint(0xfff0b8).setAlpha(0.12).setBlendMode(Phaser.BlendModes.ADD);
   const player = scene.add.sprite(h.x, M.Y(h.y), 'rb-hatch-0').setDepth(13).setScale(1.14 * K);
   const leaves = [];

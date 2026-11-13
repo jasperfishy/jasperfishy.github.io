@@ -14,7 +14,7 @@ const NAMES = { trex: "Tyrannosaurus", tricera: "Triceratops", stego: "Stegosaur
 const SHORT = { trex: "Rex", tricera: "Tricera", stego: "Stego", bronto: "Bronto", raptor: "Raptor", ptero: "Ptero" };
 const KIND_LABEL = { tail: "tail", leg: "leg", head: "head", spikes: "spikes", plates: "back plates", arm: "little arm", wing: "wing" };
 const COLORS = [["green", "#91d09c"], ["teal", "#7fd1c7"], ["blue", "#8cc3ee"], ["purple", "#b9a1e6"], ["pink", "#f5a9c4"], ["red", "#ee8a7c"], ["orange", "#f6b273"], ["yellow", "#f3d56b"]];
-const HATS = ["", "👑", "🎩", "🎀", "😎", "🌸", "⭐", "🎈", "🧢", "🎓"];
+const HATS = ["", "🪶", "🌺", "🐚", "🍃", "⭐", "🌈", "🥌", "🌰", "🌙"];
 const FIRST = ["Pip", "Dot", "Bean", "Pebble", "Sprout", "Mochi", "Nibbles", "Twig", "Biscuit", "Peanut", "Fern", "Button", "Rumble", "Zig", "Sunny", "Bubbles", "Mango", "Cookie"];
 
 function kindOf(node) {
@@ -50,7 +50,7 @@ export function openMuseum(F, parent) {
   o.innerHTML = '<div class="bd-museum-card"><button type="button" class="dialog-close" aria-label="Close">×</button><h2>🏛️ My dinosaur museum</h2>' +
     '<p>' + (list.length ? list.length + " dinosaur" + (list.length === 1 ? "" : "s") + " built. Every one you build gets a place here!" : "Build your first dinosaur and it will live here!") + '</p><div class="bd-museum-grid">' +
     list.slice().reverse().map(function (d) {
-      return '<figure class="bd-exhibit"><div class="bd-ex-art">' + F.dinoHTML(d.species, { color: d.color, head: d.head && d.head !== d.species ? d.head : undefined, headColor: d.color, size: "100%" }) + (d.hat ? '<span class="bd-ex-hat">' + d.hat + "</span>" : "") + '</div><figcaption><b>' + d.name + '</b><small>' + dinoTitle(d.species, d.head) + '</small><span>' + "⭐".repeat(d.stars || 3) + "</span></figcaption></figure>";
+      return '<figure class="bd-exhibit"><div class="bd-ex-art">' + F.dinoHTML(d.species, { color: d.color, head: d.head && d.head !== d.species ? d.head : undefined, headColor: d.color, size: "100%" }) + (d.hat ? '<span class="bd-ex-hat">' + d.hat + "</span>" : "") + '</div><figcaption><b>' + d.name + '</b><small>' + dinoTitle(d.species, d.head) + '</small><span>' + window.DUICONS.stars(d.stars || 3) + "</span></figcaption></figure>";
     }).join("") + (list.length ? "" : '<div class="bd-empty">🥚 Nothing here yet</div>') + "</div></div>";
   (parent || document.body).appendChild(o);
   o.addEventListener("click", function (e) { if (e.target === o || e.target.closest(".dialog-close")) o.remove(); });
@@ -184,7 +184,7 @@ export function mountBuilder(context) {
         if (pc.rot % 360 !== 0) {
           pc.rot += 90; pc.svg.style.transition = "transform .25s cubic-bezier(.3,1.5,.5,1)"; pc.svg.style.transform = "rotate(" + pc.rot + "deg)";
           if (F.sfx) F.sfx.pop();
-          if (pc.rot % 360 === 0) play.say("Right way up! Now drop it on its shadow. 👍", 2200);
+          if (pc.rot % 360 === 0) play.say("Right way up! Now drop it on its shadow. ✅", 2200);
           select(pc); return;
         }
         select(selected === pc ? null : pc);
@@ -289,7 +289,7 @@ export function mountBuilder(context) {
       host.remove();
     }
     play.hint(mixHead ? "Step 2: a mix-and-match! This dinosaur has a " + SHORT[mixHead] + " head. Fit every part onto its shadow." : "Step 2: give it skin! Fit each part onto its shadow.", true);
-    play.say(mixHead ? "Wow, a mix-and-match dinosaur! 🤩" : "Now the skin! Pick up a part. 🦖", 2800);
+    play.say(mixHead ? "Wow, a mix-and-match dinosaur! ✨" : "Now the skin! Pick up a part. 🦖", 2800);
     assemble({ svg: svg, parts: parts, spare: spare, rotate: rotating, done: wake });
   }
 
@@ -308,8 +308,10 @@ export function mountBuilder(context) {
     play.hint("Step 3: make it yours! Pick a colour and something to wear.", true);
     dress.hidden = false;
     dress.innerHTML = '<div class="bd-row" role="group" aria-label="Colour">' + COLORS.map(function (c) { return '<button type="button" class="bd-sw' + (c[0] === color ? " on" : "") + '" data-color="' + c[0] + '" style="background:' + c[1] + '" aria-label="' + c[0] + '"></button>'; }).join("") + '</div>' +
-      '<div class="bd-row" role="group" aria-label="Dress up">' + HATS.map(function (h) { return '<button type="button" class="pk-btn bd-hat" data-hat="' + h + '" aria-label="' + (h ? "Wear " + h : "Wear nothing") + '">' + (h || "∅") + '</button>'; }).join("") + '</div>' +
-      '<button type="button" class="pk-btn bd-done">Next: name card ➜</button>';
+      '<div class="bd-row" role="group" aria-label="Dress up">' + HATS.map(function (h) { return '<button type="button" class="pk-btn bd-hat" data-hat="' + h + '" aria-label="' + (h ? "Wear " + window.DUFX.objects.word(h) : "Wear nothing") + '">' + (h || window.DUICONS.i("close", { size: 15 })) + '</button>'; }).join("") + '</div>' +
+      /* "Next" is a control, not a thing in the world, so it gets an ink arrow
+       * rather than the font's ➜, which no layer can redraw. */
+      '<button type="button" class="pk-btn bd-done">Next: name card ' + window.DUICONS.i("next", { size: 16 }) + '</button>';
     F.pop && F.pop(dress);
     function repaint() {
       const state = dinoHost.querySelector(".du-dino").getAttribute("data-state");
@@ -362,7 +364,7 @@ export function mountBuilder(context) {
     const wrap = board.querySelector(".bd-wrap");
     const card = document.createElement("div");
     card.className = "bd-card";
-    card.innerHTML = '<span class="bd-card-stars">' + "⭐".repeat(stars) + "☆".repeat(3 - stars) + '</span><b>' + nm + '</b><small>' + dinoTitle(species, mixHead) + (hat ? " · wearing " + hat : "") + '</small>';
+    card.innerHTML = '<span class="bd-card-stars">' + window.DUICONS.stars(stars, { max: (stars) + (3 - stars) }) + '</span><b>' + nm + '</b><small>' + dinoTitle(species, mixHead) + (hat ? " · wearing " + hat : "") + '</small>';
     wrap.appendChild(card);
     F.pop && F.pop(card);
     F.sfx && F.sfx.win();

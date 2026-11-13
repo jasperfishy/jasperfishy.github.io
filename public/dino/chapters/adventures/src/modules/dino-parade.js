@@ -8,17 +8,21 @@ import { createPlay, shuffle, collect, collection, getExtras } from "../adv-kit.
 const SVGNS = "http://www.w3.org/2000/svg";
 const SPECIES = [["trex", "T. rex", "green"], ["tricera", "Trike", "teal"], ["stego", "Spike", "purple"], ["bronto", "Bronte", "orange"], ["raptor", "Zippy", "red"], ["ptero", "Skye", "blue"]];
 const COLORS = [["green", "#91d09c"], ["teal", "#7fd1c7"], ["blue", "#8cc3ee"], ["purple", "#b9a1e6"], ["pink", "#f5a9c4"], ["red", "#ee8a7c"], ["orange", "#f6b273"], ["yellow", "#f3d56b"]];
+/* What a dinosaur can actually wear in this universe. Every piece is a
+ * specimen with a photograph, and no list shows the same photograph twice.
+ * The lists keep their old lengths: a saved parade stores positions, not
+ * names, so a shorter row would point a returning child at nothing. */
 const SLOTS = {
-  hat: { label: "Hat", items: ["👑", "🎩", "🧢", "🌸", "🎓", "⛑️", "🎀", "🪖", "🦖", "🌻"] },
-  face: { label: "Face", items: ["🕶️", "👓", "🥽", "🎭", "🥸"] },
-  neck: { label: "Neck", items: ["🧣", "🎀", "📿", "🔔", "🏅", "🌼", "🍓"] },
-  back: { label: "Back", items: ["🎒", "🪽", "🎈", "🦋", "⛱️", "🎺", "🪁", "🧺"] },
-  tail: { label: "Tail", items: ["🎀", "🔔", "🌸", "🎈", "⭐", "🌈", "🍃"] }
+  hat: { label: "Crest", items: ["🪶", "🌺", "🌰", "🐚", "☘️", "🍂", "🌱", "🥌", "🪩", "🦴"] },
+  face: { label: "Snout", items: ["🌿", "🪶", "🌸", "🐚", "⭐"] },
+  neck: { label: "Neck", items: ["📿", "🪢", "🟠", "🦴", "🌼", "🍓", "🐚"] },
+  back: { label: "Back", items: ["🎒", "🪽", "🦋", "🧺", "🎺", "🪹", "🪵", "🐢"] },
+  tail: { label: "Tail", items: ["🌈", "⭐", "🍃", "🌙", "☁️", "🪶", "🌺"] }
 };
 const WORLDS = [
-  { name: "Sunshine Meadow", cls: "pd-meadow", icon: "🌼", deco: ["🌼", "🐞", "🦋"] }, { name: "Starry Lagoon", cls: "pd-stars", icon: "🌙", deco: ["🌙", "✨", "🐟"] },
-  { name: "Rainbow Valley", cls: "pd-rainbow", icon: "🌈", deco: ["🌈", "☁️", "🎈"] }, { name: "Fernwood Forest", cls: "pd-fern", icon: "🌿", deco: ["🌿", "🍄", "🦉"] },
-  { name: "Firefly Wood", cls: "", icon: "✨", bg: "linear-gradient(#1d3b2a,#43715a 60%,#6ea87f)", deco: ["✨", "🪲", "🌲"] }, { name: "Sunset Sand", cls: "", icon: "🌅", bg: "linear-gradient(#ff9a62,#ffd49a 55%,#ffe9bf)", deco: ["🌅", "🏝️", "🐚"] }
+  { name: "Sunshine Meadow", cls: "pd-meadow", icon: "🌼", deco: ["🌼", "🦋", "🐌"] }, { name: "Starry Lagoon", cls: "pd-stars", icon: "🌙", deco: ["🌙", "✨", "🐟"] },
+  { name: "Rainbow Valley", cls: "pd-rainbow", icon: "🌈", deco: ["🌈", "☁️", "🫧"] }, { name: "Fernwood Forest", cls: "pd-fern", icon: "🌿", deco: ["🌿", "🍄", "🪶"] },
+  { name: "Firefly Wood", cls: "", icon: "✨", bg: "linear-gradient(#1d3b2a,#43715a 60%,#6ea87f)", deco: ["✨", "🍄", "🌲"] }, { name: "Sunset Sand", cls: "", icon: "🌅", bg: "linear-gradient(#ff9a62,#ffd49a 55%,#ffe9bf)", deco: ["🌅", "🌴", "🐚"] }
 ];
 const KEY = "dinosaur-universe-parade-v2";
 
@@ -64,7 +68,7 @@ export function mountDinoParade(context) {
   board.innerHTML = '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px">' +
     chip("Tier " + tier + " · " + TIER[tier - 1]) + chip("Worlds: " + WORLDS.length + " · items grow each level") +
     chip('Line <b id="pdLineSize">' + lineSize + '</b> dinosaurs · Laps <b id="pdLaps">' + laps + "</b>") +
-    (best ? chip("Your best " + "⭐".repeat(best)) : "") + "</div>" +
+    (best ? chip("Your best " + window.DUICONS.stars(best)) : "") + "</div>" +
     '<div class="pd-world" id="pdWorld"><div class="pd-sparkle">✨</div><div id="pdDeco" style="position:absolute;inset:0;pointer-events:none" aria-hidden="true"></div><div class="pd-bunting">🎊🎉🎊🎉🎊🎉🎊🎉</div>' +
     '<div id="pdSteps" data-trail="" data-tail="" data-tailback="' + stepBack + '" style="position:absolute;left:2%;right:2%;top:11%;z-index:6;display:flex;gap:3px;justify-content:center;flex-wrap:wrap;pointer-events:none;font-size:20px" aria-label="The steps the parade marched"></div>' +
     '<div id="pdLine" data-size="' + lineSize + '" style="position:absolute;left:1%;right:1%;top:29%;z-index:2;display:flex;justify-content:center;gap:1px;pointer-events:none" aria-label="The parade line"></div>' +
@@ -82,7 +86,8 @@ export function mountDinoParade(context) {
   function render() {
     const w = WORLDS[st.world];
     world.className = "pd-world " + w.cls + (parading ? " going" : "");
-    world.style.background = w.bg || ""; // custom-gradient worlds share no CSS class
+    const environment=['jungle','night','mountain','jungle','night','coast'][st.world];
+    world.style.background = `url('${new URL('../../../../assets/environments/'+environment+'.webp',import.meta.url).href}') center / cover`;
     board.querySelector("#pdDeco").innerHTML = (w.deco || []).map(function (d, i) { return '<span style="position:absolute;font-size:' + (30 + (i % 2) * 12) + 'px;opacity:.85;left:' + (6 + i * 30) + '%;top:' + (58 + (i % 3) * 12) + '%">' + d + "</span>"; }).join("");
     const sp = SPECIES[st.sp];
     dinoEl.innerHTML = F.dinoHTML(sp[0], { color: colorName(), state: parading ? "walk" : "idle", size: "100%" });
@@ -93,7 +98,7 @@ export function mountDinoParade(context) {
     board.querySelector("#pdTabs").innerHTML = Object.keys(SLOTS).map(function (k) { return '<button type="button" class="pd-tab' + (k === tab ? " on" : "") + '" data-tab="' + k + '">' + (st.outfit[k] || "·") + " " + SLOTS[k].label + "</button>"; }).join("");
     board.querySelector("#pdItems").innerHTML = SLOTS[tab].items.map(function (it, i) {
       const open = i < unlocked(tab);
-      return '<button type="button" class="pd-item' + (st.outfit[tab] === it ? " on" : "") + (open ? "" : " locked") + '" data-item="' + i + '" aria-label="' + (open ? it : "Locked until a higher level") + '">' + (open ? it : "🔒") + "</button>";
+      return '<button type="button" class="pd-item' + (st.outfit[tab] === it ? " on" : "") + (open ? "" : " locked") + '" data-item="' + i + '" aria-label="' + (open ? it : "Locked until a higher level") + '">' + (open ? it : window.DUICONS.i("lock", { size: 18 })) + "</button>";
     }).join("");
     board.querySelector("#pdWorlds").innerHTML = '<b>World</b>' + WORLDS.map(function (w, i) { return '<button type="button" class="pd-world-btn' + (i === st.world ? " on" : "") + '" data-world="' + i + '">' + w.icon + " <small>" + w.name + "</small></button>"; }).join("");
     const CROWD = [["raptor", "yellow"], ["tricera", "pink"], ["stego", "teal"], ["bronto", "purple"], ["ptero", "orange"], ["trex", "red"], ["raptor", "blue"], ["tricera", "green"]];
@@ -227,14 +232,14 @@ export function mountDinoParade(context) {
       const d = dinoEl.querySelector(".du-dino"); F.dinoState(d, SPECIES[st.sp][0] === "trex" ? "roar" : "happy", 1500); if (F.sfx) (SPECIES[st.sp][0] === "trex" ? F.sfx.roar : F.sfx.chirp)();
       if (F.wiggle) F.wiggle(dinoEl);
       const r = dinoEl.getBoundingClientRect(); if (F.burst) F.burst(r.left + r.width / 2, r.top + r.height * 0.3, { kind: "stars", n: 20 });
-      if (F.floatText) F.floatText(r.left + r.width / 2, r.top - 10, "Ta-da! 💃");
+      if (F.floatText) F.floatText(r.left + r.width / 2, r.top - 10, "Ta-da! ✨");
     }, Math.round(tempo.march * 0.5));
     const end = function () {
       window.clearInterval(beat);
       const filled = Object.keys(SLOTS).filter(function (k) { return st.outfit[k]; }).length;
       const scores = [Math.min(3, 1 + Math.floor(filled / 2)), Math.min(3, filled >= 3 ? 3 : 2), 3];
       const judges = board.querySelector("#pdJudges"); judges.hidden = false;
-      judges.innerHTML = ["Style", "Sparkle", "Smile"].map(function (n, i) { return "<span><b>" + n + "</b>" + "⭐".repeat(scores[i]) + "</span>"; }).join("") +
+      judges.innerHTML = ["Style", "Sparkle", "Smile"].map(function (n, i) { return "<span><b>" + n + "</b>" + window.DUICONS.stars(scores[i]) + "</span>"; }).join("") +
         "<span><b>Rhythm</b>" + (copyDone ? "⭐⭐⭐" : "—") + "</span>";
       F.pop && F.pop(judges); if (F.sfx) { F.sfx.win(); F.sfx.sparkle(); }
       const r = world.getBoundingClientRect(); if (F.burst) F.burst(r.left + r.width / 2, r.top + 60, { kind: "hearts", n: 14 });
@@ -307,7 +312,7 @@ export function mountDinoParade(context) {
     if (side !== call[copyIdx]) {
       copyIdx = 0; paintCopy();
       play.miss(copyEl, "Nearly! Watch the footprints again — which foot came first?");
-      play.hint("The answer is " + call.join(" → ") + " — take them one at a time 💛", true);
+      play.hint("The answer is " + call.join(" → ") + " — take them one at a time ⭐", true);
       return;
     }
     copyIdx += 1;

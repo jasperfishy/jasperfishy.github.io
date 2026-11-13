@@ -4,7 +4,7 @@
  * face leads the parade, and their voice opens the tune. A hot-streak meter counts the clean echoes in a row, and the
  * song ends with a call-and-response: the leader drums a short fill, you echo it back, and the parade plays your fill.
  * At the end the whole parade marches to the song you played. Replay and a slower "show me" button are always there. */
-import { createPlay, getExtras, collect, collection } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, getExtras, collect, collection } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
 const LEADS_KEY = "beat-leads"; // saved inside du-adv-extras-v1 via collect()
 const FILLS_KEY = "beat-fills";
@@ -42,8 +42,10 @@ export function mountDinoBeat(context) {
   let hero = (context.level - 1) % DRUMS.length; // who carries the rhythm — you may change it below
   const led = collection(LEADS_KEY);
   board.innerHTML = '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px">' +
-    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip("The song is " + target + " beats" + (echo ? " — an echo tune! 🪞" : "")) +
-    chip('Rhythm carrier <b id="btLeadName">' + DRUMS[hero].name + '</b> · songs led <b id="btLed">' + led.length + "</b>") + (best ? chip("Your best " + "⭐".repeat(best)) : "") + "</div>" +
+    /* An "echo tune" is a rule about the music, not a thing in the world, so it
+     * gets the replay mark rather than the 🪞 glyph nobody's library can draw. */
+    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip("The song is " + target + " beats" + (echo ? " — an echo tune! " + window.DUICONS.i("replay", { size: 15 }) : "")) +
+    chip('Rhythm carrier <b id="btLeadName">' + DRUMS[hero].name + '</b> · songs led <b id="btLed">' + led.length + "</b>") + (best ? chip("Your best " + window.DUICONS.stars(best)) : "") + "</div>" +
     '<div class="bt-roster" id="btRoster" role="group" aria-label="Which dinosaur carries the rhythm?" style="display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin:0 auto 6px"></div>' +
     '<div class="bt-heat" id="btHeat" data-streak="0" data-best="0" data-goal="0" data-hot="0" aria-label="Hot streak" style="display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin:2px auto 8px"></div>' +
     '<div class="bt-lights" id="btLights"></div><div class="bt-stage" id="btStage"></div>' +
@@ -65,19 +67,22 @@ export function mountDinoBeat(context) {
   /* THE RHYTHM CARRIER — a real choice the child makes: which dinosaur leads the song. The pick changes what
    * you see (crowned pad, gold outline, lead chip) and what you hear (the carrier's beats are doubled and
    * bigger) and it decides who drums the closing call-and-response fill. */
+  /* The crown a child used to get as a font glyph is a rank mark, not a specimen,
+   * so it is drawn in the app's own ink and stays legible at 14px. */
+  const crown = function (size) { return window.DUICONS.i("medal", { size: size || 16 }); };
   const NAMES = DRUMS.map(function (d) { return d.name; });
   function paintRoster() {
     const d = DRUMS[hero];
     roster.innerHTML = '<span class="bt-lead" id="btLead" data-species="' + d.sp + '" data-color="' + d.color +
       '" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,214,87,.34);border:2px solid #f2b705;border-radius:999px;padding:2px 12px 2px 3px;font-weight:900;font-size:12.5px;color:#4a3208">' +
-      '<span style="display:block;width:34px;height:30px">' + F.dinoHTML(d.sp, { color: d.color, state: "happy", size: "100%" }) + "</span>👑 " + d.name + " carries the rhythm</span>" +
+      '<span style="display:block;width:34px;height:30px">' + F.dinoHTML(d.sp, { color: d.color, state: "happy", size: "100%" }) + "</span>" + crown(17) + " " + d.name + " carries the rhythm</span>" +
       DRUMS.map(function (x, i) {
         const on = i === hero;
         return '<button type="button" class="bt-hero' + (on ? " on" : "") + '" data-i="' + i + '" data-species="' + x.sp +
           '" aria-pressed="' + (on ? "true" : "false") + '" title="Let ' + x.name + ' carry the rhythm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;border:3px solid ' +
           (on ? "#f2b705" : "rgba(24,62,64,.16)") + ';background:rgba(255,255,255,.92);border-radius:999px;padding:2px 9px 2px 3px;font:inherit;font-weight:900;font-size:11.5px;color:#245048">' +
           '<span style="display:block;width:28px;height:25px">' + F.dinoHTML(x.sp, { color: x.color, state: on ? "happy" : "idle", size: "100%" }) + "</span>" +
-          (on ? "👑" + x.name : x.name) + "</button>";
+          (on ? crown(14) + " " + x.name : x.name) + "</button>";
       }).join("");
     const leadName = board.querySelector("#btLeadName");
     if (leadName) leadName.textContent = d.name;
@@ -88,7 +93,9 @@ export function mountDinoBeat(context) {
       p.style.outline = on ? "4px solid rgba(255,214,87,.9)" : "";
       p.style.outlineOffset = on ? "2px" : "";
       const tag = p.querySelector("small");
-      if (tag) tag.textContent = (on ? "👑 " : "") + NAMES[i];
+      /* A rank mark has to be markup, not text: `textContent` cannot carry a
+       * drawing, and NAMES are this module's own words, never the child's. */
+      if (tag) tag.innerHTML = (on ? crown(13) + " " : "") + NAMES[i];
     });
   }
   roster.addEventListener("click", function (e) {
@@ -185,7 +192,7 @@ export function mountDinoBeat(context) {
         input = []; drawLights(-1);
         pads.forEach(function (p) { p.disabled = true; });
         pads.forEach(function (p) { F.dinoState(p.querySelector(".du-dino"), "sad", 900); });
-        play.miss(pad, "Oops! " + NAMES[hero] + " will play it again — listen for who is LOUDEST. 💛");
+        play.miss(pad, "Oops! " + NAMES[hero] + " will play it again — listen for who is LOUDEST. ✨");
         window.setTimeout(function () { playing = false; pads.forEach(function (p) { p.disabled = false; }); showTune(); }, 1400);
         playing = true;
         return;
@@ -303,7 +310,7 @@ export function mountDinoBeat(context) {
       }
       return;
     }
-    play.miss(pad, "Not quite — " + NAMES[hero] + " always starts the fill with " + NAMES[fillSeq[0]] + ". Hear it again! 💛");
+    play.miss(pad, "Not quite — " + NAMES[hero] + " always starts the fill with " + NAMES[fillSeq[0]] + ". Hear it again! ✨");
     play.hint("The fill starts with " + NAMES[fillSeq[0]] + " — tap " + NAMES[fillSeq[0]] + "! 👂", true);
     fillIdx = 0; callBox.dataset.response = "0"; paintCall();
     demoFill();

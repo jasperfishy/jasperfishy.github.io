@@ -41,7 +41,12 @@
 /* night + volcano are the two dark scenes; text shadow keeps copy readable */
 .du-cut-scene[data-scene="snow"] ~ .du-cut-wrap, .du-cut-scene[data-scene="day"] ~ .du-cut-wrap,
 .du-cut-scene[data-scene="sun"] ~ .du-cut-wrap, .du-cut-scene[data-scene="meadow"] ~ .du-cut-wrap,
-.du-cut-scene[data-scene="rainbow"] ~ .du-cut-wrap { color: #10322f; }
+.du-cut-scene[data-scene="rainbow"] ~ .du-cut-wrap {
+  color: #10322f;
+  /* Dark ink over a bright valley needs an edge of its own: the title sits on
+   * snow and cloud, where a shadow alone leaves it grey and half-read. */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .62), 0 2px 18px rgba(255, 255, 255, .38);
+}
 
 /* ---------- the real world behind the story ----------
  * Eight photographs in fx/art are the lands these chapters are set in: the valley
@@ -91,6 +96,36 @@
 }
 @keyframes du-twinkle { from { opacity: .62 } to { opacity: 1 } }
 
+/* ---------- the living world behind the words ----------
+ * The canvas carries the photograph, the mist, the weather and any animal the
+ * chapter has walking through it, so the shot is moving before a child reads a
+ * word. The scene's own gradient stays underneath as the wash a plate decodes
+ * onto — never a blank rectangle in front of a child. */
+.du-cut-world { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.du-cut-scene.has-world { background-image: linear-gradient(180deg, var(--s1, #0c1a45), var(--s2, #2f4f8c)); }
+/* With a real valley on screen, the two flat drawings that stood in for one
+ * stand down: the painted hills and the gradient star field. */
+.du-cut-scene.has-world::before, .du-cut-scene.has-world::after,
+.du-cut-scene.has-world .du-cut-stars { display: none; }
+
+/* ---------- the friend keeps living while the line is read ----------
+ * The pop-in only happens once; without this the dinosaur freezes mid-sentence,
+ * which is the thing that makes a cutscene read as a slideshow. Each beat names
+ * what its friend is doing, and the body answers with that motion. */
+.du-cut-art .du-dino { transform-origin: 50% 94%; animation: du-breathe 3.6s ease-in-out infinite alternate; }
+.du-cut-art[data-motion="happy"] .du-dino { animation: du-hop 1.9s ease-in-out infinite; }
+.du-cut-art[data-motion="walk"] .du-dino { animation: du-tread 1.1s ease-in-out infinite; }
+.du-cut-art[data-motion="run"] .du-dino { animation: du-tread .48s linear infinite; }
+.du-cut-art[data-motion="sleep"] .du-dino { animation: du-snooze 5.4s ease-in-out infinite alternate; }
+.du-cut-art[data-motion="roar"] .du-dino { animation: du-bellow 1.6s ease-in-out infinite; }
+.du-cut-art[data-motion="sad"] .du-dino { animation: du-droop 6s ease-in-out infinite alternate; }
+@keyframes du-breathe { from { transform: scale(1, 1) } to { transform: scale(1.015, .984) translateY(1px) } }
+@keyframes du-hop { 0%, 100% { transform: translateY(0) scale(1, 1) } 30% { transform: translateY(-6%) scale(.98, 1.04) } 55% { transform: translateY(0) scale(1.03, .97) } }
+@keyframes du-tread { 0% { transform: translateY(0) rotate(-1.2deg) } 50% { transform: translateY(-3.5%) rotate(1.2deg) } 100% { transform: translateY(0) rotate(-1.2deg) } }
+@keyframes du-snooze { from { transform: scale(1, .988) translateY(1.6%) } to { transform: scale(1.022, 1.034) translateY(-1%) } }
+@keyframes du-bellow { 0%, 62%, 100% { transform: none } 12% { transform: translate(-1.6%, -2.2%) rotate(-2.6deg) scale(1.05) } 26% { transform: translate(1.3%, 0) rotate(1.7deg) scale(1.02) } 40% { transform: translate(-.6%, .8%) rotate(-.7deg) } }
+@keyframes du-droop { from { transform: rotate(-1.2deg) translateY(1%) } to { transform: rotate(.7deg) translateY(2.6%) } }
+
 .du-cut-wrap {
   position: relative; width: min(760px, 100%); display: grid; gap: 6px;
   justify-items: center; text-align: center; padding-bottom: 4px;
@@ -106,16 +141,20 @@
   62% { transform: translateY(-8px) scale(1.08) rotate(4deg); opacity: 1 }
   100% { transform: translateY(0) scale(1) rotate(0) }
 }
-.du-cut-art::after {
-  content: attr(data-friend); position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%);
-  font-size: .72rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
-  background: #ffffffd9; color: #0b6e5f; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
-}
+/* The friend's name is printed once, in the card, beside the sentence it says.
+ * It used to also wear a white pill at its own feet, so every beat named the
+ * same character twice — and a white rounded pill was the one thing on screen
+ * that still looked like a nursery app. */
 .du-cut-card {
-  margin: 6px 0 0; max-width: 60ch; background: rgba(9,40,45,.62); backdrop-filter: blur(8px);
-  border: 2px solid rgba(255,255,255,.22); border-radius: 22px; padding: 14px 18px 16px;
+  margin: 6px 0 0; max-width: 60ch; background: rgba(6,26,30,.78); backdrop-filter: blur(10px);
+  border: 2px solid rgba(255,255,255,.26); border-radius: 22px; padding: 14px 18px 16px;
   font-size: clamp(1.02rem, 3.6vw, 1.32rem); font-weight: 700; line-height: 1.4; min-height: 4.4em;
   display: grid; gap: 6px; align-content: center;
+  /* The card sits over snow, over a lit valley and over a night sky, and the
+   * scene rules hand the wrap a dark ink for the bright ones. Sentence case
+   * dark-on-dark is unreadable, so the card always carries its own light ink. */
+  color: #f4fbf8; text-shadow: 0 1px 10px rgba(0,0,0,.5);
+  box-shadow: 0 14px 34px rgba(2,16,16,.42), inset 0 1px 0 rgba(255,255,255,.18);
 }
 .du-cut-who { font-size: .74rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: #ffd93d; }
 .du-cut-text::after { content: "▌"; animation: du-caret .7s steps(2) infinite; opacity: .7; margin-left: 1px; }
@@ -164,6 +203,14 @@
   background: #ffd93d; color: #10322f; font-weight: 900; font-size: .95rem; box-shadow: inset 0 -3px 0 rgba(0,0,0,.14);
 }
 .du-cut-opt-label { font-size: clamp(.95rem, 3.1vw, 1.08rem); font-weight: 800; line-height: 1.25; }
+/* The picture a choice is about, sized to the button so both ways through a
+ * chapter read as two different things before a child can read either word. */
+.du-cut-opt-art {
+  flex: 0 0 auto; width: 52px; height: 52px; display: grid; place-items: center; overflow: hidden;
+  border-radius: 16px; background: #f4efe0; box-shadow: inset 0 0 0 2px #ffe98a;
+}
+.du-cut-opt-art img { width: 100%; height: 100%; object-fit: contain; }
+.du-cut-opt-art.du-cut-opt-obj { background: #f4f0ea; }
 
 /* ---------- campaign map (hub) ---------- */
 .du-map { position: relative; margin: 18px 0 8px; padding: 6px 0 2px; }
@@ -276,7 +323,7 @@
 @media (prefers-reduced-motion: reduce) {
   .du-cut, .du-cut-art.in, .du-cut #cutNext, .du-cut-scene::before, .du-cut-scene::after,
   .du-cut-stars, .du-badge[data-on="1"] .du-badge-gem, .du-codex-cell[data-found="1"] .du-dino,
-  .du-win-fly, .du-cut-text::after, .du-cut-ask.in { animation: none !important; }
+  .du-win-fly, .du-cut-text::after, .du-cut-ask.in, .du-cut-art .du-dino { animation: none !important; }
   .du-win-fly { animation: none !important; opacity: 1; }
   .du-whisper { transition: none; }
   .du-cut-card { min-height: 0; }

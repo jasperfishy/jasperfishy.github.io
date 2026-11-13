@@ -1,16 +1,18 @@
 // Naughty Daddy — a multi-lane chase. The player's chosen dinosaur runs after Daddy through two or three
-// escalating legs of one big chase: a garden, a street and a beach. Daddy throws banana peels and tall bins,
-// dodges between lanes, escapes on a skateboard and a giant duck, and when he is finally caught there is a
-// full cartoon "gobble, burp, sorry!" cutscene.
+// escalating legs of one big chase: a fern garden, a stony ridge path and a beach. Daddy throws slippery
+// fronds and tall pots, dodges between lanes, escapes on a giant tortoise and a giggling croc, and when he is
+// finally caught there is a full cartoon "gobble, burp, sorry!" cutscene.
+import { drawEnvironment } from '../../../../photoreal-environments.js';
+import { drawPhotoreal, drawProp } from '../../../../photoreal-textures.js';
 // Everything is pretend and silly: nobody is ever really hurt, and there is no losing screen.
 import { collect as bookRun, collection } from "../adv-kit.js";
 const FX = window.DUFX;
 const W = 800, H = 500, HORIZON = 168;
 // `obs` are low things you hop over, `block` are tall ones you must swerve round — two different lessons.
 const THEMES = [
-  { name: 'Daddy’s Garden', sky: ['#7ad0f5', '#d9f4ff'], far: '#9fd6a8', ground: '#7bc96f', ground2: '#6dbb62', road: '#c8a56e', line: '#e8d4a6', side: ['🌳', '🌷', '🌻', '🪴'], obs: ['🪴', '🧸', '🐌', '🪵', '⚽', '🍎'], block: ['🗑️', '🧺', '🪑'], ride: null, rideName: 'a run', ambient: 'meadow', weather: 'sunny and birdy', quip: ['“You can’t catch me, dinosaurs are slow!”', '“I only took ONE biscuit!”', '“Ha ha! Banana peel!”', '“These are MY biscuits!”', '“Keep running, little dino!”'] },
-  { name: 'Silly Street', sky: ['#ffb27a', '#ffe9b8'], far: '#b9a4c9', ground: '#9aa0ab', ground2: '#8e95a1', road: '#59606c', line: '#ffffff', side: ['🏠', '🏢', '🚏', '🌳'], obs: ['📦', '🍌', '🐦', '🥤', '🧦'], block: ['🚧', '🛒', '🚲', '📪'], ride: '🛹', rideName: 'his skateboard', ambient: 'meadow', weather: 'blustery', quip: ['“Whee! Skateboard!”', '“Too fast for a dinosaur!”', '“Oops, wrong lane!”', '“I can wiggle and wobble!”', '“Postman, watch out!”'] },
-  { name: 'Sandy Beach', sky: ['#8fdcf7', '#fff2c9'], far: '#7fd0e8', ground: '#f2dca0', ground2: '#ead08c', road: '#e6c982', line: '#fff6d8', side: ['🌴', '⛱️', '🐚', '🏝️'], obs: ['🪣', '🦀', '🍌', '🩴', '🐚'], block: ['⛱️', '🧳', '🏰', '🛶'], ride: '🦆', rideName: 'a giant duck', ambient: 'ocean', weather: 'hot and splashy', quip: ['“Quack quack, I’m a duck!”', '“You’ll never get me!”', '“Splash!”', '“Biscuits for the ducks!”', '“Surf’s up, dinosaur!”'] },
+  { name: 'Daddy’s Garden', sky: ['#7ad0f5', '#d9f4ff'], far: '#9fd6a8', ground: '#7bc96f', ground2: '#6dbb62', road: '#c8a56e', line: '#e8d4a6', side: ['🌳', '🌼', '🌱', '🪨'], obs: ['🐌', '🪵', '☘️', '🍄', '🪴'], block: ['🧺', '🏺', '🌵'], ride: null, rideName: 'a run', ambient: 'meadow', weather: 'sunny and birdy', quip: ['“You can’t catch me, dinosaurs are slow!”', '“I only took ONE egg!”', '“Ha ha! Slippery frond!”', '“These are MY eggs!”', '“Keep running, little dino!”'] },
+  { name: 'Stony Ridge Path', sky: ['#ffb27a', '#ffe9b8'], far: '#b9a4c9', ground: '#9aa0ab', ground2: '#8e95a1', road: '#59606c', line: '#ffffff', side: ['🌲', '🪹', '🦴', '☄️'], obs: ['📦', '🥌', '🌾', '🪶'], block: ['🪨', '🗡️', '🪓'], ride: '🐢', rideName: 'a giant tortoise', ambient: 'meadow', weather: 'blustery', quip: ['“Whee! Turbo tortoise!”', '“Too fast for a dinosaur!”', '“Oops, wrong lane!”', '“I can wiggle and wobble!”', '“Move over, plant-eater!”'] },
+  { name: 'Sandy Beach', sky: ['#8fdcf7', '#fff2c9'], far: '#7fd0e8', ground: '#f2dca0', ground2: '#ead08c', road: '#e6c982', line: '#fff6d8', side: ['🌴', '🐚', '🌊', '🪺'], obs: ['🪣', '🐢', '🦈', '🪶'], block: ['🧳', '🪵', '🛖'], ride: '🐊', rideName: 'a giggling croc', ambient: 'ocean', weather: 'hot and splashy', quip: ['“Chomp chomp! Croc power!”', '“You’ll never get me!”', '“Splash!”', '“Eggs for the crocs!”', '“Surf’s up, dinosaur!”'] },
 ];
 const DINOS = [
   { id: 'raptor', name: 'Velociraptor', speed: 1.2, tough: 1.0, blurb: 'The fastest runner!' },
@@ -51,14 +53,14 @@ export function mountDaddyChase(context) {
   // ------------------------------------------------------------------ pick a dinosaur
   const best = bestRun();
   context.stage.innerHTML = '<div class="dc-pick"><div class="dc-pick-head"><div class="dc-pick-daddy">' + FX.personHTML('daddy', { state: 'panic', size: .5 }) + '</div>' +
-    '<div><h2>Naughty Daddy!</h2><p>Daddy has been very naughty and run away with the biscuits! Pick a dinosaur and chase him down across <b>' + legCount + ' legs</b>: ' +
+    '<div><h2>Naughty Daddy!</h2><p>Daddy has been very naughty and run off with the eggs from the nest! Pick a dinosaur and chase him down across <b>' + legCount + ' legs</b>: ' +
     legs.map((l) => l.name).join(' → ') + '.</p></div></div>' +
     '<p id="dcBestPick" style="margin:0;font-weight:800;color:#17403a;background:#fff6d8;border-radius:16px;padding:6px 14px">' +
-    (best.runs ? '🏆 Your best chase: <b id="dcBestBisc">' + best.biscuits + ' 🍪</b> biscuits · fastest catch <b>' + best.secs + 's</b> · ' + best.runs + ' chase' + (best.runs === 1 ? '' : 's') + ' caught'
-      : '🍪 Catch Daddy’s biscuits as you run! No chases saved on this device yet — this is your first!') + '</p>' +
+    (best.runs ? '🏆 Your best chase: <b id="dcBestBisc">' + best.biscuits + ' 🥚</b> eggs · fastest catch <b>' + best.secs + 's</b> · ' + best.runs + ' chase' + (best.runs === 1 ? '' : 's') + ' caught'
+      : '🥚 Catch the eggs Daddy drops as you run! No chases saved on this device yet — this is your first!') + '</p>' +
     '<div class="dc-dinos">' + unlocked.map((d, i) => '<button class="dc-dino" data-i="' + i + '"><span class="dc-dino-art">' + FX.dinoHTML(d.id, { state: 'run' }) + '</span><b>' + d.name + '</b><small>' + d.blurb + '</small>' +
       '<span class="dc-stats"><i style="--v:' + d.speed / 1.3 + '"></i><i class="t" style="--v:' + (1.1 - d.tough) + '"></i></span></button>').join('') + '</div>' +
-    '<p class="gentle-hint">Tap a dinosaur to start. ◀ ▶ change lane, ⤴ Jump hops the low things, and the tall ones you must swerve round. Grab every 🍪 biscuit you pass!</p></div>';
+    '<p class="gentle-hint">Tap a dinosaur to start. ◀ ▶ change lane, ⤴ Jump hops the low things, and the tall ones you must swerve round. Grab every 🥚 egg you pass!</p></div>';
   context.stage.querySelectorAll('.dc-dino').forEach((b) => b.addEventListener('click', () => { FX.sfx.roar(); startChase(unlocked[Number(b.dataset.i)]); }));
   context.stage.querySelectorAll('.dc-dino').forEach((b) => b.addEventListener('pointerenter', () => FX.dinoState(b.querySelector('.du-dino'), 'roar', 700)));
 
@@ -90,9 +92,9 @@ export function mountDaddyChase(context) {
       '<div class="dc-hud"><div class="dc-gap"><span class="dc-gap-d"></span><div class="dc-gap-bar"><i></i></div><span class="dc-gap-me">' + FX.dinoHTML(dino.id, { size: 40 }) + '</span></div>' +
       // stage chips: which leg of the chase we are on, plus the running score a child can see grow
       '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">' + chip('dcLeg', 'background:#17403a;color:#fff') +
-      chip('dcBisc', 'background:#fff6d8;color:#5c3b00', '🍪 0') +
+      chip('dcBisc', 'background:#fff6d8;color:#5c3b00', '🥚 0') +
       chip('dcStreak', 'background:#ffe9f0;color:#7a1030', '🔥 0 in a row') +
-      chip('dcBest', 'background:#e6f6ff;color:#08415c', best.biscuits ? '🏆 best ' + best.biscuits + ' 🍪' : 'first chase!') +
+      chip('dcBest', 'background:#e6f6ff;color:#08415c', best.biscuits ? window.DUICONS.i('trophy', { size: 16 }) + ' best ' + best.biscuits + ' 🥚' : 'first chase!') +
       '</div><div class="dc-say" aria-live="polite"></div></div></div>' + // buttons go below the play area (inside it the canvas covered them)
       '<div class="dc-ctrls"><button class="dc-btn" data-a="l" aria-label="Move left">◀</button><button class="dc-btn dc-jump" data-a="j" aria-label="Jump">⤴ Jump</button><button class="dc-btn" data-a="r" aria-label="Move right">▶</button>' +
       '<button class="dc-btn" data-a="h" aria-label="Help">💡 Hint</button></div></div>';
@@ -146,9 +148,9 @@ export function mountDaddyChase(context) {
   }
   function showLeg() {
     setChip(legChip, 'Leg ' + (S.leg + 1) + ' of ' + legCount + ' · ' + theme.name + (theme.ride ? ' · ' + theme.ride : ''));
-    setChip(biscChip, '🍪 ' + S.bisc);
+    setChip(biscChip, '🥚 ' + S.bisc);
     setChip(streakChip, '🔥 ' + S.streak + ' in a row');
-    setChip(bestChip, best.biscuits ? '🏆 best ' + best.biscuits + ' 🍪' : '🏆 first chase');
+    setChip(bestChip, best.biscuits ? window.DUICONS.i('trophy', { size: 16 }) + ' best ' + best.biscuits + ' 🥚' : window.DUICONS.i('trophy', { size: 16 }) + ' first chase');
   }
   // A hint that always works — it never costs a star, it just says what to do next.
   function giveHint() {
@@ -157,9 +159,9 @@ export function mountDaddyChase(context) {
     const lines = [];
     if (near) lines.push(near.tall ? 'That tall ' + near.e + ' needs a swerve: tap ◀ ▶ to get into the ' + laneName(near.lane) + ' lane.'
       : 'Hop the ' + near.e + ' with ⤴ Jump when it is close.');
-    const bisc = S.items.filter((it) => it.e === '🍪' && !it.hit && it.z > .2).sort((a, b) => b.z - a.z)[0];
-    if (bisc) lines.push('A biscuit is in the ' + laneName(bisc.lane) + ' lane — go and get it!');
-    if (!lines.length) lines.push('Stay in the middle lane, hop the low things, and watch for 🍪 biscuits.');
+    const bisc = S.items.filter((it) => it.e === '🥚' && !it.hit && it.z > .2).sort((a, b) => b.z - a.z)[0];
+    if (bisc) lines.push('An egg is in the ' + laneName(bisc.lane) + ' lane — go and get it!');
+    if (!lines.length) lines.push('Stay in the middle lane, hop the low things, and watch for 🥚 eggs.');
     lines.push('You are on leg ' + (S.leg + 1) + ' of ' + legCount + '. Keep going, ' + name + '!');
     shout('💡 ' + lines.join(' '), 5000);
     FX.sfx.note(); FX.sfx.pop();
@@ -182,14 +184,14 @@ export function mountDaddyChase(context) {
     if (S.nextThrow <= 0) {
       const dz = daddyZ(); const l = Math.random() < .55 ? S.lane : Math.floor(Math.random() * 3);
       const tall = Math.random() < .28 + S.leg * .12;
-      S.items.push({ kind: 'obs', z: dz + .02, lane: l, tall, e: tall ? pick(theme.block) : (Math.random() < .5 ? '🍌' : pick(theme.obs)), spin: 0 });
+      S.items.push({ kind: 'obs', z: dz + .02, lane: l, tall, e: tall ? pick(theme.block) : (Math.random() < .5 ? '🍃' : pick(theme.obs)), spin: 0 });
       FX.personState(daddyEl, 'run'); S.nextThrow = (2.4 - Math.min(.9, level * .09)) + Math.random() * 1.6;
       if (Math.random() < .4) shout(pick(theme.quip), 2400);
     }
-    if (Math.random() < dt * .75) S.items.push({ kind: 'good', z: .02, lane: Math.floor(Math.random() * 3), e: '🍗' });
+    if (Math.random() < dt * .75) S.items.push({ kind: 'good', z: .02, lane: Math.floor(Math.random() * 3), e: '🍯' });
     if (Math.random() < dt * .35) S.items.push({ kind: 'good', z: .02, lane: Math.floor(Math.random() * 3), e: '⭐' });
-    // biscuits: the thing a child is actually collecting, and Daddy drops them as he runs
-    if (Math.random() < dt * (1.1 + S.leg * .25)) S.items.push({ kind: 'good', z: .02, lane: Math.floor(Math.random() * 3), e: '🍪' });
+    // eggs: the thing a child is actually collecting, and Daddy drops them as he runs
+    if (Math.random() < dt * (1.1 + S.leg * .25)) S.items.push({ kind: 'good', z: .02, lane: Math.floor(Math.random() * 3), e: '🥚' });
     // move + collide
     const dz = world * dt * 1.15;
     for (const it of S.items) {
@@ -208,17 +210,17 @@ export function mountDaddyChase(context) {
   }
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const daddyZ = () => .92 - S.gap * .46;
-  const CHEERS = ['Nice one!', 'You are quick!', 'Daddy is worried now!', 'What a leap!', 'Biscuit catcher!'];
-  const STREAKS = { 3: 'Three biscuits! Daddy is counting on his fingers…', 6: 'Six in a row! You are a biscuit tornado!', 10: 'TEN! Even Daddy wants a photo.' };
+  const CHEERS = ['Nice one!', 'You are quick!', 'Daddy is worried now!', 'What a leap!', 'Egg collector!'];
+  const STREAKS = { 3: 'Three eggs! Daddy is counting on his fingers…', 6: 'Six in a row! You are an egg tornado!', 10: 'TEN! Even Daddy wants a photo.' };
   function collect(it) {
     const r = dinoEl.getBoundingClientRect(), cx = r.left + r.width / 2;
-    if (it.e === '🍗') { S.boost = 1.4; FX.sfx.star(); FX.burst(cx, r.top, { kind: 'sparkle', n: 12 }); FX.floatText(cx, r.top - 10, 'ZOOM!'); shout('Yum! Speed boost!', 1400); FX.dinoState(dinoEl.querySelector('.du-dino'), 'happy'); setTimeout(() => FX.dinoState(dinoEl.querySelector('.du-dino'), 'run'), 800); }
-    else if (it.e === '🍪') {
-      // biscuits are the score, so they get the loudest cheer
+    if (it.e === '🍯') { S.boost = 1.4; FX.sfx.star(); FX.burst(cx, r.top, { kind: 'sparkle', n: 12 }); FX.floatText(cx, r.top - 10, 'ZOOM!'); shout('Sweet honey! Speed boost!', 1400); FX.dinoState(dinoEl.querySelector('.du-dino'), 'happy'); setTimeout(() => FX.dinoState(dinoEl.querySelector('.du-dino'), 'run'), 800); }
+    else if (it.e === '🥚') {
+      // eggs are the score, so they get the loudest cheer
       S.bisc += 1; S.streak += 1; if (S.streak > S.bestStreak) S.bestStreak = S.streak;
       S.gap = Math.max(0, S.gap - .02);
-      FX.sfx.coin(); FX.burst(cx, r.top, { kind: 'confetti', n: 10 }); FX.floatText(cx, r.top - 12, '+1 🍪');
-      setChip(biscChip, '🍪 ' + S.bisc); setChip(streakChip, '🔥 ' + S.streak + ' in a row');
+      FX.sfx.coin(); FX.burst(cx, r.top, { kind: 'confetti', n: 10 }); FX.floatText(cx, r.top - 12, '+1 egg!');
+      setChip(biscChip, '🥚 ' + S.bisc); setChip(streakChip, '🔥 ' + S.streak + ' in a row');
       shout(STREAKS[S.streak] || pick(CHEERS), 1500);
       FX.dinoState(dinoEl.querySelector('.du-dino'), 'happy', 500);
     }
@@ -232,7 +234,7 @@ export function mountDaddyChase(context) {
     FX.dinoState(dinoEl.querySelector('.du-dino'), 'sad', 900);
     // never a scold — say what to do differently, in the child's language
     shout(it.tall ? 'So close! Tall ' + it.e + ' cannot be hopped — swerve ◀ ▶ into another lane.'
-      : it.e === '🍌' ? 'So close! Next time hop ⤴ over the peel and keep running.'
+      : it.e === '🍃' ? 'So close! Next time hop ⤴ over the frond and keep running.'
         : 'So close! You nearly had it — jump the small things, swerve the big ones.', 2600);
     if (S.hits === 3) FX.sfx.bad();
     setTimeout(() => FX.dinoState(dinoEl.querySelector('.du-dino'), 'run'), 950);
@@ -248,6 +250,7 @@ export function mountDaddyChase(context) {
     c.fillStyle = theme.ground; c.fillRect(0, HORIZON, W, H - HORIZON);
     // grass stripes rushing toward us
     for (let i = 0; i < 14; i++) { const z = ((i / 14) + S.offset * .08) % 1, t0 = zt(z), t1 = zt(Math.min(1, z + .035)); c.fillStyle = i % 2 ? theme.ground2 : theme.ground; const y0 = HORIZON + (H - HORIZON) * t0, y1 = HORIZON + (H - HORIZON) * t1; c.fillRect(0, y0, W, Math.max(1, y1 - y0)); }
+    drawEnvironment(c,W,H,['jungle','city','coast'][S.leg%3],S.offset*.02);
     // road
     const top = proj(0, 0), bot = proj(1.05, 0), sp0 = 30 + 0 * 205, sp1 = 30 + zt(1.05) * 205;
     c.fillStyle = theme.road; c.beginPath(); c.moveTo(W / 2 - sp0 * 1.6, HORIZON); c.lineTo(W / 2 + sp0 * 1.6, HORIZON); c.lineTo(W / 2 + sp1 * 1.6, bot.y); c.lineTo(W / 2 - sp1 * 1.6, bot.y); c.fill();
@@ -261,10 +264,10 @@ export function mountDaddyChase(context) {
       const p = proj(it.z, it.lane);
       if (it.kind === 'good') {
         const bob = Math.sin(S.t * 6 + it.lane) * 6 * p.s;
-        c.save(); c.shadowColor = it.e === '🍪' ? '#ffb64a' : '#ffe066'; c.shadowBlur = 16;
-        drawEmoji(it.e, p.x, p.y - 30 * p.s + bob, (it.e === '🍪' ? 66 : 58) * p.s + 8); c.restore();
+        c.save(); c.shadowColor = it.e === '🥚' ? '#ffb64a' : '#ffe066'; c.shadowBlur = 16;
+        drawEmoji(it.e, p.x, p.y - 30 * p.s + bob, (it.e === '🥚' ? 66 : 58) * p.s + 8); c.restore();
       } else {
-        c.save(); c.translate(p.x, p.y); c.rotate(it.e === '🍌' ? Math.sin(it.spin) * .3 : 0);
+        c.save(); c.translate(p.x, p.y); c.rotate(it.e === '🍃' ? Math.sin(it.spin) * .3 : 0);
         if (it.tall) { c.globalAlpha = .22; c.fillStyle = '#000'; c.beginPath(); c.ellipse(0, 6, 34 * p.s, 9 * p.s, 0, 0, 7); c.fill(); c.globalAlpha = 1; }  // tall = a shadow, so it reads as un-hopable
         drawEmoji(it.e, 0, 0, (it.tall ? 96 : 64) * p.s + 10); c.restore();
       }
@@ -273,7 +276,13 @@ export function mountDaddyChase(context) {
     // speed lines when boosting
     if (S.boost > 0) { c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 3; for (let i = 0; i < 14; i++) { const x = (i * 97 + S.t * 900) % W, y = HORIZON + ((i * 53) % (H - HORIZON)); c.beginPath(); c.moveTo(x, y); c.lineTo(x + (x - W / 2) * .12, y + (y - HORIZON) * .12); c.stroke(); } }
   }
-  function drawEmoji(e, x, y, size) { c.font = Math.max(8, size) + 'px serif'; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText(e, x, y); }
+  function drawEmoji(e, x, y, size) {
+    const prop=({'🌴':'palm','🌼':'flower','🪵':'fallen-log','🪨':'boulder'})[e];
+    if(prop && drawProp(c,prop,x-size*.65,y-size,size*1.3,size)) return;
+    // canvas fillText is outside the DOM watchers, so ask the object layer to
+    // blit the photograph (it centres on x,y — lift y off the old text baseline)
+    window.DUFX.objects.draw(c, e, x, y - size * .4, size);
+  }
 
   // DOM characters follow the same projection
   function place() {
@@ -321,20 +330,20 @@ export function mountDaddyChase(context) {
     await wait(2800);
     speech(name === 'you' ? 'Hugs for everyone?' : 'Hugs for ' + name + '?', 30, 24, 1800); FX.personState(dad, 'happy'); FX.burst(r.left + r.width / 2, r.top, { kind: 'hearts', n: 14 });
     await wait(1900);
-    // the run is written down (biscuits, time, legs, slips) so the next chase has something to beat
+    // the run is written down (egg count, time, legs, slips) so the next chase has something to beat
     const secs = Math.max(1, Math.round(S.time)), prevBest = best.biscuits, isBest = S.bisc > prevBest;
     bookRun('daddy-runs', { biscuits: S.bisc, secs, legs: legCount, slips: S.hits, level });
     const panel = document.createElement('div');
     panel.id = 'dcRecord';
     panel.style.cssText = 'position:absolute;left:50%;bottom:10px;transform:translateX(-50%);max-width:88%;background:rgba(255,255,255,.96);border-radius:20px;padding:10px 16px;box-shadow:0 6px 0 rgba(0,0,0,.16);text-align:center;font-weight:800;color:#17403a';
-    panel.innerHTML = '🍪 <b>' + S.bisc + '</b> biscuits · ⏱ <b>' + secs + 's</b> · 🏁 <b>' + legCount + ' legs</b>' +
-      (isBest ? '<br>✨ NEW BEST!' : prevBest ? '<br>Best so far: ' + prevBest + ' 🍪' : '') +
+    panel.innerHTML = '🥚 <b>' + S.bisc + '</b> eggs · ⏱ <b>' + secs + 's</b> · 🏁 <b>' + legCount + ' legs</b>' +
+      (isBest ? '<br>✨ NEW BEST!' : prevBest ? '<br>Best so far: ' + prevBest + ' 🥚' : '') +
       '<br><small style="font-weight:700">' + (S.hits ? S.hits + ' wobbles — every one made you a better runner.' : 'Not one wobble! What a chase!') + '</small>';
     area.append(panel); FX.pop && FX.pop(panel); FX.sfx.win(); FX.sfx.star();
     await wait(2600);
     stop(); obs.disconnect();
     context.advance(isBest
-      ? 'You caught Daddy after ' + legCount + ' legs, grabbed ' + S.bisc + ' biscuits and set a new best time of ' + secs + ' seconds!'
-      : 'You caught Daddy after ' + legCount + ' legs through ' + legs.map((l) => l.name).join(', ') + ' with ' + S.bisc + ' biscuits saved. He promised to be good… for at least five minutes.');
+      ? 'You caught Daddy after ' + legCount + ' legs, grabbed ' + S.bisc + ' eggs and set a new best time of ' + secs + ' seconds!'
+      : 'You caught Daddy after ' + legCount + ' legs through ' + legs.map((l) => l.name).join(', ') + ' with ' + S.bisc + ' eggs saved. He promised to be good… for at least five minutes.');
   }
 }

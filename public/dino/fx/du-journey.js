@@ -131,15 +131,18 @@
       if (s > was) { data.stars[gameKey] = s; save(); return s - was; }
       return 0;
     },
-    /** The one call a game should make when a level finishes. */
+    /** The one call a game should make when a level finishes.
+     *  A treasure is paid for a star the child has never won before, so the
+     *  pouch is a record of how well they played and nothing else. */
     record(gameKey, o) {
       o = o || {};
       data.plays[gameKey] = (data.plays[gameKey] || 0) + 1;
       const gained = J.award(gameKey, o.stars);
       if (o.level !== undefined) data.levels[gameKey] = Math.max(num(data.levels[gameKey]), num(o.level));
-      if (o.gems) data.gems = num(data.gems) + num(o.gems);
+      const gems = gained * 2 + num(o.gems);
+      if (gems) data.gems = num(data.gems) + gems;
       save();
-      return { gained, best: J.stars(gameKey), total: J.total() };
+      return { gained, gems, best: J.stars(gameKey), total: J.total() };
     },
     stars: (gameKey) => num(data.stars[gameKey]),
     level: (gameKey) => num(data.levels[gameKey]),
@@ -164,8 +167,6 @@
     found: (id) => data.finds.includes(id),
     finds: () => data.finds.slice(),
     gems: () => num(data.gems),
-    /** Loose treasures a child has picked up. Returns the new pouch total. */
-    addGems(n) { data.gems = num(data.gems) + Math.max(0, num(n)); save(); return data.gems; },
 
     /* ---------- story chapters ---------- */
     chapter: () => num(data.chapter),

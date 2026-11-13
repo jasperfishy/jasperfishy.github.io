@@ -13,17 +13,17 @@ const STORY_PLACES = [
   { name: "Dinosaur Beach", icon: "🐚", phrase: "the warm dinosaur beach" },
   { name: "Crystal Caves", icon: "💎", phrase: "the quiet crystal caves" },
   { name: "Rainbow Marsh", icon: "🌈", phrase: "the rainbow-coloured marsh" },
-  { name: "Firefly Meadow", icon: "✨", phrase: "the firefly meadow" }
+  { name: "Starlight Meadow", icon: "✨", phrase: "the starlit meadow" }
 ];
 
 const STORY_SURPRISES = [
   { name: "a tiny dragonfly orchestra", icon: "🎶" },
   { name: "a rainbow hidden inside a shell", icon: "🌈" },
-  { name: "a shy baby dinosaur", icon: "🥚" },
+  { name: "a tiny dinosaur curled up in an egg", icon: "🥚" },
   { name: "a fallen star that still glowed", icon: "⭐" },
   { name: "a map drawn in sparkling sand", icon: "🗺️" },
-  { name: "a family of lost fireflies", icon: "🏮" },
-  { name: "a little boat made from a leaf", icon: "🍃" },
+  { name: "a pebble that glowed at dusk", icon: "🔮" },
+  { name: "a little boat made from a leaf", icon: "🍂" },
   { name: "a giggling puddle that made bubbles", icon: "🫧" }
 ];
 
@@ -53,7 +53,7 @@ const DISCOVERIES = [
   "The softest glow came from {surprise}.",
   "A tiny clue helped them find {surprise}.",
   "They stopped to listen and soon noticed {surprise}.",
-  "A friendly butterfly showed them where to look: beside it was {surprise}.",
+  "A friendly dragonfly showed them where to look: beside it was {surprise}.",
   "They took turns guessing what was behind the flowers. It was {surprise}!"
 ];
 
@@ -93,27 +93,28 @@ const ENDINGS = {
 /* The middle of the story is a real branch: this choice writes the next page, sets the art
  * on it, and decides which kinds of ending the story can finish with. */
 const TWISTS = [
-  { name: "A new friend needs help", icon: "🤝", opens: "happy", art: "🐣",
+  { name: "A new friend needs help", icon: "🪹", opens: "happy", art: "🐣",
     line: "Just then a small voice called out. {hero} found a brand new friend who needed a little help, and nobody else was near." },
-  { name: "A wobbly bridge, a big idea", icon: "🌉", opens: "hopeful", art: "🪵",
-    line: "The little bridge wobbled! {hero} counted to three, invented a clever way across, and it worked." },
-  { name: "The lights go dim, and a song begins", icon: "🎵", opens: "tender", art: "🌙",
+  { name: "A wobbly reed bridge, a big idea", icon: "🎋", opens: "hopeful", art: "🪵",
+    line: "The little reed bridge wobbled! {hero} counted to three, invented a clever way across, and it worked." },
+  { name: "The lights go dim, and a song begins", icon: "🕯️", opens: "tender", art: "🌙",
     line: "The sky hushed and every light went soft, so {hero} sang the quietest song ever sung." },
-  { name: "A door in the hillside", icon: "🚪", opens: "happy", art: "✨",
+  { name: "A door in the hillside", icon: "⛰️", opens: "happy", art: "✨",
     line: "Behind the waterfall they found a tiny round door. {child} knocked once — and something knocked back!" },
-  { name: "The map blows away", icon: "🗺️", opens: "hopeful", art: "⭐",
+  { name: "The map blows away", icon: "💨", opens: "hopeful", art: "⭐",
     line: "Whoosh! The map flew off in a breeze. Instead of worrying, {child} and {hero} read the stars instead." }
 ];
-const ENDING_ICONS = { happy: ["🎈", "🌈", "💛", "🎉", "⭐", "🌇"], hopeful: ["🔎", "🧭", "🗝️"], tender: ["🤗", "🕯️", "🌙", "💌"] };
+const ENDING_ICONS = { happy: ["🎉", "🪘", "🌇", "🌈", "⭐", "👣"], hopeful: ["🔎", "🧭", "🗝️"], tender: ["🎼", "📿", "🧶", "🏠"] };
 const ENDING_LABELS = {
-  happy: ["A joyful celebration", "A rainbow surprise", "Friends together", "A party under the stars", "A happy walk home", "Skipping home"],
+  happy: ["A joyful celebration", "A meadow dance", "Friends at sunset", "A rainbow goodbye", "Beneath the stars", "Skipping home"],
   hopeful: ["A mystery for next time", "An adventure to continue", "One more clue"],
-  tender: ["A little sad, then comforted", "Colours kept in memory", "A hug and a promise", "A friend goes home"]
+  tender: ["The tune they kept", "Keepsakes in memory", "A knotted promise", "A friend goes home"]
 };
 /* Each place drifts its own little weather, so a story at the beach looks different to one in the caves. */
 const PLACE_EXTRA = {
-  "Fern Forest": ["🍃", "🦋"], "Moonlit Lagoon": ["🌙", "✨"], "Sunbeam Valley": ["🌼", "☀️"], "Cloud Castle": ["☁️", "🕊️"],
-  "Dinosaur Beach": ["🌊", "🐚"], "Crystal Caves": ["💎", "✨"], "Rainbow Marsh": ["🌈", "💧"], "Firefly Meadow": ["✨", "🌟"]
+  "Fern Forest": ["🌱", "🦋"], "Moonlit Lagoon": ["🌙", "✨"], "Sunbeam Valley": ["🌼", "☀️"], "Cloud Castle": ["☁️", "🌫️"],
+  "Dinosaur Beach": ["🌊", "🐚"], "Crystal Caves": ["💎", "✨"], "Rainbow Marsh": ["🌈", "💧"], "Starlight Meadow": ["🌠", "🌾"],
+  "Firefly Meadow": ["🌠", "🌾"] /* books saved before the meadow was renamed still get their night weather */
 };
 
 const STEPS = ["hero", "place", "surprise", "twist", "ending"];
@@ -126,7 +127,7 @@ const STEP_LABELS = {
   ending: "How does your story end?"
 };
 const STEP_SFX = { hero: "chirp", place: "whoosh", surprise: "sparkle", twist: "drum", ending: "star" };
-const PLACE_THEME = { "Fern Forest": "meadow", "Moonlit Lagoon": "night", "Sunbeam Valley": "meadow", "Cloud Castle": "sky", "Dinosaur Beach": "water", "Crystal Caves": "cave", "Rainbow Marsh": "rain", "Firefly Meadow": "night" };
+const PLACE_THEME = { "Fern Forest": "meadow", "Moonlit Lagoon": "night", "Sunbeam Valley": "meadow", "Cloud Castle": "sky", "Dinosaur Beach": "water", "Crystal Caves": "cave", "Rainbow Marsh": "rain", "Starlight Meadow": "night", "Firefly Meadow": "night" };
 const COLORS = ["green", "teal", "purple", "orange", "pink", "blue", "yellow", "red"];
 
 function colorFor(name) { let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997; return COLORS[h % COLORS.length]; }
@@ -200,7 +201,7 @@ export function mountStorybook(context) {
       }).join("") + '</div>' +
       '<div class="sb-ideas"><button type="button" class="pk-btn sb-idea">💡 An idea</button>' +
       '<span class="sb-shelf-note" style="font-weight:800;font-size:12px">' + savedStories.length + " book" + (savedStories.length === 1 ? "" : "s") + " on your shelf" +
-      (bestStars ? " · best " + "⭐".repeat(bestStars) : "") + (chapter > 1 ? " · Part " + chapter : "") + "</span></div>" +
+      (bestStars ? " · best " + window.DUICONS.stars(bestStars) : "") + (chapter > 1 ? " · Part " + chapter : "") + "</span></div>" +
       (stepIndex === 0 && savedStories.length ? '<div class="sb-shelf"><b>Your bookshelf</b>' + savedStories.slice(-6).map(function (st, i, arr) { return '<button type="button" class="sb-spine" data-story="' + (savedStories.length - arr.length + i) + '" title="' + escapeText(st.title) + '">' + st.icons + '</button>'; }).join("") + '</div>' : "");
     board.querySelectorAll(".sb-option").forEach(function (b, i) {
       if (F.anim) F.anim(b, [{ opacity: 0, transform: "translateY(26px) scale(.7) rotate(-4deg)" }, { opacity: 1, transform: "none" }], { duration: 460, delay: i * 70, easing: "cubic-bezier(.2,.9,.3,1.3)", fill: "backwards" });
@@ -209,7 +210,7 @@ export function mountStorybook(context) {
         if (F.sfx) { const sfxKind = STEP_SFX[step]; if (sfxKind === "drum") F.sfx.drum(3); else (F.sfx[sfxKind] || F.sfx.good)(); }
         const r = b.getBoundingClientRect(); if (F.burst) F.burst(r.left + r.width / 2, r.top + r.height / 2, { kind: step === "twist" ? "confetti" : "sparkle", n: 12 });
         if (step === "place") setThemeFor(picks.place.name);
-        play.say(step === "hero" ? "Great friend! 💚" : step === "place" ? "What a lovely place!" : step === "surprise" ? "Ooh, how exciting!" : step === "twist" ? "Ooh — and THEN it happens!" : "A perfect ending.", 1800);
+        play.say(step === "hero" ? "Great friend! ✨" : step === "place" ? "What a lovely place!" : step === "surprise" ? "Ooh, how exciting!" : step === "twist" ? "Ooh — and THEN it happens!" : "A perfect ending.", 1800);
         stepIndex += 1;
         window.setTimeout(drawChoices, 250);
       });
@@ -276,8 +277,8 @@ export function mountStorybook(context) {
       const star = replay ? "" : '<button type="button" class="sb-star" style="left:' + (8 + Math.random() * 78).toFixed(0) + '%;top:' + (8 + Math.random() * 40).toFixed(0) + '%" aria-label="A hidden star">⭐</button>';
       return '<div class="sb-art ' + story.mood + ' k-' + kind + '"><span class="sb-place">' + story.place + '</span><span class="sb-place p2">' + story.place + "</span>" + hero +
         (kind === "surprise" || kind === "end" ? '<span class="sb-surprise">' + story.surprise + "</span>" : "") +
-        (kind === "twist" ? '<span class="sb-twist" style="position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:56px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))">' + (story.twistArt || story.twist || "❗") + "</span>" : "") +
-        (kind === "end" ? '<span class="sb-end">' + (story.mood === "tender" ? "🤗" : story.mood === "hopeful" ? "🧭" : "🌈") + "</span>" : "") + star + "</div>";
+        (kind === "twist" ? '<span class="sb-twist" style="position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:56px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))">' + (story.twistArt || story.twist || "❓") + "</span>" : "") +
+        (kind === "end" ? '<span class="sb-end">' + (story.mood === "tender" ? "📿" : story.mood === "hopeful" ? "🧭" : "🌈") + "</span>" : "") + star + "</div>";
     }
     function draw(dir) {
       window.clearInterval(readTimer);
@@ -297,7 +298,7 @@ export function mountStorybook(context) {
         words.forEach(function (w, i) { w.classList.toggle("now", i === wi); w.classList.toggle("done", i < wi); });
         wi += 1; if (wi > words.length + 1) window.clearInterval(readTimer);
       }, 420);
-      words.forEach(function (w) { w.addEventListener("click", function () { context.speak(w.textContent); if (F.sfx) F.sfx.pop(); }); });
+      words.forEach(function (w) { w.addEventListener("click", function () { context.speak(w.textContent); if (F.sfx) F.sfx.pop(); }); }); // du-display tapping a word reads that word aloud
       const starEl = board.querySelector(".sb-star");
       if (starEl) starEl.addEventListener("click", function () {
         stars += 1;

@@ -1,10 +1,23 @@
-import { drawPhotoreal } from "../../../../photoreal-textures.js?v=du-316e7af9b57fa08e";
+import { drawPhotoreal, drawProp } from "../../../../photoreal-textures.js?v=du-58e7197a7bd67562";
+const worldPhotos = new Map();
+const asphalt=new Image();asphalt.src=new URL('../../../../assets/environments/asphalt.webp',import.meta.url).href;
+const roadPatterns=new WeakMap();
+function worldPhoto(id) {
+  const name = ({island:'coast',city:'city',mountain:'mountain',snow:'ice',desert:'canyon',space:'space'})[id] || 'jungle';
+  if (!worldPhotos.has(name)) {
+    const image = new Image();
+    image.src = new URL('../../../../assets/environments/'+name+'.webp', import.meta.url).href;
+    worldPhotos.set(name, image);
+  }
+  const image = worldPhotos.get(name);
+  return image.complete && image.naturalWidth ? image : null;
+}
 // Dino Car Studio driving engine: a curving, hilly pseudo-3D road shared by every
 // world and both play modes. The road is a loop of short segments; each frame the
 // segments in front of the camera are projected to the screen, far to near.
 
-import { SCENES } from "../data-scenes.js?v=du-316e7af9b57fa08e";
-import { drawCarRear } from "../render-car.js?v=du-316e7af9b57fa08e";
+import { SCENES } from "../data-scenes.js?v=du-58e7197a7bd67562";
+import { drawCarRear } from "../render-car.js?v=du-58e7197a7bd67562";
 
 const RACE_LAPS = 3;
 const EXPLORE_GOAL = 20;
@@ -26,15 +39,29 @@ const RIVALS = [
   { name: "Zoom", paint: "#ffca52", head: "#f08a5d", spike: "#c8623a" }
 ];
 
+// Roadside scenery and sky life, one list per world. Every entry is a specimen
+// the photograph layer can actually show (see fx/du-objects.js), so nothing here
+// is a font glyph standing in for a creature.
+// family-ok: a verge is a WOOD, so the same pine recurs on purpose — four of one
+// tree read as four trees, which is what a plantation is. What a child is asked
+// to CHOOSE between is never repeated like this; that is the guard's rule, and
+// these bands are scenery, not choices.
 const DECO = {
   island: ["🌴", "🌺", "🌴", "🦕", "🌴", "🐢", "🌼"],
-  city: ["🏢", "🚦", "🏬", "🌳", "🦖", "🏢", "🌳"],
-  mountain: ["🌲", "🌲", "🪨", "🦖", "🌲", "🐐", "🌲"],
-  snow: ["🌲", "⛄", "🌲", "🐧", "🌲", "❄️", "🦕"],
-  desert: ["🌵", "🌵", "🦎", "🪨", "🌵", "🐪", "🦖"],
-  space: ["🪐", "🌙", "🛸", "⭐", "☄️", "🪐", "👽"]
+  city: ["🚗", "💡", "🌳", "🦖", "🪨", "🪴", "🌿"],
+  mountain: ["🌲", "🌲", "🪨", "🦖", "🌲", "🦅", "🌲"],
+  snow: ["🌲", "⛄", "🌲", "🦅", "🌲", "🪵", "🦕"],
+  desert: ["🌵", "🌵", "🦎", "🪨", "🌵", "🐢", "🦖"],
+  space: ["🪨", "🌙", "💎", "🔮", "⚪", "🥌", "🦕"]
 };
-const SKY = { island: ["🦋", "🐦", "🦋"], city: ["🐦", "🕊️", "🎈"], mountain: ["🦅", "🐦", "☁️"], snow: ["❄️", "🕊️", "❄️"], desert: ["🦅", "🦋", "🐦"], space: ["🛸", "✨", "☄️"] };
+// family-ok: what drifts past the windscreen is density, not a choice — two
+// dragonflies over the island and two flakes in the snow are weather, and the
+// child is never asked to tell them apart.
+const SKY = { island: ["🦋", "🪽", "🦋"], city: ["🪽", "☁️", "💨"], mountain: ["🦅", "🪽", "☁️"], snow: ["❄️", "🪽", "❄️"], desert: ["🦅", "🦋", "🌪️"], space: ["🌌", "⚡", "🌠"] };
+// The rare drop that is worth three. A crown has no photograph in this valley;
+// amber does, and a lump of golden resin with a midge caught in it is the kind
+// of treasure a child would run back to the car with.
+const GOLDEN_PICKUP = "🍯";
 const GRASS = {
   island: ["#7bcb6c", "#6fbf62"], city: ["#79c278", "#6db56c"], mountain: ["#6dab6f", "#619d63"],
   snow: ["#f1fbff", "#e2f3fb"], desert: ["#efc47a", "#e5b76c"], space: ["#47397a", "#3d316c"]
@@ -63,6 +90,17 @@ export function initDrive(root, state, goHome, onComplete) {
   const hudMsg = root.querySelector("#hudMessage");
   const FX = () => window.DUFX;
   const sfx = (n) => { try { const F = FX(); F && F.sfx && F.sfx[n] && F.sfx[n](); } catch (e) { /* sound is optional */ } };
+  /* Canvas text is invisible to both picture layers, so every thing in this world
+   * is blitted from its specimen photograph instead. `drawObj` says false when the
+   * glyph has no photograph, leaving the caller's fillText as the last resort.
+   * draw() CENTRES a square on the point while fillText puts the baseline there,
+   * so every call lifts y by about half the size. */
+  const drawObj = (glyph, x, y, size) => {
+    const o = FX() && FX().objects;
+    if (!o || !o.has || !o.has(glyph)) return false;
+    o.draw(ctx, glyph, x, y, size);
+    return true;
+  };
 
   let segments = [], trackLength = 0;
   let scene = SCENES.island, mode = "explore";
@@ -221,7 +259,7 @@ export function initDrive(root, state, goHome, onComplete) {
       if (n !== lastCount) {
         lastCount = n;
         if (n > 0) sfx("tap");
-        else { sfx("win"); hudMsg.textContent = mode === "race" ? "GO GO GO! 3 laps!" : hudMsg.textContent; puff(W / 2, CAR_Y + 40, "#fff", 26, 170, 40, 6); }
+        else { sfx("win"); if (mode === "race") hudMsg.textContent = "GO GO GO! 3 laps!"; puff(W / 2, CAR_Y + 40, "#fff", 26, 170, 40, 6); }
       }
       return;
     }
@@ -283,7 +321,7 @@ export function initDrive(root, state, goHome, onComplete) {
           floaters.push({ x: W / 2 + (item.x - playerX) * 200, y: CAR_Y - 70, t: 0, text: `+${worth}` });
           if (mode === "race" && item.kind !== "golden") boostT = Math.max(boostT, 0.9);
           hudStars.textContent = `${scene.collectible} ${stars}`;
-          if (mode === "explore") hudMsg.textContent = item.kind === "golden" ? "A golden treasure! Worth 3!" : `Lovely find! ${Math.min(collected, EXPLORE_GOAL)} of ${EXPLORE_GOAL}`;
+          if (mode === "explore") hudMsg.textContent = item.kind === "golden" ? "A lump of golden amber! Worth 3!" : `Lovely find! ${Math.min(collected, EXPLORE_GOAL)} of ${EXPLORE_GOAL}`;
         }
       }
     }
@@ -369,7 +407,14 @@ export function initDrive(root, state, goHome, onComplete) {
     const g = ctx.createLinearGradient(0, 0, 0, H * 0.55);
     g.addColorStop(0, scene.sky[0]); g.addColorStop(1, scene.sky[1]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    // parallax background drawn a little higher so the road meets it at the horizon
+    const photograph = worldPhoto(scene.id);
+    if (photograph) {
+      const scale = Math.max(W / photograph.width, H / photograph.height) * 1.045;
+      const width = photograph.width * scale, height = photograph.height * scale;
+      const drift = Math.sin(skyOffset) * W * .018;
+      ctx.drawImage(photograph, (W-width)/2+drift, (H-height)/2, width, height);
+    } else {
+    // Loading fallback; retain the course until its photograph is decoded.
     ctx.save(); ctx.translate(0, -H * 0.1);
     scene.far(ctx, skyOffset * 260 + time * 8, W, H);
     ctx.restore();
@@ -378,8 +423,9 @@ export function initDrive(root, state, goHome, onComplete) {
     scene.mid(ctx, skyOffset * 520 + time * 14, W, H);
     ctx.restore();
     ctx.textAlign = "center";
-    critters.forEach((c) => { ctx.font = Math.round(c.s) + "px sans-serif"; ctx.globalAlpha = 0.9; ctx.fillText(c.e, c.x, c.y + Math.sin(c.ph) * 10); });
+    critters.forEach((c) => { const cy = c.y + Math.sin(c.ph) * 10; ctx.globalAlpha = 0.9; if (!drawObj(c.e, c.x, cy, c.s)) { ctx.font = Math.round(c.s) + "px sans-serif"; ctx.fillText(c.e, c.x, cy + c.s / 2); } });
     ctx.globalAlpha = 1;
+    }
 
     const base = findSegment(position);
     const basePct = (position % SEG) / SEG;
@@ -389,6 +435,9 @@ export function initDrive(root, state, goHome, onComplete) {
     let maxy = H, x = 0, dx = -(base.curve * basePct);
     const grass = GRASS[scene.id] || GRASS.island;
     const drawn = [];
+    if(asphalt.complete&&asphalt.naturalWidth&&!roadPatterns.has(ctx))roadPatterns.set(ctx,ctx.createPattern(asphalt,'repeat'));
+    const roadPattern=roadPatterns.get(ctx);
+    if(roadPattern)roadPattern.setTransform(new DOMMatrix().translate(0,(position*.05)%512).scale(.3));
 
     for (let n = 0; n < DRAW_DIST; n++) {
       const s = segments[(base.index + n) % segments.length];
@@ -399,13 +448,16 @@ export function initDrive(root, state, goHome, onComplete) {
       x += dx; dx += s.curve;
       if (s.p1.camera.z <= CAM_DEPTH || s.p2.screen.y >= s.p1.screen.y || s.p2.screen.y >= maxy) continue;
       const p1 = s.p1.screen, p2 = s.p2.screen;
-      ctx.fillStyle = s.dark ? grass[1] : grass[0];
-      ctx.fillRect(0, p2.y, W, p1.y - p2.y);
+      if (!photograph) {
+        ctx.fillStyle = s.dark ? grass[1] : grass[0];
+        ctx.fillRect(0, p2.y, W, p1.y - p2.y);
+      }
       const r1 = p1.w / 6, r2 = p2.w / 6;
       const kerb = s.dark ? "#ffffff" : "#e8473c";
       poly(p1.x - p1.w - r1, p1.y, p1.x - p1.w, p1.y, p2.x - p2.w, p2.y, p2.x - p2.w - r2, p2.y, kerb);
       poly(p1.x + p1.w + r1, p1.y, p1.x + p1.w, p1.y, p2.x + p2.w, p2.y, p2.x + p2.w + r2, p2.y, kerb);
       poly(p1.x - p1.w, p1.y, p1.x + p1.w, p1.y, p2.x + p2.w, p2.y, p2.x - p2.w, p2.y, s.dark ? shadeHex(scene.road, -0.06) : scene.road);
+      if(roadPattern){ctx.globalAlpha=.5;poly(p1.x-p1.w,p1.y,p1.x+p1.w,p1.y,p2.x+p2.w,p2.y,p2.x-p2.w,p2.y,roadPattern);ctx.globalAlpha=1;}
       if (s.dark) {
         const l1 = p1.w / 28, l2 = p2.w / 28;
         for (const lx of [-1 / 3, 1 / 3]) poly(p1.x + p1.w * lx * 2 - l1, p1.y, p1.x + p1.w * lx * 2 + l1, p1.y, p2.x + p2.w * lx * 2 + l2, p2.y, p2.x + p2.w * lx * 2 - l2, p2.y, scene.roadLine);
@@ -494,10 +546,16 @@ export function initDrive(root, state, goHome, onComplete) {
       const size = Math.min(sc * sp.size * W / 2, 250);
       if (size < 4) return;
       ctx.fillStyle = "rgba(0,0,0,.14)"; ctx.beginPath(); ctx.ellipse(px, sy, size * 0.32, size * 0.08, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.font = Math.round(size) + "px sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "#000";
+      ctx.textAlign = "center";
       if (sp.e === '🦖' || sp.e === '🦕') {
         drawPhotoreal(ctx, sp.e === '🦖' ? 'trex' : 'bronto', px - size * .7, sy - size, size * 1.4, size);
-      } else ctx.fillText(sp.e, px, sy);
+      } else {
+        // Things the drive screen has a set photo of keep it; everything else in
+        // DECO is blitted from its specimen photograph, standing on the same line.
+        const prop=({'🌴':'palm','🌲':'pine','🌳':'pine','🌵':'cactus','🪨':'boulder','🌺':'flower','🌼':'flower','⛄':'snowman','🪵':'fallen-log','🌿':'fern'})[sp.e];
+        if (prop) drawProp(ctx,prop,px-size*.7,sy-size,size*1.4,size);
+        else drawObj(sp.e, px, sy - size / 2, size);
+      }
     } else if (sp.kind === "arch") {
       const left = sx - sw * 1.12, right = sx + sw * 1.12, top = sy - sc * 1250 * W / 2, post = Math.max(3, sw * 0.05);
       ctx.fillStyle = "#e8473c"; ctx.fillRect(left - post / 2, top, post, sy - top); ctx.fillRect(right - post / 2, top, post, sy - top);
@@ -529,8 +587,8 @@ export function initDrive(root, state, goHome, onComplete) {
       // warning ring makes obstacles easy to spot from far away
       ctx.strokeStyle = "rgba(255,80,60,.85)"; ctx.lineWidth = Math.max(2, size * 0.06);
       ctx.beginPath(); ctx.ellipse(px, sy - size * 0.02, size * 0.62, size * 0.16, 0, 0, Math.PI * 2); ctx.stroke();
-      ctx.font = Math.round(size) + "px sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "#000";
-      ctx.fillText(scene.obstacle, px, sy - size * 0.05);
+      ctx.textAlign = "center";
+      drawObj(scene.obstacle, px, sy - size * 0.5, size);
       return;
     }
     const golden = item.kind === "golden";
@@ -542,8 +600,9 @@ export function initDrive(root, state, goHome, onComplete) {
     ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(px, cy, r * 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = golden ? "#ff9d00" : "rgba(255,170,0,.95)"; ctx.lineWidth = Math.max(2, size * 0.07);
     ctx.beginPath(); ctx.arc(px, cy, r, 0, Math.PI * 2); ctx.stroke();
-    ctx.font = Math.round(size * 0.8) + "px sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "#000";
-    ctx.fillText(golden ? "👑" : scene.collectible, px, cy + size * 0.28);
+    ctx.textAlign = "center";
+    // The rare "golden" find is a lump of amber with something still stuck in it.
+    drawObj(golden ? GOLDEN_PICKUP : scene.collectible, px, cy, size * 0.8);
   }
 
   function drawRival(r, sc, sx, sy, sw) {
@@ -577,6 +636,7 @@ export function initDrive(root, state, goHome, onComplete) {
   function headDot(x, y, color, label, you) {
     ctx.fillStyle = color; ctx.strokeStyle = you ? "#fff" : "#17403a"; ctx.lineWidth = you ? 4 : 2.5;
     ctx.beginPath(); ctx.arc(x, y, you ? 15 : 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (label === "★") { ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; window.DUICONS.starPath(ctx, x, y, you ? 8 : 6, true); return; }
     ctx.fillStyle = "#fff"; ctx.font = `900 ${you ? 14 : 12}px system-ui, sans-serif`; ctx.textAlign = "center"; ctx.fillText(label, x, y + 5);
   }
   function drawRaceBar() {
@@ -584,7 +644,15 @@ export function initDrive(root, state, goHome, onComplete) {
     ctx.fillStyle = "rgba(23,64,58,.55)"; roundRect(x0 - 16, y - 16, x1 - x0 + 46, 32, 16); ctx.fill();
     ctx.fillStyle = "rgba(255,255,255,.85)"; roundRect(x0, y - 4, x1 - x0, 8, 4); ctx.fill();
     for (let l = 1; l < RACE_LAPS; l++) { ctx.fillStyle = "rgba(23,64,58,.5)"; ctx.fillRect(x0 + (x1 - x0) * l / RACE_LAPS - 1, y - 8, 3, 16); }
-    ctx.font = "22px sans-serif"; ctx.textAlign = "center"; ctx.fillText("🏁", x1 + 16, y + 8);
+    ctx.save();
+    ctx.translate(x1 + 12, y);
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(0, 11); ctx.lineTo(0, -9); ctx.stroke();
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) {
+      ctx.fillStyle = (r + c) % 2 ? "#fff" : "#17403a";
+      ctx.fillRect(c * 5, -9 + r * 5, 5, 5);
+    }
+    ctx.restore();
     rivals.forEach((r) => headDot(x0 + (x1 - x0) * clamp(r.total / total, 0, 1), y, r.paint, r.name[0], false));
     headDot(x0 + (x1 - x0) * clamp(carTotal() / total, 0, 1), y, state.config.paint || "#e74c3c", "★", true);
     if (countdown <= 0 && !ended) outlined(ordinal(place()), 56, 62, 44, place() === 1 ? "#ffe14d" : "#fff");
@@ -594,7 +662,8 @@ export function initDrive(root, state, goHome, onComplete) {
     ctx.fillStyle = "rgba(23,64,58,.55)"; roundRect(x0 - 16, y - 16, x1 - x0 + 46, 32, 16); ctx.fill();
     ctx.fillStyle = "rgba(255,255,255,.85)"; roundRect(x0, y - 6, x1 - x0, 12, 6); ctx.fill();
     ctx.fillStyle = "#ffcf3f"; roundRect(x0, y - 6, Math.max(12, (x1 - x0) * pct), 12, 6); ctx.fill();
-    ctx.font = "22px sans-serif"; ctx.textAlign = "center"; ctx.fillText("🎁", x1 + 16, y + 8);
+    // The bar ends in the basket you are filling, not a wrapped present.
+    if (!drawObj("🧺", x1 + 16, y, 26)) { ctx.font = "22px sans-serif"; ctx.textAlign = "center"; ctx.fillText("🧺", x1 + 16, y + 8); }
   }
   function drawLights() {
     const n = Math.ceil(countdown - 0.6), cx = W / 2, cy = H * 0.3;
@@ -641,7 +710,12 @@ export function initDrive(root, state, goHome, onComplete) {
       ctx.fillStyle = g; roundRect(W / 2 - 250, 150, 260, 180, 8); ctx.fill();
       ctx.fillStyle = (GRASS[scene.id] || GRASS.island)[0]; ctx.fillRect(W / 2 - 250, 270, 260, 60);
       drawCarRear(ctx, state.config, W / 2 - 120, 268, 0.62, 0, { t: finishT });
-      ctx.font = "34px sans-serif"; ctx.textAlign = "center"; ctx.fillText((DECO[scene.id] || DECO.island)[0], W / 2 - 210, 300); ctx.fillText(scene.collectible, W / 2 - 50, 190);
+      ctx.textAlign = "center";
+      // The postcard stamps the world's own roadside thing and the treasure the
+      // run was collecting, both as photographs rather than as typed glyphs.
+      const keepsake = (DECO[scene.id] || DECO.island)[0];
+      drawObj(keepsake, W / 2 - 210, 300 - 17, 34);
+      drawObj(scene.collectible, W / 2 - 50, 190 - 17, 34);
       ctx.fillStyle = "#4a3a20"; ctx.textAlign = "left";
       const lines = ["Dear grown-ups,", `I found ${collected} treasures`, `on ${scene.label}!`, "Love from", `${state.config.name || "your dino driver"} 🦖`];
       lines.forEach((line, i) => {
@@ -655,8 +729,9 @@ export function initDrive(root, state, goHome, onComplete) {
       const t = clamp((finishT - 0.9 - i * 0.35) * 3, 0, 1), lit = i < result.rating;
       if (lit && t > 0 && !drawFinish["s" + i]) { drawFinish["s" + i] = true; sfx("star"); }
       ctx.globalAlpha = lit ? t : Math.min(0.35, t);
-      ctx.font = Math.round(54 * (0.4 + 0.6 * t)) + "px sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(lit ? "⭐" : "☆", W / 2 + (i - 1) * 70, mode === "race" ? 140 : 400);
+      ctx.fillStyle = ctx.strokeStyle = lit ? '#ffd54a' : 'rgba(255,255,255,.85)';
+      ctx.lineWidth = 3;
+      window.DUICONS.starPath(ctx, W / 2 + (i - 1) * 70, mode === "race" ? 122 : 382, 26 * (0.4 + 0.6 * t), lit);
     }
     ctx.globalAlpha = Math.min(1, Math.max(0, finishT - 1.8));
     ctx.fillStyle = "#fff"; ctx.font = "bold 20px system-ui, sans-serif"; ctx.textAlign = "center";

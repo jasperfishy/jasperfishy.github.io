@@ -1,5 +1,5 @@
 // Chapters 1–3 of The Great Dino Rescue: The Call, the Whispering Forest, the Rickety Bridge.
-import { wait, rnd, tile, MOUNTS, writeSave, kidName } from './engine.js';
+import { wait, rnd, tile, MOUNTS, writeSave, kidName, OWL } from './engine.js';
 const FX = window.DUFX;
 
 const HILLS = tile('<path d="M0 100 L0 60 Q50 10 100 55 T200 50 T300 58 T400 60 L400 100Z" fill="#9ed7a6"/>', 400, 100);
@@ -57,7 +57,10 @@ export async function chapter1(E) {
   await E.say(kidName(E) ? kidName(E) + '! ' + kidName(E) + '! It is me, Pip the pterosaur!' : 'Hello! Hello! It is me, Pip the pterosaur!', 'pip');
   await E.say('Grumblecloud the storm has trapped Mummy and Daddy at the Sky Nest! Only a brave dino rider can reach them!', 'pip');
   await E.say('Will you save them?', 'pip', 400);
-  const go = await E.choose('Will you save Mummy and Daddy?', [{ icon: '🦖', label: 'YES! Let’s go!' }, { icon: '💪', label: 'I am brave, I will!' }]);
+  // A flexed arm has no photograph — this library is bones, stones and weather — and it cannot
+  // be courage when the baby dino beside it is already the ride. The second "yes" borrows the
+  // thing the rider is about to face head-on: the storm's own bolt.
+  const go = await E.choose('Will you save Mummy and Daddy?', [{ icon: '🦖', label: 'YES! Let’s go!' }, { icon: '⚡', label: 'I am brave, I will!' }]);
   E.sfx.roar();
   // choose a dinosaur to ride
   const pick = await new Promise((resolve) => {
@@ -71,7 +74,9 @@ export async function chapter1(E) {
   await E.say(pick.name + ' roars and lowers a big friendly head. ' + (kidName(E) ? kidName(E) + ' climbs' : 'You climb') + ' on, ready to ride!', 'narrator', 600);
   FX.dinoState(me.el, 'roar', 900); E.sfx.roar(); FX.celebrate();
   await sing(E, 'The Dino Riders Song', RIDER_SONG);
-  await E.finishBadge('rider', '🏇', 'Dino Rider!', 'You chose ' + pick.name + ' and set out to rescue Mummy and Daddy.');
+  // "Dino Rider" in a world whose mounts are dinosaurs is not a horse-and-jockey glyph: the
+  // badge is the animal this child chose three scenes ago, running, in the colour they picked.
+  await E.finishBadge('rider', FX.dinoHTML(pick.id, { state: 'run', color: pick.color, size: '1.6em' }), 'Dino Rider!', 'You chose ' + pick.name + ' and set out to rescue Mummy and Daddy.');
   E.save.next = Math.max(E.save.next, 1); writeSave(E.save);
 }
 
@@ -124,7 +129,12 @@ export async function chapter2(E) {
       c.fillStyle = '#3c7a63'; c.fillRect(0, HOR - 6, W, H);
       c.fillStyle = '#7a6a4a'; c.beginPath(); c.moveTo(W / 2 - 36, HOR); c.lineTo(W / 2 + 36, HOR); c.lineTo(W / 2 + 330, H); c.lineTo(W / 2 - 330, H); c.closePath(); c.fill();
       c.strokeStyle = 'rgba(255,240,200,.35)'; c.lineWidth = 4; for (let k = 0; k < 9; k++) { const z = ((k / 9 + S.t * .5) % 1), p0 = proj(z, 1); c.beginPath(); c.moveTo(W / 2 - 36 - zt(z) * 290 + 36, p0.y); c.lineTo(W / 2 + 36 + zt(z) * 290 - 36, p0.y); c.stroke(); }
-      for (let k = 0; k < 12; k++) { const z = ((k / 12 + S.t * .5) % 1); for (const side of [-1.9, 3.9]) { const p = proj(z, side + (k % 2) * (side < 0 ? -.5 : .5)); c.font = Math.round(110 * p.s) + 'px serif'; c.textAlign = 'center'; c.fillText(k % 3 ? '🌲' : '🌳', p.x, p.y); } }
+      // The trees lining the dark road are blitted, not typed: fillText is a font
+      // glyph forever, and no later layer can put a photograph into it. Two spellings
+      // of one pine (🌲 🌳) would also be the same tree on both sides, so the verge is
+      // conifer and cycad — what this valley actually grows.
+      for (let k = 0; k < 12; k++) { const z = ((k / 12 + S.t * .5) % 1); for (const side of [-1.9, 3.9]) { const p = proj(z, side + (k % 2) * (side < 0 ? -.5 : .5)); const s = Math.round(110 * p.s); if (FX.objects) FX.objects.draw(c, k % 3 ? '🌲' : '🌵', p.x, p.y - s / 2, s); else { c.font = s + 'px serif'; c.textAlign = 'center'; c.fillText('🌲', p.x, p.y); } } }
+      drawEnvironment(c,W,H,'night',S.t*.03);
       for (const f of flies) { f.p += dt * 2; c.fillStyle = 'rgba(255,240,150,' + (.4 + .5 * Math.sin(f.p)) + ')'; c.beginPath(); c.arc(f.x + Math.sin(f.p * .7) * 14, f.y + Math.cos(f.p * .5) * 10, 2.4, 0, 6.3); c.fill(); }
       for (const it of S.items.slice().sort((a, b) => a.z - b.z)) { if (it.hit || it.z < 0) continue; const p = proj(it.z, it.lane); c.font = Math.round(70 * p.s) + 'px serif'; c.textAlign = 'center'; if (it.kind === 'fly') { c.shadowColor = '#fff2a8'; c.shadowBlur = 22 * p.s; } c.fillText(it.ic, p.x, p.y); c.shadowBlur = 0; }
       if (S.t >= S.dur) { done(); return; }
@@ -135,14 +145,17 @@ export async function chapter2(E) {
   hud.remove(); ctrls.remove(); FX.dinoState(ride.el, 'idle');
   await E.say('You made it out of the dark trees! You caught ' + S.got + ' fireflies!', 'narrator', 500);
   E.addGems(Math.max(3, S.got));
-  // the owl
-  const owl = E.add('🦉', 'rs-owl', 'left:68%;top:14%');
+  // the owl — drawn, not typed: assets/objects photographs the specimens this universe has,
+  // and an owl is not one of them, so the layer would leave a font glyph bobbing in the trees.
+  const owl = E.add(OWL, 'rs-owl', 'left:68%;top:14%');
   FX.dinoState(ride.el, 'idle');
   await E.say('Whoo-whoo! Stop, little rider! I am Wise Owl. Answer my riddle to pass.', 'owl');
   await E.say('I have three big toes. I stomp. I roar. And I am the king of the dinosaurs. Who am I?', 'owl', 300);
   let ok = false;
   while (!ok) {
-    const a = await E.choose('Who is the king of the dinosaurs?', [{ icon: '🦆', label: 'A duck' }, { icon: '🦖', label: 'T-rex' }, { icon: '🐟', label: 'A fish' }]);
+    // The library has no duck — but a feather is what a duck is made of, is a photograph, and
+    // can never be mistaken for the hatchling or the fish beside it in the same riddle.
+    const a = await E.choose('Who is the king of the dinosaurs?', [{ icon: '🪶', label: 'A duck' }, { icon: '🦖', label: 'T-rex' }, { icon: '🐟', label: 'A fish' }]);
     if (a === 1) ok = true; else { E.slip(); await E.say(a === 0 ? 'Quack? No, no! Think of the big roar!' : 'Glub glub! That is not a stomper. Try again!', 'owl'); }
   }
   E.sfx.win(); FX.celebrate();
@@ -199,7 +212,9 @@ export async function chapter3(E) {
   const stars = hits >= 13 ? 3 : hits >= 9 ? 2 : 1;
   await E.say(hits >= 13 ? 'Wow! You stomped almost every plank. What a rhythm!' : hits >= 9 ? 'Great stomping! The bridge held steady.' : 'The bridge wobbled, but you crossed safely!', 'narrator', 500);
   E.addGems(Math.max(3, hits));
-  await E.card({ tag: 'BRIDGE CROSSED', icon: '⭐'.repeat(stars), title: hits + ' of ' + notes.length + ' planks', body: 'You crossed the canyon!' });
-  await E.finishBadge('bridge', '🌉', 'Bridge Master', 'You crossed the rickety bridge with a stomping beat!');
+  await E.card({ tag: 'BRIDGE CROSSED', icon: window.DUICONS.stars(stars), title: hits + ' of ' + notes.length + ' planks', body: 'You crossed the canyon!' });
+  // No bridge is photographed anywhere in this universe; the rickety one is rope, and rope is.
+  await E.finishBadge('bridge', '🪢', 'Bridge Master', 'You crossed the rickety bridge with a stomping beat!');
   E.save.next = Math.max(E.save.next, 3); writeSave(E.save);
 }
+import { drawEnvironment } from '../../../../../photoreal-environments.js';

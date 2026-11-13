@@ -4,6 +4,51 @@
 (function () {
   "use strict";
   const Kit = (window.DUKit = {});
+  const environmentModule = new URL('../photoreal-environments.js', document.currentScript.src).href;
+  const vehicleModule = new URL('../photoreal-vehicles.js', document.currentScript.src).href;
+  const texturesModule = new URL('../photoreal-textures.js', document.currentScript.src).href;
+
+  /* The prop photographs — a mossy boulder, a speckled egg, a conifer, a nest
+   * of sticks — are cut-outs, and every Phaser chapter still builds its props
+   * out of fillRect triangles beside a real photographic backdrop. This swaps
+   * the *contents* of a texture a game already made, so the key, the size, the
+   * sprite and any collision against it all stay exactly where they are; if a
+   * file is missing the triangle simply survives. */
+  Kit.prop = (scene, key, name, options) => {
+    if (!scene.textures.exists(key)) return Promise.resolve(false);
+    return import(texturesModule)
+      .then((m) => m.applyPropTexture(scene.textures.get(key), name, options || {}))
+      .catch(() => false);
+  };
+  Kit.props = (scene, map) => {
+    Object.keys(map).forEach((key) => Kit.prop(scene, key, map[key]));
+  };
+  Kit.vehicle = async (scene,config,target,hide=[]) => {
+    let active=true;scene.events.once('shutdown',()=>{active=false;});
+    try {
+      const module=await import(vehicleModule),canvas=await module.vehicleCanvas(config);
+      if(!active)return;
+      const key='photo-vehicle-'+config.body+'-'+config.paint;
+      if(!scene.textures.exists(key))scene.textures.addCanvas(key,canvas);
+      target.setTexture(key).setDisplaySize(120,60).setOrigin(.5,1).setY(0);
+      hide.forEach(item=>item.setVisible(false));
+    } catch(error) { console.warn('Vehicle photo unavailable',error); }
+  };
+  /* Name the items that are only scenery — the drawn sky, the tiled hills — so
+   * a photographic backdrop can step them out of the way. Hiding everything
+   * shallow used to do this job, and it also hid Dino Park's nest, its flowers
+   * and its butterflies, because a game object has no depth that means
+   * "decoration". Now nothing disappears unless a page says it is scenery. */
+  Kit.scenery = (...items) => {
+    items.forEach((item) => { if (item) item.__duScenery = true; });
+    return items[0];
+  };
+  Kit.environment = (scene, mood='jungle') => {
+    const scenery = [...scene.children.list].filter(item=>item.__duScenery);
+    return import(environmentModule).then(m=>m.addEnvironment(scene,scene.scale.width,scene.scale.height,mood,-1)).then(bg=>{
+      if (bg) scenery.forEach(item=>{if(item.active)item.setVisible(false);});
+    });
+  };
   const photoBase = new URL('../assets/prehistoric/', document.currentScript.src).href;
   Kit.photo = (scene, key, species, width, height) => {
     if (scene.textures.exists(key)) return;
@@ -16,7 +61,7 @@
       ctx.drawImage(img, (width - img.width * scale) / 2, height - img.height * scale, img.width * scale, img.height * scale);
       tex.refresh();
     };
-    img.src = photoBase + species + '.png';
+    img.src = photoBase + species + '.webp';
   };
   const FX = () => window.DUFX;
   const EMBEDDED = window.self !== window.top;
@@ -70,6 +115,72 @@
     g.fillTriangle(0, 10, 7, 7, 7, 13); g.fillTriangle(20, 10, 13, 7, 13, 13);
     g.generateTexture("kit-spark", 20, 20);
     g.destroy();
+    /* The reward star is what every chapter's HUD counter and end panel blits,
+     * and a flat yellow polygon was the last piece of clip art left on an
+     * otherwise photographed screen. The drawn star above stays as what shows
+     * while the specimen photograph decodes. */
+    Kit.specimen(scene, "kit-star", "star");
+  };
+
+  /* Repaint a texture a game already made with a specimen photograph. The
+   * library behind fx/du-objects.js is keyed by emoji and holds a real picture
+   * for every thing this universe can name, so a glyph ("🌲") and a specimen
+   * name ("pine") are both accepted here. */
+  Kit.specimen = (scene, key, nameOrGlyph, options) => {
+    const O = window.DUFX && window.DUFX.objects;
+    const name = O && O.slug(nameOrGlyph);
+    if (!name || !scene.textures.exists(key)) return Promise.resolve(false);
+    return import(texturesModule)
+      .then((m) => m.applyPhotorealTexture(scene.textures.get(key), name, Object.assign({ library: 'objects' }, options || {})))
+      .catch(() => false);
+  };
+  Kit.specimens = (scene, map) => {
+    Object.keys(map).forEach((key) => Kit.specimen(scene, key, map[key]));
+  };
+
+  const EMOJI_FONT = '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+  function glyphBox(emoji, size) {
+    if (!glyphBox.ctx) { try { glyphBox.ctx = document.createElement('canvas').getContext('2d'); } catch (e) { return null; } }
+    if (!glyphBox.ctx) return null;
+    glyphBox.ctx.font = size + 'px ' + EMOJI_FONT;
+    return { w: Math.min(512, Math.ceil(glyphBox.ctx.measureText(emoji).width) + 8), h: Math.min(512, Math.ceil(size) + 8) };
+  }
+
+  /* Cars are the one thing the specimen library answers badly: every vehicle
+   * glyph there resolves to `cart`, a woven two-wheeled dig-site cart, which is
+   * how a prehistoric hand-cart came to sit on the "Dino Run" title card.
+   * assets/vehicles holds the photographs of the real bodies, and its side view
+   * is about 2.4 times as wide as it is tall, so the texture takes that shape
+   * instead of the square a font glyph would have needed. "#e74c3c" is the paint
+   * the vehicle module passes through with no visible change. */
+  const CARS = {
+    "\u{1F3CE}": "race", "\u{1F697}": "sport", "\u{1F699}": "pickup",
+    "\u{1F69A}": "truck", "\u{1F69B}": "truck", "\u{1F68C}": "van", "\u{1F69C}": "monster"
+  };
+  const noVS = (s) => String(s).split("\uFE0F").join("");
+
+  Kit.carBadge = (scene, key, body, size) => {
+    const w = Math.ceil(size * 2.4), h = Math.ceil(size);
+    scene.textures.createCanvas(key, w, h);
+    const tex = scene.textures.get(key);
+    const ctx = tex.getContext();
+    if (ctx) {
+      ctx.font = size + 'px ' + EMOJI_FONT;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String.fromCodePoint(0x1F697), w / 2, h / 2);
+      tex.refresh();
+    }
+    import(vehicleModule)
+      .then((m) => m.vehicleCanvas({ body, paint: "#e74c3c" }, "side", w, h))
+      .then((canvas) => {
+        if (!scene.textures.exists(key)) return;
+        const c = scene.textures.get(key).getContext();
+        if (!c) return;
+        c.clearRect(0, 0, w, h);
+        c.drawImage(canvas, 0, 0);
+        scene.textures.get(key).refresh();
+      })
+      .catch(() => { /* the glyph stays only if the photograph cannot load */ });
   };
 
   Kit.emoji = (scene, key, emoji, size) => {
@@ -78,10 +189,118 @@
       Kit.photo(scene, key, emoji === '🦖' ? 'trex' : 'bronto', Math.ceil(size * 1.4), Math.ceil(size));
       return;
     }
-    const t = scene.add.text(0, 0, emoji, { fontSize: size + "px", fontFamily: "sans-serif" });
-    t.setPadding(4);
-    const rt = scene.make.renderTexture({ width: Math.ceil(t.width), height: Math.ceil(t.height), add: false });
-    rt.draw(t, 0, 0); rt.saveTexture(key); t.destroy();
+    const car = CARS[noVS(emoji)];
+    if (car) { Kit.carBadge(scene, key, car, size); return; }
+    /* This used to bake the glyph through a render texture. Phaser's WebGL
+     * render textures have no canvas behind them at all, so nothing could ever
+     * be painted into them afterwards — which is how every flower, butterfly
+     * and snowflake in the Phaser chapters stayed a font glyph while the rocks
+     * and eggs beside them became photographs. A canvas texture can be
+     * repainted, so the glyph is drawn here only as what shows while the
+     * specimen photograph decodes. People are not in the specimen library,
+     * which keeps the drawn daddy and mummy faces a drawing. */
+    const box = glyphBox(emoji, size) || { w: Math.ceil(size * 1.3), h: Math.ceil(size * 1.2) };
+    const tex = scene.textures.createCanvas(key, box.w, box.h);
+    const ctx = tex.getContext();
+    if (ctx) {
+      ctx.font = size + 'px ' + EMOJI_FONT;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(emoji, box.w / 2, box.h / 2);
+      tex.refresh();
+    }
+    Kit.specimen(scene, key, emoji);
+  };
+
+  /* A label is the one thing no picture layer can reach: Phaser writes its text
+   * straight into a canvas, so a glyph inside a label stayed a font drawing
+   * floating in front of a photographed valley — a clip-art egg next to a real
+   * one. This lays the same label out as words in text plus a photograph for
+   * every thing those words name. `icons` is the page's own dictionary of which
+   * glyph means which specimen; a glyph with no photograph anywhere in this
+   * universe is simply dropped, because the words beside it already say it. */
+  /* One emoji, with the invisible variation selector and any family joined to
+   * it — but never the next emoji too. A greedy "pictographic*" run swallows
+   * "💚💚💚" as a single thing, which is no thing the library has a picture of,
+   * and the whole row silently disappears from the label. */
+  const GLYPH_ONE = /(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)/gu;
+  // `test()` on a /g regex leaves lastIndex past the match, so the guard that
+  // asks "does this string contain one" gets its own stateless copy.
+  const HAS_GLYPH = new RegExp(GLYPH_ONE.source, "u");
+  function labelTokens(text) {
+    const all = String(text), parts = [];
+    let last = 0, m;
+    GLYPH_ONE.lastIndex = 0;
+    while ((m = GLYPH_ONE.exec(all))) {
+      if (m.index > last) parts.push({ word: all.slice(last, m.index) });
+      parts.push({ glyph: m[0] });
+      last = m.index + m[0].length;
+    }
+    if (last < all.length) parts.push({ word: all.slice(last) });
+    return parts;
+  }
+  function labelIcon(scene, name) {
+    const key = "kit-icon-" + String(name).replace(/[^a-z0-9_-]/gi, "");
+    if (!scene.textures.exists(key)) {
+      scene.textures.createCanvas(key, 128, 128);
+      Kit.specimen(scene, key, name);
+    }
+    return key;
+  }
+
+  Kit.label = (scene, x, y, style, icons, options) => {
+    const o = options || {};
+    const size = parseFloat(style && style.fontSize) || 20;
+    const box = Math.round(size * 1.12);
+    const row = scene.add.container(x, y).setDepth(o.depth === undefined ? 8 : o.depth);
+    const originX = o.originX === undefined ? 0 : o.originX;
+    const originY = o.originY === undefined ? 0 : o.originY;
+    // A weather glyph is often spelled with an invisible variation selector and
+    // sometimes without; both spellings have to find the same photograph.
+    const plain = (g) => String(g).split("\uFE0F").join("");
+    const dict = {};
+    Object.keys(icons || {}).forEach((g) => { dict[plain(g)] = icons[g]; });
+    let current = "", width = 0;
+    function paint(text) {
+      current = String(text);
+      row.removeAll(true);
+      const made = [];
+      let w = 0, line = size * 1.25;
+      labelTokens(current).forEach((part) => {
+        if (part.word !== undefined) {
+          const t = scene.make.text({ x: 0, y: 0, text: part.word, style, add: false }).setOrigin(0, 0);
+          line = Math.max(line, t.height);
+          made.push({ obj: t, at: w, wide: t.width });
+          w += t.width;
+          return;
+        }
+        // A page may name a glyph the specimen library has no picture for —
+        // a green heart means a feather here — and anything neither the page
+        // nor the library can answer is dropped rather than drawn as a glyph.
+        const name = dict[plain(part.glyph)] ||
+          (FX() && FX().objects && FX().objects.slug(plain(part.glyph)));
+        if (!name) return;
+        const img = scene.make.image({ key: labelIcon(scene, name), x: 0, y: 0, add: false }).setOrigin(0, 0);
+        img.setDisplaySize(box, box);
+        made.push({ obj: img, at: w, wide: box, icon: true });
+        w += box;
+      });
+      width = w;
+      // Everything is laid out from the left and then slid into place, so a
+      // label that used to sit centred or right-aligned still sits there.
+      const shift = -width * originX;
+      made.forEach((item) => {
+        item.obj.x = item.at + shift;
+        item.obj.y = (item.icon ? (line - box) / 2 : 0) - line * originY;
+        row.add(item.obj);
+      });
+    }
+    paint(o.text || "");
+    // A label is returned as the container itself, so a game can tween, move or
+    // fade it like any other Phaser object; setText keeps the words and the
+    // photographs lined up when they change.
+    row.setText = (text) => { if (String(text) !== current) paint(text); return row; };
+    row.labelWidth = () => width;
+    return row;
   };
 
   Kit.shake = (scene, ms, amount) => { if (motionOK() && !calm()) scene.cameras.main.shake(ms, amount); };
@@ -109,9 +328,16 @@
     scene.tweens.add({ targets: t, y: y - 60, alpha: 0, scale: 1.25, duration: 800, ease: "cubic.out", onComplete: () => t.destroy() });
   };
 
-  Kit.banner = (scene, text, color) => {
+  Kit.banner = (scene, text, color, icons) => {
     const W = scene.scale.width, H = scene.scale.height;
-    const t = scene.add.text(W / 2, H * 0.3, text, { fontSize: "52px", fontFamily: FONT, fontStyle: "bold", color: color || "#fff", stroke: "#17403a", strokeThickness: 9 }).setOrigin(0.5).setDepth(70).setScale(0.2).setAlpha(0);
+    const style = { fontSize: "52px", fontFamily: FONT, fontStyle: "bold", color: color || "#fff", stroke: "#17403a", strokeThickness: 9 };
+    // A banner that names a thing can now show it: "🌧️ Pitter Patter" used to
+    // put a clip-art cloud in front of a photographed sky, because Phaser text
+    // is painted into a canvas no picture layer can reach.
+    const t = HAS_GLYPH.test(String(text))
+      ? Kit.label(scene, W / 2, H * 0.3, style, icons, { originX: 0.5, originY: 0.5, depth: 70, text })
+      : scene.add.text(W / 2, H * 0.3, text, style).setOrigin(0.5).setDepth(70);
+    t.setScale(0.2).setAlpha(0);
     scene.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 260, ease: "back.out", yoyo: false });
     scene.tweens.add({ targets: t, alpha: 0, y: H * 0.26, delay: 900, duration: 420, onComplete: () => t.destroy() });
   };
@@ -163,11 +389,14 @@
     const veil = scene.add.rectangle(0, 0, W, H, 0x10243a, 0.55);
     const card = scene.add.rectangle(0, 0, 560, 270, 0xffffff, 0.95).setStrokeStyle(5, o.color || 0x2ecc71, 1);
     const iconEmoji = o.emoji || "🦖";
-    let icon;
-    if (iconEmoji === '🦖' || iconEmoji === '🦕') {
-      Kit.emoji(scene, 'kit-title-' + iconEmoji, iconEmoji, 74);
-      icon = scene.add.image(0, -78, 'kit-title-' + iconEmoji).setOrigin(0.5);
-    } else icon = scene.add.text(0, -78, iconEmoji, { fontSize: "64px" }).setOrigin(0.5);
+    // The badge on a title card is the same photograph the game itself uses, so
+    // "Dino Run" opens on a real car and "Meadow Memory" on a real flower. This
+    // used to be a 64px picture from the font for everything except the two
+    // dinosaurs, which is how a clip-art race car came to sit on a card over a
+    // photographed valley.
+    const iconKey = 'kit-title-' + iconEmoji;
+    Kit.emoji(scene, iconKey, iconEmoji, 74);
+    const icon = scene.add.image(0, -78, iconKey).setOrigin(0.5);
     const title = scene.add.text(0, -8, o.title, { fontSize: "44px", fontFamily: FONT, fontStyle: "bold", color: "#24407a" }).setOrigin(0.5);
     const say = String(o.hint || "");
     const hint = scene.add.text(0, 0, say, { fontSize: say.length > 92 ? "18px" : "20px", fontFamily: FONT, color: "#52627f", align: "center", wordWrap: { width: 500 } }).setOrigin(0.5);
@@ -206,16 +435,25 @@
     const c = scene.add.container(W / 2, H / 2).setDepth(100);
     const veil = scene.add.rectangle(0, 0, W, H, 0x10243a, 0.45);
     const panel = scene.add.rectangle(0, 0, 460, 330, 0x14203a, 0.92).setStrokeStyle(4, 0xffffff, 0.35);
-    const head = scene.add.text(0, -122, o.title, { fontSize: "40px", fontFamily: FONT, fontStyle: "bold", color: "#fff" }).setOrigin(0.5);
-    const line = scene.add.text(0, -62, o.line || "", { fontSize: "22px", fontFamily: FONT, color: "#ffe14d" }).setOrigin(0.5);
+    // Every line on this panel is a label, so a run that ends in "3 eggs
+    // caught · 🌧️ Pitter Patter" shows a photographed cloud, not a font
+    // drawing, and the panel matches the world behind it.
+    // The words ride in through options.text — a label paints nothing at all
+    // without them, which is how a whole end panel came up empty once.
+    const lab = (y, text, style) => Kit.label(scene, 0, y, style, null, { originX: 0.5, originY: 0.5, text });
+    const head = lab(-122, o.title, { fontSize: "40px", fontFamily: FONT, fontStyle: "bold", color: "#fff" });
+    const line = lab(-62, o.line || "", { fontSize: "22px", fontFamily: FONT, color: "#ffe14d" });
     c.add([veil, panel, head, line]);
     const slots = [];
     for (let i = 0; i < 3; i++) {
-      const s = scene.add.image((i - 1) * 90, 8, "kit-star").setScale(1.7).setTint(0x4a5675).setAlpha(0.8);
+      // A star not yet earned is the same photograph left almost transparent:
+      // tinting a photograph turns it to mud, and a ghost of the real thing
+      // reads as "still to come" far better than a coloured slab does.
+      const s = scene.add.image((i - 1) * 90, 8, "kit-star").setScale(1.7).setAlpha(0.22);
       slots.push(s); c.add(s);
     }
-    const best = scene.add.text(0, 78, o.best || "", { fontSize: "18px", fontFamily: FONT, color: "#cfe0ff" }).setOrigin(0.5);
-    const again = scene.add.text(0, 124, o.again || "TAP TO PLAY AGAIN", { fontSize: "22px", fontFamily: FONT, fontStyle: "bold", color: "#fff", backgroundColor: "#2ecc71", padding: { x: 18, y: 8 } }).setOrigin(0.5).setAlpha(0);
+    const best = lab(78, o.best || "", { fontSize: "18px", fontFamily: FONT, color: "#cfe0ff" });
+    const again = lab(124, o.again || "TAP TO PLAY AGAIN", { fontSize: "22px", fontFamily: FONT, fontStyle: "bold", color: "#fff", backgroundColor: "#2ecc71", padding: { x: 18, y: 8 } }).setAlpha(0);
     c.add([best, again]);
     c.setScale(0.5).setAlpha(0);
     scene.tweens.add({ targets: c, scale: 1, alpha: 1, duration: 340, ease: "back.out" });

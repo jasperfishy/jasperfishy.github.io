@@ -9,45 +9,48 @@
   <meta name="apple-mobile-web-app-title" content="Dino Universe">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Dinosaur Universe</title>
-  <link rel="icon" href="./icon.svg?v=du-316e7af9b57fa08e" type="image/svg+xml">
-  <link rel="manifest" href="./manifest.webmanifest?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="../../fx/du-fx.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="../../fx/du-story.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="../../fx/du-wonder.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="../../fx/du-people.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/style.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/fx-games.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/fx-mummy.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/fx-quest.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/fx-rescue.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/fx-kit.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/fx-play.css?v=du-316e7af9b57fa08e">
-  <link rel="stylesheet" href="./src/fx-puzzle.css?v=du-316e7af9b57fa08e">
+  <link rel="icon" href="./icon.svg?v=du-58e7197a7bd67562" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="../../fx/du-fx.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="../../fx/du-story.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="../../fx/du-wonder.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="../../fx/du-people.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/style.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/fx-games.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/fx-mummy.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/fx-quest.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/fx-rescue.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/fx-kit.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/fx-play.css?v=du-58e7197a7bd67562">
+  <link rel="stylesheet" href="./src/fx-puzzle.css?v=du-58e7197a7bd67562">
 </head>
 <body>
   <div class="sky-glow" aria-hidden="true"></div>
   <header class="topbar">
     <button class="brand-button" id="homeButton" aria-label="Dinosaur Universe home">
-      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span class="brand-mark" data-icon="spark" aria-hidden="true"></span>
       <span class="brand-copy"><strong>Dinosaur Universe</strong><small>A little world of big discoveries</small></span>
     </button>
     <div class="top-actions">
-      <button class="round-button" id="soundButton" aria-label="Turn sounds off" title="Sound">♫</button>
-      <button class="round-button" id="parentButton" aria-label="Parent settings" title="Parent settings">⚙</button>
+      <button class="round-button" id="soundButton" data-icon="sound" data-size="20" aria-label="Turn sounds off" title="Sound"></button>
+      <button class="round-button" id="parentButton" data-icon="settings" data-size="20" aria-label="Parent settings" title="Parent settings"></button>
     </div>
   </header>
   <main id="app" class="app-shell" tabindex="-1"></main>
   <div id="dialogLayer" class="dialog-layer" aria-live="polite"></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="../../fx/du-dino.js?v=du-316e7af9b57fa08e"></script>
-  <script src="../../fx/du-people.js?v=du-316e7af9b57fa08e"></script>
-  <script src="../../fx/du-fx.js?v=du-316e7af9b57fa08e"></script>
-  <script src="../../fx/du-journey.js?v=du-316e7af9b57fa08e"></script>
-  <script src="../../fx/du-music.js?v=du-316e7af9b57fa08e"></script>
-  <script src="../../fx/du-story.js?v=du-316e7af9b57fa08e"></script>
-<script src="../../fx/du-wonder.js?v=du-316e7af9b57fa08e"></script>
-  <script src="../../fx/du-ambient.js?v=du-316e7af9b57fa08e"></script>
-  <script type="module" src="./src/main.js?v=du-316e7af9b57fa08e"></script>
-<script src="../../update-manager.js?v=du-316e7af9b57fa08e"></script>
+  <script src="../../fx/du-dino.js?v=du-58e7197a7bd67562"></script>
+  <script src="../../fx/du-people.js?v=du-58e7197a7bd67562"></script>
+  <script src="../../fx/du-fx.js?v=du-58e7197a7bd67562"></script>
+    <script src="../../fx/du-objects.js?v=du-58e7197a7bd67562"></script>
+    <script src="../../fx/du-icons.js?v=du-58e7197a7bd67562"></script>
+  <script src="../../fx/du-journey.js?v=du-58e7197a7bd67562"></script>
+  <script src="../../fx/du-music.js?v=du-58e7197a7bd67562"></script>
+  <script src="../../fx/du-world.js?v=du-58e7197a7bd67562"></script>
+<script src="../../fx/du-story.js?v=du-58e7197a7bd67562"></script>
+<script src="../../fx/du-wonder.js?v=du-58e7197a7bd67562"></script>
+  <script src="../../fx/du-ambient.js?v=du-58e7197a7bd67562"></script>
+  <script type="module" src="./src/main.js?v=du-58e7197a7bd67562"></script>
+<script src="../../update-manager.js?v=du-58e7197a7bd67562"></script>
 </body>
 </html>

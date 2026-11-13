@@ -10,11 +10,16 @@ const RAINBOW_ARC = ['M120 470A280 280 0 0 1 680 470', 'M148 470A252 252 0 0 1 6
 const CHAPTERS = [
   { name: 'The Call', icon: '🏡', fn: chapter1, x: 9, y: 76, blurb: 'A storm! Pip brings terrible news.' },
   { name: 'Whispering Forest', icon: '🌲', fn: chapter2, x: 24, y: 48, blurb: 'Ride through the glowing trees.' },
-  { name: 'Rickety Bridge', icon: '🌉', fn: chapter3, x: 37, y: 74, blurb: 'Stomp in time to cross the canyon.' },
+  // The tile used to type a suspension bridge from a font. The bridge in chapter three is
+  // rope, and rope is photographed.
+  { name: 'Rickety Bridge', icon: '🪢', fn: chapter3, x: 37, y: 74, blurb: 'Stomp in time to cross the canyon.' },
   { name: 'Crystal Cave', icon: '💎', fn: chapter4, x: 50, y: 42, blurb: 'Light the dark and sing the door open.' },
   { name: 'River of Fire', icon: '🌋', fn: chapter5, x: 62, y: 72, blurb: 'Hop the stones. Sing the volcano to sleep.' },
   { name: 'Sky Ride', icon: '☁️', fn: chapter6, x: 76, y: 40, blurb: 'Soar through the clouds on Pip’s wings.' },
-  { name: 'Grumblecloud’s Peak', icon: '⛈️', fn: chapter7, x: 90, y: 16, blurb: 'The final rescue!' },
+  // ☁ and ⛈ are one cloud photograph, so two levels of this quest would have
+  // looked identical to a child who cannot read the names yet. The peak is the
+  // storm's own lightning, which is a different specimen.
+  { name: 'Grumblecloud’s Peak', icon: '⚡', fn: chapter7, x: 90, y: 16, blurb: 'The final rescue!' },
 ];
 
 export function mountDinoRescue(context) {
@@ -35,7 +40,7 @@ export function mountDinoRescue(context) {
     E.hush();
     const nodes = CHAPTERS.map((c, i) => {
       const st = i < done ? 'done' : i === done ? 'now' : 'locked';
-      const b = E.add('<span>' + (st === 'locked' ? '🔒' : c.icon) + '</span><small>' + (i + 1) + '. ' + c.name + '</small>', 'rs-node ' + st, 'left:' + c.x + '%;top:' + c.y + '%');
+      const b = E.add('<span>' + (st === 'locked' ? window.DUICONS.i('lock', { size: 18 }) : c.icon) + '</span><small>' + (i + 1) + '. ' + c.name + '</small>', 'rs-node ' + st, 'left:' + c.x + '%;top:' + c.y + '%');
       b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0'); b.setAttribute('aria-label', c.name + ' ' + st);
       return b;
     });
@@ -48,9 +53,19 @@ export function mountDinoRescue(context) {
     }
     // the rider sits on the next chapter
     const at = Math.min(done, CHAPTERS.length - 1), rider = E.mount(CHAPTERS[at].x - 6, CHAPTERS[at].y - 24, 11, 'happy'); rider.style.zIndex = 4; rider.style.pointerEvents = 'none';
-    const shelf = E.add(E.save.badges.length ? '<b>Badges</b> ' + E.save.badges.map((b) => ({ rider: '🏇', forest: '🌲', bridge: '🌉', cave: '💎', lava: '🌋', sky: '☁️', hero: '👑', rainbow: '🌈' })[b] || '⭐').join(' ') : '<b>Your badges will appear here</b>', 'rs-shelf');
+    // Two of these named things this universe cannot photograph. The rider is awarded the
+    // dinosaur the child actually chose — the same running render chapter one's card handed
+    // over, in its own colour — and the hero's crown is the app's drawn trophy, so the shelf
+    // never shows a horse, a suspension bridge or someone else's font.
+    const badgeIcon = (b) => {
+      const m = mountInfo();
+      if (b === 'rider') return FX.dinoHTML(m.id, { state: 'run', color: m.color, size: '1.3em' });
+      if (b === 'hero') return window.DUICONS.i('trophy', { size: 18 });
+      return { forest: '🌲', bridge: '🪢', cave: '💎', lava: '🌋', sky: '☁️', rainbow: '🌈' }[b] || '⭐';
+    };
+    const shelf = E.add(E.save.badges.length ? '<b>Badges</b> ' + E.save.badges.map(badgeIcon).join(' ') : '<b>Your badges will appear here</b>', 'rs-shelf');
     const stars = window.DUJourney ? DUJourney.stars('act.rescue') : 0;
-    const info = E.add(mountInfo().name + ' · chapter ' + Math.min(done, CHAPTERS.length) + ' of ' + CHAPTERS.length + ' · 💎 ' + E.save.gems + (stars ? ' · ' + '⭐'.repeat(stars) : '') + (E.save.party.length ? ' · Friends: ' + E.save.party.map((p) => ({ pip: 'Pip', bumper: 'Bumper' })[p] || p).join(', ') : ''), 'rs-info');
+    const info = E.add(mountInfo().name + ' · chapter ' + Math.min(done, CHAPTERS.length) + ' of ' + CHAPTERS.length + ' · 💎 ' + E.save.gems + (stars ? ' · ' + window.DUICONS.stars(stars) : '') + (E.save.party.length ? ' · Friends: ' + E.save.party.map((p) => ({ pip: 'Pip', bumper: 'Bumper' })[p] || p).join(', ') : ''), 'rs-info');
     const reset = E.add('Start again', 'rs-reset'); reset.setAttribute('role', 'button');
     const idx = await new Promise((resolve) => {
       nodes.forEach((n, i) => { const go = () => { if (i <= done || i < CHAPTERS.length && i <= E.save.next) { E.sfx.roar(); resolve(i); } else { E.sfx.boing(); n.animate([{ translate: '0' }, { translate: '-6px' }, { translate: '6px' }, { translate: '0' }], { duration: 300 }); } }; n.addEventListener('click', go); n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') go(); }); });
@@ -85,7 +100,9 @@ export function mountDinoRescue(context) {
       '<span style="position:absolute;left:12%;top:82%;font-size:30px">🌲</span><span style="position:absolute;left:84%;top:80%;font-size:30px">🌳</span><span style="position:absolute;left:58%;top:86%;font-size:26px">🌷</span>',
       { ambient: 'rain', music: 'joy' });
     await E.say('Grumblecloud is raining rainbows! Tap all ten shiny drops before they fade.', 'narrator', 3600);
-    const kinds = ['🌈', '💧', '✨', '⭐'];
+    // Four kinds of shine, four photographs: ✨ and ⭐ are one star, so a drop
+    // could never read as both, and quartz is the thing that actually glitters.
+    const kinds = ['🌈', '💧', '💎', '⭐'];
     const spots = [];
     for (let i = 0; i < 10; i++) spots.push([8 + Math.random() * 84, 16 + Math.random() * 58, kinds[i % 4]]);
     await E.tapAll(spots, 'crystal');

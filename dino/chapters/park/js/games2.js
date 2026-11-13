@@ -10,9 +10,8 @@
     lo(k, v) { const o = rec.get(k); if (o === null || v < o) { store.set('dino_x-rec-' + k, Math.round(v * 10) / 10); return true; } return false; },
   };
   const ribbon = (html, bg) => { const r = el('div', 'col-goal', html); if (bg) r.style.background = bg; FX.pop(r); return r; };
-  const recordBar = (txt) => ribbon('🏆 ' + txt, 'linear-gradient(90deg,#fdf1d4,#f6e2ae)');
+  const recordBar = (txt) => ribbon(window.DUICONS.i('trophy', { size: 18 }) + ' ' + txt, 'linear-gradient(90deg,#fdf1d4,#f6e2ae)');
   /* A few collectible stars drift in when the child does something wonderful. */
-  const cheer = (n) => { if (window.DUWONDER && DUWONDER.mote) DUWONDER.mote(n); };
   /* What each species is called, for the words we say and for a card's accessible name. */
   const SP = { trex: 'T-rex', tricera: 'Triceratops', stego: 'Stegosaurus', bronto: 'Brontosaurus', raptor: 'Raptor', ptero: 'Pterosaur' };
 
@@ -233,7 +232,7 @@
             if (h.gold) { ctx.bonus(2, b, 'Golden friend!'); FX.sfx.coin(); FX.burst(c.x, c.y - 30, { kind: 'stars', n: 16 }); }
             if (caseV.set(h.sp, found) && stampInto(mmCase, caseArt, h.sp, found, 'New trophy!')) {
               ctx.say(`${SP[h.sp]} joins your trophy case — ${mmCase.dataset.got} of ${caseIds.length} friends met!`);
-              if (mmCase.classList.contains('full')) { ctx.bonus(2, mmCase, 'Case complete!'); cheer(2); }
+              if (mmCase.classList.contains('full')) { ctx.bonus(2, mmCase, 'Case complete!'); }
             } else {
               ctx.say(`You found the ${SP[h.sp]}! ${found} of ${GOAL} friends found.`);
             }
@@ -307,7 +306,7 @@
 
   /* ====================================================================== 6. Size Parade */
   const SIZE_WORDS = { 3: ['Small', 'Medium', 'Big'], 4: ['Tiny', 'Small', 'Big', 'Huge'], 5: ['Tiny', 'Small', 'Medium', 'Big', 'Huge'] };
-  const FLOATS = ['🎈', '🥁', '🎺', '🎠', '🎉'];
+  const FLOATS = ['🥁', '🎺', '🪘', '🎍', '🌈'];
   /* The "keep going" bonus: three (or more) fresh friends who have to find their place in a longer line. */
   function bonusLine(ctx, host, done) {
     const n = Math.min(6, 2 + ctx.round);
@@ -367,11 +366,11 @@
       ctx.say(blind ? 'No guide this time! The BIGGEST goes first!' : mixed ? 'Five different friends, no repeats. Biggest first!' : desc ? 'This time the BIGGEST goes first!' : 'Smallest first! Drag them into the line.');
       const best = rec.get('sort' + k);
       ctx.area.append(recordBar(best === null ? `Line up ${k} dinosaurs with as few mix-ups as you can!` : `Your best line of ${k}: <b>${best}</b> mix-up${best === 1 ? '' : 's'}. Beat it!`));
-      /* The float shelf: every parade you march leaves a decorated float on it for good. */
+      /* The float shelf: every parade you march leaves a float carrying the valley band on it for good. */
       const floatV = ledger('sort-floats'), floatMap = floatV.all();
       const floatIds = Array.from({ length: ctx.rounds }, (_, i) => String(i + 1));
       const floatArt = (s, id) => { s.innerHTML = `<i>${FLOATS[Number(id) % FLOATS.length]}</i><small>L${id}</small>`; };
-      const shelf = collectRow('sp-shelf', 'lvl', floatIds, floatMap, '<i>🎪</i>', floatArt);
+      const shelf = collectRow('sp-shelf', 'lvl', floatIds, floatMap, '<i>' + window.DUICONS.i('lock', { size: 16 }) + '</i>', floatArt);
       const head = statusBar([`Level ${R}`, `${k} dinosaurs`, best === null ? 'No record yet' : `Best ${best} mix-ups`, `Floats ${shelf.dataset.got}/${ctx.rounds}`], '#3d9bd6');
       const floatBit = $('.du-bar-3', head);
       ctx.area.append(head, shelf);
@@ -382,7 +381,7 @@
         s.innerHTML = `<b>${i + 1}</b>` + (!blind ? `<span class="ghost" style="width:${sz}px">${FX.dinoHTML(spList[sizes.indexOf(sz)], { color: 'blue', state: 'idle' })}</span>` : '');
         line.append(s); return s;
       });
-      const guide = el('div', 'par-guide', desc ? '<span>BIG</span><i>➜</i><span>small</span>' : '<span>small</span><i>➜</i><span>BIG</span>');
+      const guide = el('div', 'par-guide', desc ? '<span>BIG</span><i>➡</i><span>small</span>' : '<span>small</span><i>➡</i><span>BIG</span>');
       const tray = el('div', 'par-tray');
       let done = 0, slips = 0;
       const dinos = [];
@@ -461,7 +460,7 @@
         [0, 1, 2].forEach((i) => setTimeout(() => { if (ctx.alive()) ctx.life.visit(); }, i * 280));
         FX.celebrate(); ctx.flutter(5);
         const fresh = rec.lo('sort' + k, slips);
-        if (fresh) { ctx.bonus(2, line, 'Smartest line ever!'); cheer(2); }
+        if (fresh) { ctx.bonus(2, line, 'Smartest line ever!'); }
         // A float for the shelf, for good, and at the top level an invitation to a longer line.
         if (floatV.set(String(R), R) && stampInto(shelf, floatArt, String(R), R, 'A new float!')) {
           if (floatBit) floatBit.textContent = `Floats ${shelf.dataset.got}/${ctx.rounds}`;
@@ -479,8 +478,10 @@
 
   /* ====================================================================== 7. Counting */
   const NUM_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-  const FRUIT = [['🍓', 'berries'], ['🍎', 'apples'], ['🍇', 'grapes'], ['🍌', 'bananas'], ['🍉', 'melon slices'], ['🍊', 'oranges'], ['🥕', 'carrot sticks']];
-  const SILLY = ['🪨', '🧦', '👟', '🧊', '🪵'];
+  const FRUIT = [['🍓', 'berries'], ['🌿', 'fern fronds'], ['🍄', 'mushrooms'], ['🌰', 'seed cones'], ['☘️', 'moss'], ['🐟', 'fish'], ['🥚', 'eggs']];
+  // One snack, said out loud: berries -> berry, fern fronds -> fern frond.
+  const SING = (w) => w.replace(/ies$/, 'y').replace(/s$/, '');
+  const SILLY = ['🪨', '🪢', '🦴', '🧊', '🪵'];
   const SP_NAME = { trex: 'Rexy', tricera: 'Tricera', stego: 'Stego', bronto: 'Bronto', raptor: 'Rapt', ptero: 'Ptero' };
   window.Park.register({
     id: 'count', name: 'Snack Time', icon: 'tricera', color: '#e05a7a', rounds: 6, helper: 'tricera', ambient: 'meadow',
@@ -500,8 +501,8 @@
       /* The snack garden: every food you ever count out loud grows into a plant that stays planted. */
       const gardV = ledger('count-garden'), gardMap = gardV.all();
       const gardIds = FRUIT.map((f) => f[0]).slice(0, Math.min(FRUIT.length, 2 + R));
-      const gardArt = (s, id) => { const w = FRUIT.find((f) => f[0] === id); s.innerHTML = `<i>${id}</i><small>${w ? w[1].replace(/s$/, '') : ''}</small>`; };
-      const garden = collectRow('cnt-garden', 'f', gardIds, gardMap, '<i>🕳️</i>', gardArt);
+      const gardArt = (s, id) => { const w = FRUIT.find((f) => f[0] === id); s.innerHTML = `<i>${id}</i><small>${w ? SING(w[1]) : ''}</small>`; };
+      const garden = collectRow('cnt-garden', 'f', gardIds, gardMap, '<i>🟤</i>', gardArt);
       const head = statusBar([`Level ${R}`, `${nums.join(' + ')} snacks`, best === null ? 'No record yet' : `Best ${best} mix-ups`, `Garden ${garden.dataset.got}/${gardIds.length}`], '#e05a7a');
       const gardBit = $('.du-bar-3', head);
       ctx.area.append(head, garden);
@@ -530,7 +531,7 @@
       const foods = shuffle([...snack, ...Array(total + 3).fill(F), ...(tricky ? [...Array(3).fill(0).map(() => pick(others)), ...yucks, yucks[0]] : [])]);
       const btns = foods.map((f) => {
         const b = el('button', 'cnt-food', f); b.dataset.f = f;
-        b.setAttribute('aria-label', f === F ? fname.replace(/s$/, '') : f === '⭐' ? 'Sparkle snack' : 'Not food');
+        b.setAttribute('aria-label', f === F ? SING(fname) : f === '⭐' ? 'Sparkle snack' : 'Not food');
         b.style.setProperty('--r', (Math.random() * 20 - 10).toFixed(0) + 'deg');
         if (f === '⭐') b.style.background = 'radial-gradient(circle at 50% 38%,#fff6c8,#ffd970 72%,#f0b531)';
         b.onclick = async () => {
@@ -580,12 +581,12 @@
             if (gardV.set(F, R) && stampInto(garden, gardArt, F, R, 'Planted!')) {
               if (gardBit) gardBit.textContent = `Garden ${garden.dataset.got}/${gardIds.length}`;
               ctx.say(`${fname} are planted in your snack garden — ${garden.dataset.got} of ${gardIds.length} growing!`);
-              if (garden.classList.contains('full')) { ctx.bonus(2, garden, 'Garden in bloom!'); garden.classList.add('bloom'); cheer(2); }
+              if (garden.classList.contains('full')) { ctx.bonus(2, garden, 'Garden in bloom!'); garden.classList.add('bloom'); }
             }
             if (++doneN === eaters.length) {
               FX.celebrate(); ctx.flutter(3);
               const fresh = rec.lo('count' + R, slips);
-              if (fresh && slips === 0) { ctx.bonus(2, stage, 'Perfect counting!'); cheer(2); }
+              if (fresh && slips === 0) { ctx.bonus(2, stage, 'Perfect counting!'); }
               ctx.done(`${e.name} counted all the way to ${NUM_WORD[e.n]}!` + (fresh ? ' A brand-new record!' : ''), 2100); busy = false; return;
             }
             const nxt = eaters.find((x) => x.fed < x.n); if (nxt) select(nxt);
@@ -600,7 +601,7 @@
         // Count the dots out loud with the helper, then the answer glows.
         const dots = $$('.cnt-dot', cur.line);
         dots.forEach((d, i) => setTimeout(() => { if (ctx.alive()) { FX.pop(d); FX.sfx.note(i, .12); } }, i * 220));
-        ctx.say(`Count with me! ${cur.fed} in the tummy, ${cur.n - cur.fed} still to find — the glowing snack is a ${fname.replace(/s$/, '')}!`);
+        ctx.say(`Count with me! ${cur.fed} in the tummy, ${cur.n - cur.fed} still to find — the glowing snack is a ${SING(fname)}!`);
         setTimeout(() => b.classList.remove('glow'), 2600);
       };
       ctx.hint(showMe);
@@ -648,7 +649,7 @@
         const P = SHAPES[id], pp = P.pts.map((q) => `${(q[0] * .18).toFixed(1)},${(q[1] * .18).toFixed(1)}`).join(' ');
         s.innerHTML = `<svg viewBox="0 0 72 54"><polygon points="${pp}" fill="${P.fill}" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
       };
-      const ddWall = collectRow('dd-wall', 'p', wallIds, wallMap, '<i>✳️</i>', wallArt);
+      const ddWall = collectRow('dd-wall', 'p', wallIds, wallMap, '<i>🌌</i>', wallArt);
       const head = statusBar([`Level ${ctx.round}`, `${pts.length} dots · ${S.title}`, bestS === null ? 'No time yet' : `Best ${bestS}s`, `Wall ${ddWall.dataset.got}/${wallIds.length}`], '#8e5bd1');
       const wallBit = $('.du-bar-3', head);
       ctx.area.append(head, ddWall);
@@ -690,7 +691,7 @@
         fillEl.classList.add('show'); FX.sfx.win(); ctx.say(S.title);
         const fast = rec.lo('dots' + key, secs);
         const cw = centreOf(wrap); FX.floatText(cw.x, cw.y + 70, `${secs}s`, { size: 30 });
-        if (fast) { ctx.bonus(2, wrap, 'Fastest ever!'); cheer(2); }
+        if (fast) { ctx.bonus(2, wrap, 'Fastest ever!'); }
         await sleep(500); if (!ctx.alive()) return;
         reveal(fast);
       };
@@ -765,7 +766,7 @@
         if (wallV.set(key, ctx.round) && stampInto(ddWall, wallArt, key, ctx.round, 'Hung on the wall!')) {
           if (wallBit) wallBit.textContent = `Wall ${ddWall.dataset.got}/${wallIds.length}`;
           ctx.say(`${S.title} Hangs on your night wall — ${ddWall.dataset.got} of ${wallIds.length} pictures joined!`);
-          if (ddWall.classList.contains('full')) { ctx.bonus(2, ddWall, 'The whole wall is lit!'); cheer(2); }
+          if (ddWall.classList.contains('full')) { ctx.bonus(2, ddWall, 'The whole wall is lit!'); }
         }
         /* From level three the finished scene is not a still picture any more: living dinosaurs wander into it. */
         if (ctx.round >= 3) {

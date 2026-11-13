@@ -1,0 +1,116 @@
+/* Dinosaur Universe — the opening cinematic.
+ * The photographs do the acting, so the chrome stays out of their way: black
+ * bars, one line of words at a time, and a way out that is always visible.
+ */
+
+.du-intro {
+  position: fixed; inset: 0; z-index: 960; background: #05070c; color: #fff;
+  font-family: "Baloo 2", "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+  overflow: hidden; outline: none;
+  animation: du-intro-in .6s ease-out both;
+}
+@keyframes du-intro-in { from { opacity: 0 } to { opacity: 1 } }
+
+.du-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* The update pill is pinned above every layer in the app, and it would sit on
+ * top of a film like a sticker on a cinema screen. */
+body.du-cinema #du-update-trigger, body.du-cinema #du-update-panel { display: none !important; }
+
+/* Cinema bars: they tell a child this is a film, not a menu, before any word
+ * is read. They part when the opening ends. */
+.du-intro-bars { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; pointer-events: none; }
+.du-intro-bars i { height: clamp(26px, 7vh, 74px); background: #05070c; transition: height .5s ease; }
+
+.du-intro-ui { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto; }
+
+.du-intro-skip {
+  position: absolute; top: max(14px, env(safe-area-inset-top)); right: 14px;
+  min-height: 48px; padding: 10px 20px; border: 2px solid rgba(255, 255, 255, .55); border-radius: 999px;
+  background: rgba(6, 10, 18, .55); color: #fff; font: 700 clamp(15px, 2.4vw, 20px)/1 inherit; cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.du-intro-skip:hover, .du-intro-skip:focus-visible { background: rgba(11, 110, 95, .8); border-color: #fff; outline: none; }
+
+/* ---------- captions ----------
+ * The voice is the star; these are the subtitles under it. Words brighten as
+ * they are said, which is what lets a five-year-old follow along and a seven-
+ * year-old read ahead. */
+.du-intro-caption {
+  grid-row: 2; justify-self: center; width: min(1000px, 92vw);
+  margin: 0 auto clamp(74px, 12vh, 132px); padding: 0 8px; text-align: center;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .85), 0 0 26px rgba(0, 0, 0, .55);
+  position: relative;
+}
+/* Words have to survive a white waterfall and a bright lagoon, so the bottom
+ * of the frame is darkened rather than the text being made louder. */
+.du-intro-caption::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  left: 50%; right: auto; transform: translateX(-50%);
+  width: 118vw; height: 260%; bottom: -70%;
+  background: radial-gradient(60% 52% at 50% 62%, rgba(3, 6, 12, .62), rgba(3, 6, 12, 0) 72%);
+}
+.du-intro-caption b {
+  display: block; margin-bottom: 6px; font-size: clamp(13px, 1.9vw, 17px);
+  letter-spacing: .22em; color: #ffd98a; text-transform: uppercase;
+}
+.du-intro-caption p {
+  margin: 0; font-size: clamp(21px, 3.6vw, 40px); line-height: 1.28; font-weight: 700;
+}
+.du-intro-caption p span { transition: color .12s linear, opacity .12s linear; }
+.du-intro-caption .todo { opacity: .38; }
+.du-intro-caption .now { opacity: 1; color: #ffe9a8; }
+.du-intro-caption .said { opacity: .92; }
+
+/* ---------- the poster ---------- */
+.du-intro-poster .du-intro-bars i { height: clamp(40px, 12vh, 120px); }
+.du-intro-title {
+  grid-row: 2; justify-self: center; align-self: center; text-align: center;
+  padding: 0 16px clamp(60px, 12vh, 120px);
+}
+.du-intro-kicker {
+  display: block; font-size: clamp(12px, 1.7vw, 16px); letter-spacing: .34em;
+  color: #9fe3c8; margin-bottom: 10px; font-weight: 700;
+}
+.du-intro-title h1 {
+  margin: 0; font-size: clamp(38px, 9vw, 104px); line-height: .96; letter-spacing: -.01em;
+  text-shadow: 0 6px 30px rgba(0, 0, 0, .8);
+}
+.du-intro-title p { margin: 10px 0 26px; font-size: clamp(16px, 2.4vw, 24px); opacity: .85; }
+
+.du-intro-title button {
+  display: block; margin: 10px auto 0; min-height: 62px; padding: 16px 34px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(180deg, #17c79a, #0b6e5f); color: #fff;
+  font: 800 clamp(19px, 3vw, 27px)/1 inherit;
+  box-shadow: 0 10px 0 rgba(4, 46, 39, .55), 0 18px 40px rgba(0, 0, 0, .5);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.du-intro-title button:hover, .du-intro-title button:focus-visible { transform: translateY(-2px); outline: none; }
+.du-intro-title button:active { transform: translateY(5px); box-shadow: 0 5px 0 rgba(4, 46, 39, .55); }
+.du-intro-quiet {
+  background: none !important; box-shadow: none !important; color: #cfe6dd !important;
+  font-size: clamp(15px, 2vw, 19px) !important; min-height: 48px !important; padding: 12px 20px !important;
+}
+
+/* The roar is felt as well as heard. */
+.du-intro.shake .du-intro-canvas { animation: du-intro-shake .62s cubic-bezier(.36, .07, .19, .97) both; }
+@keyframes du-intro-shake {
+  10%, 90% { transform: translate(-2px, 1px) }
+  20%, 80% { transform: translate(4px, -2px) }
+  30%, 50%, 70% { transform: translate(-7px, 3px) }
+  40%, 60% { transform: translate(7px, -3px) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .du-intro, .du-intro.shake .du-intro-canvas { animation: none; }
+  .du-intro.shake .du-intro-canvas { transform: none; }
+}
+
+/* A phone turned sideways is how most children will actually watch this. */
+@media (max-height: 460px) {
+  .du-intro-bars i { height: 18px; }
+  .du-intro-caption { margin-bottom: 34px; }
+  .du-intro-caption p { font-size: clamp(17px, 3.2vh, 26px); }
+  .du-intro-title { padding-bottom: 26px; }
+}

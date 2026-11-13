@@ -20,9 +20,18 @@ export const PRAISE=['Lovely!','Wonderful!','Brilliant!','Super!','You did it!',
 const KIND_LINES=['Almost! Have another little look.','Hmm, try another one!','Nearly there. You can do it!','Ooh, not that one. Try again!'];
 export const SPECIES=['trex','tricera','stego','bronto','raptor','ptero'];
 export const SPECIES_NAMES=['T-rex','Triceratops','Stegosaurus','Brontosaurus','Raptor','Pterodactyl'];
+// family-ok: the bed is scattered for density, the way a real meadow is many of
+// one bloom — a child reads it as "lots of flowers", never as a choice of eight.
+// The reward slot is the opposite case and so picks from BLOOMS below.
 export const FLOWERS=['🌼','🌸','🌷','🌻','🌺','💐','🌹','🪻'];
+/* This universe photographs exactly two different flowers, so a reward that
+ * promised eight kinds would have shown one picture eight times over. Two real
+ * specimens, chosen per round, is what a child can actually tell apart. */
+export const BLOOMS=['🌼','🪻'];
 
 /* ---------- scenery ---------- */
+// family-ok: the deco bands are the trees and blooms standing in the picture,
+// not things a child is asked to tell apart, and a wood of four pines is a wood.
 export const THEMES=[
  {name:'Sunny meadow',sky:['#92d9f0','#f3fbe0'],far:'#97d6a2',mid:'#74c58a',near:'#53b074',sun:true,species:0,deco:['🌳','🌼','🌳']},
  {name:'Berry forest',sky:['#b9e3c6','#eef6d2'],far:'#7fc29a',mid:'#5fae86',near:'#3f9a72',sun:true,species:1,deco:['🌲','🍓','🌳','🍄']},
@@ -37,19 +46,9 @@ function hill(color,amp,k,base,ph){
  return `url('data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400' preserveAspectRatio='none'><path d='${d}' fill='${color}'/></svg>`).replace(/'/g,'%27')}')`;
 }
 export function scenery(level,garden){
- const t=THEMES[level%5];
- const bflies=Math.min(3,1+(garden?.butterflies||0));
- let s=`<div class="backdrop" style="background:linear-gradient(${t.sky[0]},${t.sky[1]})">`;
- if(t.sun)s+='<i class="sun"></i>';
- if(t.stars){s+='<i class="moon"></i>';for(let i=0;i<16;i++)s+=`<i class="twinkle" style="left:${(i*37+11)%97}%;top:${(i*23+7)%46}%;animation-delay:${(i%7)*.4}s"></i>`;}
- if(t.rainbow)s+='<svg class="rainbow" viewBox="0 0 400 200" aria-hidden="true">'+['#ff8e8e','#ffc27a','#ffe68a','#9ddf9f','#8ec9f5','#b8a2ea'].map((c,i)=>`<path d="M${20+i*12} 200A${180-i*12} ${180-i*12} 0 0 1 ${380-i*12} 200" fill="none" stroke="${c}" stroke-width="12" opacity=".75"/>`).join('')+'</svg>';
- s+=`<i class="cloud" style="--t:8%;--s:75s;--d:-20s"></i><i class="cloud" style="--t:22%;--s:110s;--d:-70s;transform:scale(.7)"></i>`;
- s+=`<div class="layer" style="--h:62%;--s:160s;background-image:${hill(t.far,22,1,120,0)}"></div>`;
- s+=`<div class="layer" style="--h:46%;--s:95s;background-image:${hill(t.mid,26,2,130,1.2)}"></div>`;
- t.deco.forEach((e,i)=>{s+=`<span class="deco" style="left:${8+i*24}%;bottom:${34+i%2*6}%;font-size:${40+i%3*10}px;animation-delay:${i*.7}s" aria-hidden="true">${e}</span>`;});
- s+=`<div class="layer" style="--h:30%;--s:55s;background-image:${hill(t.near,16,3,150,.4)}"></div>`;
- for(let i=0;i<bflies;i++)s+=`<span class="bf" style="--y:${14+i*17}%;--s:${16+i*5}s;animation-delay:${-i*6}s" aria-hidden="true">🦋</span>`;
- return s+'</div>';
+ const name=['jungle','jungle','night','ice','jungle'][level%5];
+ const url=new URL('../../assets/environments/'+name+'.webp',import.meta.url).href;
+ return `<div class="backdrop photo-backdrop" style="background-image:url('${url}')"></div>`;
 }
 function walkerHTML(level){
  const sp=SPECIES[THEMES[level%5].species];
@@ -161,7 +160,10 @@ export function beginRound(game,round,fn){
    if(!o.soft){S.mistakes++;S.roundMistakes++;}S.streak=0;
    oops();
    if(el)animate(el,[{transform:'translateX(0) rotate(0)'},{transform:'translateX(-8px) rotate(-3deg)'},{transform:'translateX(7px) rotate(3deg)'},{transform:'translateX(-4px)'},{transform:'translateX(0)'}],{duration:360});
-   critter('idle');speechBubble(pick(['🤔','💭','🧐']));
+   /* Three thinking faces are three ways of typing the same idea, and this
+    * universe draws faces only for the grown-ups in fx/du-people.js, so the
+    * bubble shows what the dino actually says: have another little look. */
+   critter('idle');speechBubble('🔍');
    g.note(o.text||pick(KIND_LINES));env.speak(o.speech||'Have another little look.');
    if(S.roundMistakes>=2&&assist)assist();
    hud();
@@ -182,7 +184,7 @@ export function beginRound(game,round,fn){
    play.classList.add('done');
    const idx=S.roundStars.length-1;
    const slot=document.querySelectorAll('.grow .slot')[idx];
-   if(slot){slot.textContent=pick(FLOWERS);slot.classList.add('on');}
+   if(slot){slot.textContent=pick(BLOOMS);slot.classList.add('on');}
    sfx('win');
    const rv=$('#reveal');
    if(rv){rv.innerHTML=`<div class="rv-text">${pick(PRAISE)}</div><div class="rv-stars">${[1,2,3].map(i=>`<span class="${i<=stars?'on':''}" style="animation-delay:${i*.14}s">⭐</span>`).join('')}</div>`;rv.classList.add('show');}
@@ -253,7 +255,7 @@ export function finish(game,labels){
   const d=D().dino?D().dino(SPECIES[baby],{state:'happy',size:150}):document.createElement('span');
   d.classList.add('hatch');
   egg.replaceWith(d);
-  line.textContent=`A baby ${SPECIES_NAMES[baby]}! They live in your meadow now. 💚`;
+  line.textContent=`A baby ${SPECIES_NAMES[baby]}! They live in your meadow now. ✨`;
   env.speak(`A baby ${SPECIES_NAMES[baby].replace('T-rex','T rex')}! They live in your meadow now.`);
   holder.querySelector('.du-dino')?.addEventListener('click',()=>{safe(()=>D().dinoState(d,'happy',900));sfx('chirp');});
  };

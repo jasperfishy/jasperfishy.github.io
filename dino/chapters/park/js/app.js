@@ -38,7 +38,7 @@
     $('#musCount').textContent = mus.length ? `(${mus.length} built)` : '';
     mus.slice(-12).reverse().forEach((d) => {
       const b = el('button', 'mus-card');
-      b.innerHTML = `<span class="mc-art">${FX.dinoHTML(d.s, { color: d.c, state: 'idle' })}</span><b>${d.n}</b><span class="mc-stars">${[1, 2, 3].map((n) => `<i class="${n <= d.st ? 'on' : ''}">★</i>`).join('')}</span><small>${window.Park.SPEC_NAME ? window.Park.SPEC_NAME[d.s] : d.s} · ${d.p || '?'} bones</small>`;
+      b.innerHTML = `<span class="mc-art">${FX.dinoHTML(d.s, { color: d.c, state: 'idle' })}</span><b>${d.n}</b><span class="mc-stars">${[1, 2, 3].map((n) => `<i class="${n <= d.st ? 'on' : ''}">${window.DUICONS.i('star', { size: 15, filled: n <= d.st })}</i>`).join('')}</span><small>${window.Park.SPEC_NAME ? window.Park.SPEC_NAME[d.s] : d.s} · ${d.p || '?'} bones</small>`;
       b.onclick = () => { FX.dinoState($('.du-dino', b), d.s === 'trex' ? 'roar' : 'happy', 1200); (d.s === 'trex' ? FX.sfx.roar : FX.sfx.chirp)(); const r = b.getBoundingClientRect(); FX.burst(r.left + r.width / 2, r.top + 20, { kind: 'stars', n: 8 }); };
       ms.append(b);
     });
@@ -49,7 +49,7 @@
       const s = stars.get(g.id); total += s;
       const b = el('button', 'tile'); b.style.setProperty('--gc', g.color); b.style.setProperty('--du-delay', (i * .05) + 's');
       b.dataset.game = g.id;
-      b.innerHTML = `<span class="tile-art">${FX.dinoHTML(g.icon, { state: i % 2 ? 'idle' : 'idle', color: undefined })}</span><span class="name">${g.name}</span><span class="tile-desc">${g.desc}</span><span class="stars">${[1, 2, 3].map((n) => `<i class="${n <= s ? 'on' : ''}">★</i>`).join('')}</span>`;
+      b.innerHTML = `<span class="tile-art">${FX.dinoHTML(g.icon, { state: i % 2 ? 'idle' : 'idle', color: undefined })}</span><span class="name">${g.name}</span><span class="tile-desc">${g.desc}</span><span class="stars">${[1, 2, 3].map((n) => `<i class="${n <= s ? 'on' : ''}">${window.DUICONS.i('star', { size: 15, filled: n <= s })}</i>`).join('')}</span>`;
       b.onclick = () => { FX.sfx.tap(); window.Park.start(g.id); };
       b.addEventListener('pointerenter', () => FX.dinoState($('.du-dino', b), 'happy', 900));
       grid.append(b);
@@ -71,8 +71,7 @@
   $('#nextBtn').onclick = () => { FX.sfx.tap(); window.Park.nextGame(); };
   function setSound(on, tell) {
     FX.configure({ sound: on });
-    $('#soundBtn').textContent = on ? '🔊' : '🔇';
-    $('#soundBtn').setAttribute('aria-label', on ? 'Turn sound off' : 'Turn sound on');
+    window.DUICONS.set($('#soundBtn'), on ? 'sound' : 'sound-off', { size: 20, label: on ? 'Turn sound off' : 'Turn sound on' });
     if (tell && EMBEDDED) window.parent.postMessage({ type: 'du-settings-update', sound: on }, location.origin);
   }
   $('#soundBtn').onclick = () => { const on = !FX.settings.sound; setSound(on, true); if (on) FX.sfx.good(); };

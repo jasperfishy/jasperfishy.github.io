@@ -1,10 +1,32 @@
-import { drawPhotoreal } from "../../../photoreal-textures.js?v=du-316e7af9b57fa08e";
+import { drawPhotoreal } from "../../../photoreal-textures.js?v=du-58e7197a7bd67562";
+import { vehicleSVG, drawVehicle } from "../../../photoreal-vehicles.js?v=du-58e7197a7bd67562";
 // render/car.js — Draws the player's car from its config.
 // config = { body, paint, name, stickers: ["⭐", ...] }
 
-import { BODIES } from "./data-cars.js?v=du-316e7af9b57fa08e";
+import { BODIES } from "./data-cars.js?v=du-58e7197a7bd67562";
 
 let svgUid = 0;
+
+/* A sticker is the same specimen photograph everywhere else in this universe.
+ * Neither a canvas `fillText` nor an SVG `<text>` can ever be swapped for a
+ * picture by the object layer — that is why a child's own sticker used to show
+ * as a font glyph on the road while the very same sticker was a photograph in
+ * the garage. So the picture is asked for here, and the glyph is only what
+ * shows while it is still arriving. */
+const O = () => window.DUFX && window.DUFX.objects;
+function drawSticker(ctx, st, x, y, size) {
+  const o = O();
+  if (o && o.has(st)) { o.draw(ctx, st, x, y - size / 2, size); return; }
+  ctx.font = Math.round(size) + "px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(st, x, y);
+}
+function stickerSVG(st, x, y, size) {
+  const o = O();
+  const url = o && o.has(st) ? o.url(st) : null;
+  if (url) return `<image href="${url}" x="${x - size / 2}" y="${y - size * 0.72}" width="${size}" height="${size}" alt=""/>`;
+  return `<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle">${st}</text>`;
+}
 
 export function renderCarSVG(config) {
   const uid = svgUid++;
@@ -26,14 +48,14 @@ export function renderCarSVG(config) {
   const body = BODIES[config.body] ? BODIES[config.body](`url(#${gradId})`) : BODIES.sport(`url(#${gradId})`);
   const stickers = (config.stickers || []).slice(0, 4).map((s, i) => {
     const x = 110 + i * 40;
-    return `<text x="${x}" y="98" font-size="22" text-anchor="middle">${s}</text>`;
+    return stickerSVG(s, x, 98, 22);
   }).join("");
   const name = config.name
     ? `<text x="160" y="128" font-size="16" font-weight="bold" text-anchor="middle" fill="#fff" stroke="#222" stroke-width="0.6">${escapeHtml(config.name)}</text>`
     : "";
   return `<svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your customized car">
     ${defs}
-    <g filter="url(#${shadowId})">${body}</g>
+    <g filter="url(#${shadowId})">${vehicleSVG(config)}</g>
     ${stickers}
     ${name}
   </svg>`;
@@ -55,6 +77,7 @@ export function drawCarCanvas(ctx, config, x, y, scale = 1, tilt = 0) {
   ctx.translate(x, y);
   ctx.rotate(tilt);
   ctx.scale(scale, scale);
+  if(drawVehicle(ctx,config,'side',-70,-50,140,90)){ctx.restore();return;}
   const c = config.paint;
   // soft grounding shadow (radial falloff so it reads as a shadow, not a flat patch)
   const groundShadow = ctx.createRadialGradient(0, 34, 4, 0, 34, 66);
@@ -93,9 +116,7 @@ export function drawCarCanvas(ctx, config, x, y, scale = 1, tilt = 0) {
   }
   // stickers
   (config.stickers || []).slice(0, 3).forEach((s, i) => {
-    ctx.font = "14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(s, -30 + i * 30, -2);
+    drawSticker(ctx, s, -30 + i * 30, -2, 26);
   });
   ctx.restore();
 }
@@ -111,6 +132,14 @@ export function drawCarRear(ctx, config, x, y, scale = 1, tilt = 0, extra = {}) 
   ctx.translate(x, y);
   ctx.rotate(tilt);
   ctx.scale(scale, scale);
+  if(drawVehicle(ctx,config,'rear',-70,-74,140,120)){
+    drawPhotoreal(ctx,'trex-head-rear',-15,-90+Math.sin(t*5)*1.8,30,34);
+    ctx.fillStyle='#fff';ctx.fillRect(-20,27,40,13);
+    ctx.fillStyle='#222';ctx.textAlign='center';ctx.font='bold 9px sans-serif';
+    ctx.fillText((config.name||'DINO').slice(0,7).toUpperCase(),0,37);
+    (config.stickers||[]).slice(0,3).forEach((st,i)=>{drawSticker(ctx,st,-14+i*14,20,20);});
+    ctx.restore();return;
+  }
   // shadow
   ctx.fillStyle = "rgba(0,0,0,.25)";
   ctx.beginPath(); ctx.ellipse(0, 46, 66, 10, 0, 0, Math.PI * 2); ctx.fill();
@@ -151,7 +180,7 @@ export function drawCarRear(ctx, config, x, y, scale = 1, tilt = 0, extra = {}) 
   ctx.fillStyle = "#fff"; roundRect(ctx, -22, 20, 44, 16, 4); ctx.fill();
   ctx.fillStyle = "#222"; ctx.textAlign = "center"; ctx.font = "bold 11px sans-serif";
   ctx.fillText((config.name || "DINO").slice(0, 7).toUpperCase(), 0, 32);
-  (config.stickers || []).slice(0, 3).forEach((st, i) => { ctx.font = "13px sans-serif"; ctx.fillText(st, -14 + i * 14, 18 - 8 + (i === 1 ? -2 : 0)); });
+  (config.stickers || []).slice(0, 3).forEach((st, i) => { drawSticker(ctx, st, -14 + i * 14, 18 - 8 + (i === 1 ? -2 : 0), 22); });
   ctx.restore();
 }
 

@@ -202,10 +202,15 @@
       draw(dt) { scene.f.forEach((p) => { p.x += p.v * dt; if (p.x > W + p.r) p.x = -p.r; glow(p.x, p.y, p.r, 'rgba(235,240,245,.4)', 'rgba(235,240,245,0)'); }); },
     },
     wind: {
-      init() { return { lf: Array.from({ length: Math.round(26 * quality) }, () => ({ x: rnd(W), y: rnd(H), v: rnd(140, 320), ph: rnd(TAU), e: pick(['🍃', '🍂', '🌿']), s: rnd(14, 24) })), gust: [] }; },
+      init() { return { lf: Array.from({ length: Math.round(26 * quality) }, () => ({ x: rnd(W), y: rnd(H), v: rnd(140, 320), ph: rnd(TAU), e: pick(['🍃', '🍂', '🌸']), s: rnd(14, 24) })), gust: [] }; },
       draw(dt) {
         const s = scene; c.textAlign = 'center'; c.textBaseline = 'middle';
-        s.lf.forEach((l) => { l.x += l.v * dt; l.y += Math.sin(T * 3 + l.ph) * 60 * dt; if (l.x > W + 20) { l.x = -20; l.y = rnd(H); } c.save(); c.translate(l.x, l.y); c.rotate(T * 3 + l.ph); c.font = l.s + 'px serif'; c.fillText(l.e, 0, 0); c.restore(); });
+        // The gust carries specimens, not letters: a glyph painted with fillText
+        // is text forever — nothing can swap a photograph into it later — so the
+        // objects layer blits the leaf, and only until it decodes falls back to
+        // drawing the emoji.
+        const O = DUFX.objects;
+        s.lf.forEach((l) => { l.x += l.v * dt; l.y += Math.sin(T * 3 + l.ph) * 60 * dt; if (l.x > W + 20) { l.x = -20; l.y = rnd(H); } c.save(); c.translate(l.x, l.y); c.rotate(T * 3 + l.ph); if (O) O.draw(c, l.e, 0, 0, Math.round(l.s * 1.3)); else { c.font = l.s + 'px serif'; c.fillText(l.e, 0, 0); } c.restore(); });
         c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 3; c.lineCap = 'round';
         for (let i = 0; i < 4; i++) { const x = ((T * 260 + i * W / 4) % (W + 200)) - 100, y = H * (.2 + i * .2) + Math.sin(T + i) * 20; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 40, y - 14, x + 80, y); c.stroke(); }
       },

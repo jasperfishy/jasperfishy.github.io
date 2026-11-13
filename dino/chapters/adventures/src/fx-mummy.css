@@ -23,8 +23,8 @@
 .mc-layer.lights-off .mc-dark { background: rgba(8,12,40,.55); }
 .gs { position: absolute; font-size: 26px; animation: du-twinkle 2.6s ease-in-out infinite; }
 .g1 { left: 14%; top: 8%; } .g2 { left: 36%; top: 14%; animation-delay: -.8s; } .g3 { left: 58%; top: 7%; animation-delay: -1.3s; } .g4 { left: 78%; top: 16%; animation-delay: -.3s; } .g5 { left: 90%; top: 6%; animation-delay: -1.9s; }
-.mc-hearts { position: absolute; left: 12px; top: 10px; z-index: 9; background: rgba(255,255,255,.85); border-radius: 16px; padding: 3px 12px; display: flex; gap: 4px; font-size: 22px; }
-.mc-hearts i { font-style: normal; } .mc-hearts i.on { animation: du-bob2 1.6s ease-in-out infinite; }
+.mc-mood { position: absolute; left: 12px; top: 10px; z-index: 9; background: rgba(255,255,255,.85); border-radius: 16px; padding: 4px 10px; display: flex; gap: 3px; align-items: center; }
+.mc-mood [data-filled="1"] { animation: du-bob2 1.6s ease-in-out infinite; }
 .mc-bubble { position: absolute; z-index: 10; transform: translate(-50%, -100%) scale(.7); background: #fff; color: #3a2c4a; border-radius: 20px; padding: 8px 16px; font: 800 clamp(.9rem, 2.4vw, 1.3rem)/1.25 system-ui; max-width: 62%; text-align: center; box-shadow: 0 5px 0 rgba(0,0,0,.16); opacity: 0; transition: all .25s cubic-bezier(.2,.9,.3,1.4); pointer-events: none; }
 .mc-bubble.show { opacity: 1; transform: translate(-50%, -100%) scale(1); }
 .mc-bubble::after { content: ""; position: absolute; left: 50%; bottom: -12px; border: 10px solid transparent; border-top-color: #fff; border-bottom: 0; transform: translateX(-50%); }

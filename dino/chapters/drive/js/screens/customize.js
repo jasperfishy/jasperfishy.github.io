@@ -1,8 +1,8 @@
 // screens/customize.js — Car customization screen logic.
 
-import { PAINTS, STICKERS, CARS } from "../data-cars.js?v=du-316e7af9b57fa08e";
-import { renderCarSVG } from "../render-car.js?v=du-316e7af9b57fa08e";
-import { isCarUnlocked } from "./garage.js?v=du-316e7af9b57fa08e";
+import { PAINTS, STICKERS, CARS } from "../data-cars.js?v=du-58e7197a7bd67562";
+import { renderCarSVG } from "../render-car.js?v=du-58e7197a7bd67562";
+import { isCarUnlocked } from "./garage.js?v=du-58e7197a7bd67562";
 
 const FX = () => window.DUFX;
 const fx = (name) => { try { const f = FX(); f && f.sfx && f.sfx[name] && f.sfx[name](); } catch (e) { /* sound is optional */ } };
@@ -41,6 +41,7 @@ export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
     const b = document.createElement("button");
     b.className = "sticker";
     b.textContent = s;
+    b.dataset.sticker = s;
     b.addEventListener("click", () => {
       const idx = state.config.stickers.indexOf(s);
       if (idx >= 0) state.config.stickers.splice(idx, 1);
@@ -80,7 +81,7 @@ export function initCustomize(root, state, goDrive, onNameChange = () => {}) {
   function syncControls() {
     markSelected(swatches, [...swatches.children].find(b => b.title === state.config.paint));
     [...tray.children].forEach(b => {
-      b.classList.toggle("selected", state.config.stickers.includes(b.textContent));
+      b.classList.toggle("selected", state.config.stickers.includes(b.dataset.sticker));
     });
     nameInput.value = state.config.name || "";
   }

@@ -20,7 +20,7 @@
   const FX = window.DUFX;
 
   let ac = null, master = null, verb = null, ready = false, started = false;
-  let current = null, gainNode = null, timer = 0, step = 0, nextAt = 0;
+  let current = null, gainNode = null, timer = 0, step = 0, nextAt = 0, banked = false;
   let intensity = 0.55, pending = null, duckUntil = 0;
 
   /* ---------- context ---------- */
@@ -190,6 +190,16 @@
       bells: [0, null, null, null, 4, null, null, null, 7, null, null, null, 11, null, null, null,
         12, null, null, null, 11, null, null, null, 7, null, null, null, 4, null, null, null],
       pluck: [0, 4, 7, 11], bass: [0, 1, 3, 2], pad: true
+    },
+    /* The opening cinematic needs room to breathe: one long rising line, a
+     * pad that never stops, and nothing percussion-like at all, because a
+     * drum under a spoken sentence is what turns a film into a trailer. */
+    intro: {
+      bpm: 56, root: SEMI.D, minor: false, vol: 0.26, colour: '#ffd98a',
+      chords: [[0, 4, 7], [4, 7, 11], [5, 9, 12], [2, 5, 9]],
+      bells: [7, null, null, null, null, null, 11, null, null, null, 12, null, null, null, null, null,
+        9, null, null, null, null, null, 7, null, 4, null, null, null, null, null, null, null],
+      pluck: [0, 4, 7, 11], bass: [0, 3, 1, 2], pad: true
     }
   };
   DUMusic.THEMES = THEMES;
@@ -272,14 +282,40 @@
       setTimeout(() => { try { old.disconnect(); } catch (e) { } }, 1100);
     }
     gainNode = next;
+    // The new theme's gain has to open over the same 0.8 s the old one closes.
+    // It never did: every voice below connects through this node, so the whole
+    // sequencer was scheduling on time and being multiplied by 0.0001.
+    const at2 = c.currentTime;
+    next.gain.setValueAtTime(0.0001, at2);
+    next.gain.exponentialRampToValueAtTime(1, at2 + 0.8);
     current = T;
     step = 0;
     barCount = 0;
     nextAt = c.currentTime + 0.08;
     DUMusic.theme = name;
     clearInterval(timer);
-    timer = setInterval(schedule, 45);
-    schedule();
+    // The recorded copy of this theme if the bank is installed *and* this loop
+    // has already arrived: startMusic only answers true once sound is playing,
+    // so a first visit on a slow network still gets the sequencer above.
+    const A = window.DUAudio;
+    banked = !!(A && A.startMusic(name, next));
+    if (!banked) {
+      // A theme change that lands before the new loop has decoded must not leave
+      // the old recorded theme running underneath the sequencer.
+      if (A && A.musicTheme && A.musicTheme()) A.stopMusic(0.8);
+      timer = setInterval(schedule, 45);
+      schedule();
+      // The scene usually chooses its theme a second after the page opens, long
+      // before a 400 KB loop has arrived, so the sequencer starts first. When the
+      // recording lands, it takes the theme over — but only if this is still it.
+      if (A && A.whenReady) {
+        A.whenReady(name, 'music', (ok) => {
+          if (!ok || banked || DUMusic.theme !== name || !on()) return;
+          banked = !!A.startMusic(name, gainNode);
+          if (banked) { clearInterval(timer); timer = 0; }
+        });
+      }
+    }
     fade(T.vol * 3.4);
   }
 
@@ -288,7 +324,7 @@
     if (!name || !THEMES[name]) { DUMusic.stop(); return; }
     pending = name;
     if (!on()) return;
-    if (current === THEMES[name] && timer) return;
+    if (current === THEMES[name] && (timer || banked)) return;
     if (!started) {                                    // wait for a real gesture
       if (!ac) ctx();
       if (!ac || ac.state === 'suspended') { arm(); return; }
@@ -314,7 +350,7 @@
   }
   DUMusic.stop = function () {
     pending = null;
-    clearInterval(timer); timer = 0; current = null; DUMusic.theme = null;
+    clearInterval(timer); timer = 0; current = null; banked = false; DUMusic.theme = null;
     fade(0.0001, 0.45);
     const c = ctx();
     if (c && gainNode) { const old = gainNode; setTimeout(() => { try { old.disconnect(); } catch (e) { } }, 600); gainNode = null; }
@@ -370,7 +406,7 @@
     // DUFX owns the single source of truth for the sound switch.
     const watch = setInterval(() => {
       if (!on()) fade(0.0001, 0.3);
-      else if (current && !timer) DUMusic.play(pending || Object.keys(THEMES)[0]);
+      else if (current && !timer && !banked) DUMusic.play(pending || Object.keys(THEMES)[0]);
       else if (current && !document.hidden) fade(current.vol * 3.4, 0.6);
     }, 900);
     if (window.addEventListener) window.addEventListener('pagehide', () => clearInterval(watch));

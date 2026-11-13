@@ -1,9 +1,19 @@
 // Chapters 4–7: the Crystal Cave, the River of Fire, the Sky Ride and Grumblecloud's Peak.
-import { wait, rnd, MOUNTS, writeSave, kidName } from './engine.js?v=du-316e7af9b57fa08e';
-import { sing } from './chapters-a.js?v=du-316e7af9b57fa08e';
+import { wait, rnd, MOUNTS, writeSave, kidName } from './engine.js?v=du-58e7197a7bd67562';
+import { sing } from './chapters-a.js?v=du-58e7197a7bd67562';
 const FX = window.DUFX;
-const KEYS = [{ icon: '💎', deg: 0, color: '#4fd0ff' }, { icon: '🔮', deg: 1, color: '#c18bff' }, { icon: '💚', deg: 2, color: '#5be39b' }, { icon: '🧡', deg: 3, color: '#ffb04d' }];
+// The four keys of the crystal song are four different stones — quartz, moonstone, jade,
+// carnelian — so each photographs as itself. The green heart was the odd one out: hearts have
+// no photograph, and the colour of that key has been jade all along.
+const KEYS = [{ icon: '💎', deg: 0, color: '#4fd0ff' }, { icon: '🔮', deg: 1, color: '#c18bff' }, { icon: '🟢', deg: 2, color: '#5be39b' }, { icon: '🧡', deg: 3, color: '#ffb04d' }];
 const seqOf = (n) => { const a = []; for (let i = 0; i < n; i++) a.push(Math.floor(Math.random() * 4)); return a; };
+// No bat sits in the specimen library, and these fly past as DOM text no walker can turn into
+// a photograph — so the cave draws its own, in em, which keeps them in scale with the tunnel.
+const BAT = '<svg viewBox="0 0 40 22" width="2.2em" height="1.21em" aria-hidden="true" focusable="false" style="vertical-align:-0.15em">' +
+  '<g fill="#2b2438"><ellipse cx="20" cy="12" rx="3.2" ry="4.8"/>' +
+  '<path d="M17.4 7 15 3l4 3ZM22.6 7 25 3l-4 3Z"/>' +
+  '<path d="M20 10c-4-5-10-7-17-5 3 2 5 5 4 9 3-3 7-2 9 2 1-3 3-5 4-6Z"/>' +
+  '<path d="M20 10c4-5 10-7 17-5-3 2-5 5-4 9-3-3-7-2-9 2-1-3-3-5-4-6Z"/></g></svg>';
 
 // ================================================================= CHAPTER 4: crystal cave
 export async function chapter4(E) {
@@ -22,7 +32,7 @@ export async function chapter4(E) {
   E.sfx.win(); E.addGems(3);
   await E.real('cave', '🥚', 'Real dinosaur eggs have been found in rock, just like a nest.');
   await E.say('The whole cave glitters like a rainbow!', 'narrator', 700);
-  for (let i = 0; i < 4; i++) { const b = E.add('🦇', 'rs-bat', 'top:' + (12 + i * 9) + '%;animation-delay:' + (i * -1.4) + 's'); }
+  for (let i = 0; i < 4; i++) { const b = E.add(BAT, 'rs-bat', 'top:' + (12 + i * 9) + '%;animation-delay:' + (i * -1.4) + 's'); }
   const rock = E.add('🪨🪨🪨', 'rs-rockwall'); await wait(300);
   await E.say('Oh no! A great wall of rocks blocks the tunnel!', 'narrator', 500);
   const bump = E.dino('tricera', -20, 54, 18, 'walk', 'orange');
@@ -107,7 +117,9 @@ export async function chapter6(E) {
   const cv = E.world.querySelector('.rs-cv'), c = cv.getContext('2d'), W = 800, H = 500;
   const fly = E.dino('ptero', 12, 42, 24, 'run', 'pink'); fly.style.zIndex = 3; fly.style.transition = 'none';
   const rider = E.add('🧒', 'rs-rider', 'left:19%;top:36%'); rider.style.zIndex = 4;
-  const hud = E.add('<span class="rs-fly">⭕ <b>0</b></span><div class="rs-prog"><i></i></div>', 'rs-hudbar');
+  // The chip counts the golden rings the canvas draws, so it shows one made the same way: a
+  // font circle has no gold, no tilt, and nothing to do with what the child is catching.
+  const hud = E.add('<span class="rs-fly"><svg viewBox="0 0 24 24" width="1.05em" height="1.05em" aria-hidden="true" focusable="false" style="vertical-align:-0.14em"><ellipse cx="12" cy="12" rx="5.5" ry="9" fill="none" stroke="#ffd23f" stroke-width="3"/></svg> <b>0</b></span><div class="rs-prog"><i></i></div>', 'rs-hudbar');
   const S = { y: 250, ty: 250, t: 0, rings: 0, items: [], next: 1, stun: 0, over: false, dur: 48 };
   const move = (e) => { const r = E.area.getBoundingClientRect(); S.ty = Math.max(60, Math.min(440, (e.clientY - r.top) / r.height * H)); };
   E.area.addEventListener('pointermove', move); E.area.addEventListener('pointerdown', move);
@@ -139,10 +151,22 @@ export async function chapter6(E) {
       const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgb(' + mix(40, 120) + ',' + mix(60, 190) + ',' + mix(110, 245) + ')'); g.addColorStop(1, 'rgb(' + mix(255, 255) + ',' + mix(150, 230) + ',' + mix(120, 190) + ')'); c.fillStyle = g; c.fillRect(0, 0, W, H);
       for (const p of puffs) { p.x -= spd * dt * .4 * p.s; if (p.x < -120) { p.x = W + 80; p.y = rnd(30, 470); } c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.ellipse(p.x, p.y, 70 * p.s, 22 * p.s, 0, 0, 6.3); c.ellipse(p.x + 30 * p.s, p.y - 14 * p.s, 40 * p.s, 20 * p.s, 0, 0, 6.3); c.fill(); }
       c.fillStyle = 'rgba(40,70,90,.5)'; c.beginPath(); c.moveTo(0, H); for (let x = 0; x <= W; x += 50) c.lineTo(x, H - 50 - 38 * Math.sin((x + S.t * 80) / 90)); c.lineTo(W, H); c.fill();
+      drawEnvironment(c,W,H,'mountain',S.t*.03);
       for (const it of S.items) {
         if (it.hit) continue;
         if (it.k === 'ring') { c.strokeStyle = '#ffd23f'; c.lineWidth = 8; c.shadowColor = '#fff2a8'; c.shadowBlur = 16; c.beginPath(); c.ellipse(it.x, it.y, 20, 36, 0, 0, 6.3); c.stroke(); c.shadowBlur = 0; }
-        else { c.fillStyle = '#56607a'; c.beginPath(); c.ellipse(it.x, it.y, it.r * 1.4, it.r * .8, 0, 0, 6.3); c.ellipse(it.x - it.r * .6, it.y - it.r * .5, it.r * .8, it.r * .6, 0, 0, 6.3); c.ellipse(it.x + it.r * .5, it.y - it.r * .5, it.r * .7, it.r * .55, 0, 0, 6.3); c.fill(); c.font = Math.round(it.r) + 'px serif'; c.textAlign = 'center'; c.fillText('😠', it.x, it.y + it.r * .25); }
+        else {
+          c.fillStyle = '#56607a'; c.beginPath(); c.ellipse(it.x, it.y, it.r * 1.4, it.r * .8, 0, 0, 6.3); c.ellipse(it.x - it.r * .6, it.y - it.r * .5, it.r * .8, it.r * .6, 0, 0, 6.3); c.ellipse(it.x + it.r * .5, it.y - it.r * .5, it.r * .7, it.r * .55, 0, 0, 6.3); c.fill();
+          // Pixels inside a canvas are beyond every DOM walker, so a glyph typed here is
+          // whatever the operating system's font calls "angry". Grumpy's face is drawn with
+          // the same strokes as his body and is the same face on every device.
+          c.strokeStyle = c.fillStyle = '#2b2f45'; c.lineCap = 'round'; c.lineWidth = Math.max(2, it.r * .13);
+          for (const sx of [-1, 1]) {
+            c.beginPath(); c.arc(it.x + sx * it.r * .42, it.y - it.r * .02, it.r * .11, 0, 6.3); c.fill();
+            c.beginPath(); c.moveTo(it.x + sx * it.r * .72, it.y - it.r * .44); c.lineTo(it.x + sx * it.r * .18, it.y - it.r * .2); c.stroke();
+          }
+          c.beginPath(); c.arc(it.x, it.y + it.r * .62, it.r * .3, Math.PI, 0); c.stroke();
+        }
       }
       if (S.t > S.dur - 7) { const p = (S.t - (S.dur - 7)) / 7; c.fillStyle = 'rgba(25,25,45,' + (p * .85) + ')'; c.beginPath(); c.ellipse(W - 40 + (1 - p) * 300, 250, 220 * p + 20, 300, 0, 0, 6.3); c.fill(); if (Math.random() < .03) { c.fillStyle = 'rgba(255,255,200,.4)'; c.fillRect(0, 0, W, H); FX.sfx.drum(); } }
       if (S.t >= S.dur) { done(); return; }
@@ -196,6 +220,8 @@ export async function chapter7(E) {
 
   // phase 2: feed it
   await E.say('Grumblecloud is only grumpy because it is hungry! Tap the juicy berries to throw them up to its mouth!', 'narrator', 500); E.hush();
+  // family-ok: a mouthful of berries is density, not a menu — Grumblecloud is
+  // hungry, and the child is throwing everything up at it, not choosing.
   await E.tapAll([[20, 30, '🍓'], [34, 18, '🍇'], [48, 34, '🍓'], [60, 20, '🍒'], [28, 48, '🍇'], [52, 52, '🍓']], 'berry', (i, el) => { FX.flyTo && FX.flyTo(el, grumble, { emoji: ['🍓', '🍇', '🍓', '🍒', '🍇', '🍓'][i] }); E.sfx.chomp && E.sfx.chomp(); grumble.classList.add('munch'); setTimeout(() => grumble.classList.remove('munch'), 400); });
   grumble.classList.remove('roar'); grumble.classList.add('soft');
   await E.say('Yum yum! Hee hee! That was delicious! I feel much better. But I am still a bit sleepy and cross…', 'grumble');
@@ -234,5 +260,8 @@ export async function chapter7(E) {
   ]);
   E.addGems(10);
   E.save.won += 1; E.save.next = 7; writeSave(E.save);
-  await E.finishBadge('hero', '👑', 'Hero Dino Rider!', 'You rescued Mummy and Daddy from Grumblecloud’s Peak. The whole dino world is cheering!');
+  // A crown is metalwork this universe never had; the app's own drawn trophy is the one mark
+  // that says "top of the seven chapters" in the same ink as the buttons around it.
+  await E.finishBadge('hero', window.DUICONS.i('trophy', { size: 74 }), 'Hero Dino Rider!', 'You rescued Mummy and Daddy from Grumblecloud’s Peak. The whole dino world is cheering!');
 }
+import { drawEnvironment } from '../../../../../photoreal-environments.js?v=du-58e7197a7bd67562';

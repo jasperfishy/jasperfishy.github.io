@@ -27,7 +27,13 @@ class ParkScene extends Phaser.Scene {
   constructor() { super("park"); }
 
   preload() {
-    this.load.image("rexWalkSheet", "../../assets/prehistoric/trex-walk.png");
+    this.load.image("rexWalkSheet", "../../assets/prehistoric/trex-walk.webp");
+    // Two specimens from the photograph library. A heart and a magnet have no
+    // photographs — this valley has neither — so the lives are feathers, three of
+    // them tucked in the nest, and the power-up that pulls the eggs in is a lump
+    // of amber, which is the stone people noticed attracts things when you rub it.
+    this.load.image("featherPhoto", "../../assets/objects/feather.webp");
+    this.load.image("amberPhoto", "../../assets/objects/amber.webp");
     DUKit.textures(this);
     const g = this.make.graphics({ add: false });
 
@@ -106,24 +112,43 @@ class ParkScene extends Phaser.Scene {
     g.generateTexture("pNest", 240, 74);
     g.destroy();
 
-    DUKit.emoji(this, "chick", "🐣", 44);
-    DUKit.emoji(this, "heart", "❤️", 30);
-    DUKit.emoji(this, "heartOff", "🖤", 30);
-    DUKit.emoji(this, "flower1", "🌼", 26);
-    DUKit.emoji(this, "flower2", "🌸", 26);
-    DUKit.emoji(this, "flower3", "🌷", 26);
+    DUKit.emoji(this, "chick", "🦎", 44);
+    // Three different plants, not three spellings of one flower: 🌼🌸🌷 all
+    // print the same petal photograph, so the floor edge read as one plant
+    // repeated fourteen times.
+    DUKit.emoji(this, "flower1", "🌼", 32);
+    DUKit.emoji(this, "flower2", "🪻", 32);
+    DUKit.emoji(this, "flower3", "☘️", 32);
     DUKit.emoji(this, "ice", "❄️", 44);
-    DUKit.emoji(this, "magnet", "🧲", 44);
-    DUKit.emoji(this, "butterfly", "🦋", 30);
+    DUKit.emoji(this, "butterfly", "🦋", 46);
+    /* What falls out of the sky is now photographed too: a speckled egg, a
+     * star crystal, a meteorite to dodge, and the rare egg washed gold. Each
+     * keeps the 80px square and the round body it was already caught with. */
+    DUKit.specimens(this, { pEgg: "egg", pStar: "star", pBad: "meteorite" });
+    DUKit.prop(this, "pGolden", "egg", { wash: "rgba(255, 186, 54, .68)" });
+    DUKit.prop(this, "pNest", "nest", { cover: true });
+  }
+
+  // Bake a photograph into the same 80px square the hand-drawn falling things
+  // use. Dropped straight from the loader a 512px specimen would need its hitbox
+  // rescued on every spawn; at 80px the drop scale and the round body written for
+  // pEgg / pStar / pBad are already correct.
+  bakePhoto(sourceKey, key) {
+    if (this.textures.exists(key)) return;
+    const tex = this.textures.createCanvas(key, 80, 80);
+    tex.getContext().drawImage(this.textures.get(sourceKey).getSourceImage(), 0, 0, 80, 80);
+    tex.refresh();
   }
 
   create() {
+    this.bakePhoto("featherPhoto", "feather");
+    this.bakePhoto("amberPhoto", "amber");
     this.score = 0;
     this.lives = 3;
     this.combo = 0;
     this.perfects = 0;
     this.stage = 1;
-    this.magnetT = 0;
+    this.amberT = 0;
     this.slowT = 0;
     this.best = DUKit.getBest(STORE_KEY);
     this.gameOver = false;
@@ -135,14 +160,15 @@ class ParkScene extends Phaser.Scene {
     const sky = this.add.graphics();
     sky.fillGradientStyle(0xbfe8ff, 0xbfe8ff, 0xfff3d9, 0xfff3d9, 1);
     sky.fillRect(0, 0, W, H);
-    DUKit.sunRays(this, 830, 90, 220);
+    DUKit.scenery(DUKit.sunRays(this, 830, 90, 220));
     this.sun = this.add.circle(830, 90, 44, 0xffe27a, 1);
     DUKit.sparkleField(this, 12, 560, 30, 940, 180, 0xffffff);
     this.clouds = this.add.tileSprite(W / 2, 80, W, 40, "pCloud").setAlpha(0.9);
     this.hills = this.add.tileSprite(W / 2, FLOOR_Y - 56, W, 90, "pHills");
     this.trees = this.add.tileSprite(W / 2, FLOOR_Y - 42, W, 130, "pTrees");
-    this.add.rectangle(W / 2, (FLOOR_Y + H) / 2 + 20, W, H - FLOOR_Y + 40, 0x6ec26a);
-    this.add.rectangle(W / 2, FLOOR_Y + 4, W, 10, 0x4a8f3c);
+    const ground = this.add.rectangle(W / 2, (FLOOR_Y + H) / 2 + 20, W, H - FLOOR_Y + 40, 0x6ec26a);
+    const lip = this.add.rectangle(W / 2, FLOOR_Y + 4, W, 10, 0x4a8f3c);
+    DUKit.scenery(sky, this.sun, this.clouds, this.hills, this.trees, ground, lip);
     // A nest at the child's feet: the eggs are falling *somewhere*, which makes
     // a missed catch feel like a loss instead of a thing that left the screen.
     this.add.image(W / 2, FLOOR_Y + 26, "pNest").setDepth(2).setScale(1.1);
@@ -168,6 +194,7 @@ class ParkScene extends Phaser.Scene {
     }).setDepth(40);
     this.wash = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(41);
 
+    DUKit.environment(this, 'jungle');
     // Hitbox (physics) + animated dino (visual).
     this.physics.world.gravity.y = 0;
     this.hit = this.physics.add.sprite(W / 2, FLOOR_Y - 46, "kit-dot").setVisible(false);
@@ -189,13 +216,13 @@ class ParkScene extends Phaser.Scene {
     const sheet = this.textures.get('rexWalkSheet');
     const source = sheet.getSourceImage();
     for (let i=0;i<4;i++) if (!sheet.has(String(i))) sheet.add(String(i),0,(i%2)*source.width/2,Math.floor(i/2)*source.height/2,source.width/2,source.height/2);
-    this.photoDino = this.add.image(0, 0, 'rexWalkSheet', '0').setOrigin(.5,1).setDisplaySize(190,100);
+    this.photoDino = this.add.image(0, 0, 'rexWalkSheet', '0').setOrigin(.5,1).setDisplaySize(250,132);
     this.rig.add(this.photoDino);
     [this.tail,this.legB,this.legF,this.bodyImg,this.head,this.eye].forEach(p=>p.setVisible(false));
-    // The magnet glows over the dino while it lasts, so a power-up you cannot see
+    // The amber glows over the dino while it lasts, so a power-up you cannot see
     // is a power-up a child will never notice they had.
-    this.magnetGlow = this.add.circle(0, -40, 74, 0xff6bd6, 0.18).setDepth(5).setVisible(false);
-    this.tweens.add({ targets: this.magnetGlow, scale: 1.16, duration: 700, yoyo: true, repeat: -1 });
+    this.amberGlow = this.add.circle(0, -40, 74, 0xff6bd6, 0.18).setDepth(5).setVisible(false);
+    this.tweens.add({ targets: this.amberGlow, scale: 1.16, duration: 700, yoyo: true, repeat: -1 });
     this.tweens.add({ targets: this.tail, angle: { from: -14, to: 16 }, duration: 380, yoyo: true, repeat: -1, ease: "sine.inOut" });
     this.tweens.add({ targets: [this.head, this.eye], y: "-=3", duration: 520, yoyo: true, repeat: -1, ease: "sine.inOut" });
     this.time.addEvent({ delay: 2800, loop: true, callback: () => { this.tweens.add({ targets: this.eye, scaleY: 0.1, duration: 90, yoyo: true }); } });
@@ -208,7 +235,9 @@ class ParkScene extends Phaser.Scene {
     this.starIcon = this.add.image(36, 36, "kit-star").setScale(0.9).setDepth(60);
     this.scoreText = this.add.text(66, 16, "0", { fontSize: "34px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#fff", stroke: "#2d5a24", strokeThickness: 6 }).setDepth(60);
     this.comboText = this.add.text(66, 58, "", { fontSize: "20px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#ffe14d", stroke: "#2d5a24", strokeThickness: 5 }).setDepth(60);
-    this.hearts = [0, 1, 2].map(i => this.add.image(W - 30 - i * 40, 34, "heart").setDepth(60));
+    // Three feathers in the nest: one per life. The baked photograph is an 80px
+    // square, so the HUD sits it at half size where the old 30px glyph did.
+    this.feathers = [0, 1, 2].map(i => this.add.image(W - 30 - i * 40, 34, "feather").setScale(0.5).setDepth(60));
     this.pips = [1, 2, 3].map(i => this.add.circle(W / 2 - 34 + i * 34, 26, 9, 0xffffff, 0.28).setStrokeStyle(2, 0x2d5a24, 0.8).setDepth(60));
     this.stageText = this.add.text(W / 2, 46, STAGES[0].name, { fontSize: "17px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#ffffff", stroke: "#2d5a24", strokeThickness: 5 }).setOrigin(0.5).setDepth(60);
     this.powerText = this.add.text(W / 2, 74, "", { fontSize: "18px", fontFamily: DUKit.FONT, fontStyle: "bold", color: "#bfefff", stroke: "#1a3a5a", strokeThickness: 5 }).setOrigin(0.5).setDepth(60);
@@ -221,7 +250,7 @@ class ParkScene extends Phaser.Scene {
 
     DUKit.ready();
     if (skipTitle) { skipTitle = false; this.begin(); }
-    else DUKit.title(this, { title: "Dino Park", emoji: "🥚", color: 0xf2a541, cssColor: "#e08a1e", voiceId: "arcade", hint: "Three weather stages, one hungry dino. Catch eggs and stars, grab ❄️ and 🧲, dodge the spiky balls! Use ← → or drag." }, () => this.begin());
+    else DUKit.title(this, { title: "Dino Park", emoji: "🥚", color: 0xf2a541, cssColor: "#e08a1e", voiceId: "arcade", hint: "Three weather stages, one hungry dino. Catch eggs and stars, grab the snow and the amber, dodge the spiky balls! Use ← → or drag." }, () => this.begin());
   }
 
   begin() {
@@ -233,9 +262,9 @@ class ParkScene extends Phaser.Scene {
   // The fall table per stage: stage 1 teaches, stage 2 hurries, stage 3 is the
   // golden-egg light. Weights, not randomness, so the run always has a shape.
   table() {
-    if (this.stage === 1) return [["pEgg", .62], ["pStar", .18], ["pBad", .16], ["ice", .03], ["magnet", .01]];
-    if (this.stage === 2) return [["pEgg", .52], ["pStar", .20], ["pBad", .20], ["ice", .04], ["magnet", .03], ["heart", .01]];
-    return [["pEgg", .44], ["pStar", .20], ["pBad", .24], ["pGolden", .05], ["ice", .04], ["magnet", .02], ["heart", .01]];
+    if (this.stage === 1) return [["pEgg", .62], ["pStar", .18], ["pBad", .16], ["ice", .03], ["amber", .01]];
+    if (this.stage === 2) return [["pEgg", .52], ["pStar", .20], ["pBad", .20], ["ice", .04], ["amber", .03], ["feather", .01]];
+    return [["pEgg", .44], ["pStar", .20], ["pBad", .24], ["pGolden", .05], ["ice", .04], ["amber", .02], ["feather", .01]];
   }
 
   pick() {
@@ -248,11 +277,13 @@ class ParkScene extends Phaser.Scene {
     if (this.gameOver) return;
     const kind = this.pick();
     const bad = kind === "pBad";
-    const item = this.items.create(Phaser.Math.Between(50, W - 50), -40, kind === "ice" ? "ice" : kind === "magnet" ? "magnet" : kind === "heart" ? "heart" : kind);
-    item.setScale(kind === "heart" ? 0.8 : 0.7);
+    // Every kind is now also the name of its texture, including the two baked
+    // photographs, so the old key-for-key ternary chain is gone.
+    const item = this.items.create(Phaser.Math.Between(50, W - 50), -40, kind);
+    item.setScale(kind === "feather" ? 0.8 : 0.7);
     item.bad = bad;
     item.kind = kind;
-    item.value = kind === "pStar" ? 2 : kind === "pGolden" ? 5 : bad || kind === "ice" || kind === "magnet" || kind === "heart" ? 0 : 1;
+    item.value = kind === "pStar" ? 2 : kind === "pGolden" ? 5 : bad || kind === "ice" || kind === "amber" || kind === "feather" ? 0 : 1;
     item.baseVy = Phaser.Math.Between(150, 230) + Math.min(180, this.score * 2) + (this.stage - 1) * 45;
     item.body.setAllowGravity(false);
     item.body.setCircle(26, 14, 14);
@@ -263,7 +294,7 @@ class ParkScene extends Phaser.Scene {
       this.tweens.add({ targets: item, angle: { from: -18, to: 18 }, duration: 380, yoyo: true, repeat: -1 });
       this.tweens.add({ targets: item, scale: 0.82, duration: 420, yoyo: true, repeat: -1 });
       this.add.particles(item.x, item.y, "kit-spark", { lifespan: 500, speed: { min: 10, max: 50 }, scale: { start: 0.4, end: 0 }, tint: 0xffd23f, frequency: 90 }).setDepth(3).startFollow(item);
-    } else if (kind === "ice" || kind === "magnet" || kind === "heart") {
+    } else if (kind === "ice" || kind === "amber" || kind === "feather") {
       this.tweens.add({ targets: item, y: item.y, scaleX: { from: 0.62, to: 0.86 }, duration: 620, yoyo: true, repeat: -1 });
       this.tweens.add({ targets: item, angle: { from: -12, to: 12 }, duration: 700, yoyo: true, repeat: -1 });
     } else this.tweens.add({ targets: item, angle: 360, scale: 0.78, duration: 1000, repeat: -1, yoyo: false });
@@ -277,7 +308,6 @@ class ParkScene extends Phaser.Scene {
     const st = STAGES[n - 1];
     DUKit.banner(this, "Stage " + n + " · " + st.name, "#ffffff");
     DUKit.sfx("sparkle");
-    if (window.DUWONDER) DUWONDER.mote(2);
     this.stageText.setText(st.name);
     this.pips.forEach((p, i) => p.setFillStyle(0xffffff, i < n ? 0.95 : 0.28));
     this.wash.setScale(1);
@@ -302,8 +332,10 @@ class ParkScene extends Phaser.Scene {
     }
   }
 
-  setHearts() {
-    this.hearts.forEach((h, i) => h.setTexture(i < this.lives ? "heart" : "heartOff"));
+  // A life that is gone is the same feather faded to stone grey, so the row keeps
+  // its length and the child can still count what is left.
+  setFeathers() {
+    this.feathers.forEach((f, i) => f.setTint(i < this.lives ? 0xffffff : 0x64707e));
   }
 
   caught(item) {
@@ -313,9 +345,10 @@ class ParkScene extends Phaser.Scene {
     this.tweens.add({ targets: this.rig, scaleY: 0.9, scaleX: 1.08, duration: 90, yoyo: true });
     if (item.bad) {
       this.lives -= 1; this.combo = 0; this.comboText.setText(""); this.lastCatch = 0;
-      this.setHearts();
-      const h = this.hearts[this.lives];
-      if (h) this.tweens.add({ targets: h, scale: 1.6, angle: 25, duration: 180, yoyo: true });
+      this.setFeathers();
+      const f = this.feathers[this.lives];
+      // The feather you have just lost gives one sad hop before going grey.
+      if (f) this.tweens.add({ targets: f, scale: 0.8, angle: 25, duration: 180, yoyo: true });
       DUKit.sfx("bad"); DUKit.sfx("thud");
       DUKit.shake(this, 200, 0.012);
       DUKit.burst(this, x, y, { tint: 0xff5a4a, n: 18, scale: 0.9 });
@@ -333,22 +366,22 @@ class ParkScene extends Phaser.Scene {
       this.slowT = 5;
       DUKit.sfx("splash");
       DUKit.burst(this, x, y, { tint: 0xbfefff, n: 16, scale: 1 });
-      DUKit.floatText(this, x, y - 10, "Slow feathers!", "#bfefff");
-      DUKit.banner(this, "❄️ Slow down!", "#bfefff");
+      DUKit.floatText(this, x, y - 10, "Nice and slow!", "#bfefff");
+      DUKit.banner(this, "Snow! Slow down!", "#bfefff");
       item.destroy();
       return;
     }
-    if (item.kind === "magnet") {
-      this.magnetT = 6;
+    if (item.kind === "amber") {
+      this.amberT = 6;
       DUKit.sfx("sparkle");
       DUKit.burst(this, x, y, { texture: "kit-spark", tint: 0xff6bd6, n: 14, spin: true });
-      DUKit.floatText(this, x, y - 10, "Egg magnet!", "#ff9ff0");
-      DUKit.banner(this, "🧲 Magnet!", "#ff9ff0");
+      DUKit.floatText(this, x, y - 10, "The eggs come to you!", "#ff9ff0");
+      DUKit.banner(this, "Amber pull!", "#ff9ff0");
       item.destroy();
       return;
     }
-    if (item.kind === "heart") {
-      if (this.lives < 3) { this.lives += 1; this.setHearts(); DUKit.floatText(this, x, y - 10, "+1 life", "#ff8f8f"); }
+    if (item.kind === "feather") {
+      if (this.lives < 3) { this.lives += 1; this.setFeathers(); DUKit.floatText(this, x, y - 10, "+1 feather!", "#ff8f8f"); }
       else { this.score += 2; DUKit.floatText(this, x, y - 10, "+2", "#ffe14d"); }
       DUKit.sfx("chirp");
       DUKit.burst(this, x, y, { tint: 0xff9fbc, n: 14 });
@@ -379,7 +412,6 @@ class ParkScene extends Phaser.Scene {
       DUKit.burst(this, x, y, { texture: "kit-spark", tint: 0xffffff, n: 18, scale: 1.2 });
       DUKit.banner(this, "GOLDEN EGG!", "#ffd23f");
       DUKit.shake(this, 160, 0.008);
-      if (window.DUWONDER) DUWONDER.mote(3);
       const glow = this.add.circle(x, y, 30, 0xffe9a3, 0.55).setDepth(58);
       this.tweens.add({ targets: glow, scale: 5, alpha: 0, duration: 620, ease: "cubic.out", onComplete: () => glow.destroy() });
     } else if (item.kind === "pEgg") {
@@ -411,7 +443,6 @@ class ParkScene extends Phaser.Scene {
     // Book the catch on the campaign map as well as in this page's own score, so
     // the hub knows the child played today.
     if (window.DUJourney) DUJourney.record("park.arcade", { stars });
-    if (window.DUWONDER) DUWONDER.mote(stars >= 3 ? 3 : 1);
     if (stars >= 3) DUKit.celebrate(this);
     const line = "Score " + this.score + " · " + STAGES[this.stage - 1].name +
       (this.perfects ? " · " + this.perfects + " perfect" : "") +
@@ -429,14 +460,16 @@ class ParkScene extends Phaser.Scene {
 
     // Power-ups and the combo chain both run on the clock, not on catches, so a
     // long clever pause lets a combo fade instead of banking it for free.
-    if (this.magnetT > 0) {
-      this.magnetT -= dt;
-      this.magnetGlow.setVisible(true).setAlpha(0.14 + 0.1 * Math.sin(time / 140));
-      this.powerText.setText("🧲 " + Math.ceil(this.magnetT));
-      if (this.magnetT <= 0) { this.magnetGlow.setVisible(false); this.powerText.setText(""); }
+    // Both timers are named in words: this text is painted on the Phaser canvas,
+    // where no picture layer can swap a glyph for a photograph.
+    if (this.amberT > 0) {
+      this.amberT -= dt;
+      this.amberGlow.setVisible(true).setAlpha(0.14 + 0.1 * Math.sin(time / 140));
+      this.powerText.setText("Amber " + Math.ceil(this.amberT));
+      if (this.amberT <= 0) { this.amberGlow.setVisible(false); this.powerText.setText(""); }
     } else if (this.slowT > 0) {
       this.slowT -= dt;
-      this.powerText.setText("❄️ " + Math.ceil(this.slowT));
+      this.powerText.setText("Snow " + Math.ceil(this.slowT));
       if (this.slowT <= 0) this.powerText.setText("");
     }
     if (this.combo >= 3 && this.lastCatch && time - this.lastCatch > 2600) {
@@ -455,7 +488,7 @@ class ParkScene extends Phaser.Scene {
     }
     this.hit.setVelocityX(vx);
     this.dino.x = this.hit.x;
-    this.magnetGlow.x = this.hit.x;
+    this.amberGlow.x = this.hit.x;
     if (vx !== 0) {
       this.dino.scaleX = vx < 0 ? -1 : 1;
       const swing = Math.sin(time / 70) * 30;
@@ -476,7 +509,7 @@ class ParkScene extends Phaser.Scene {
         // Slow feathers is one number applied to everything falling, which keeps
         // the fall table honest while still letting a child think.
         i.setVelocityY(i.baseVy * (this.slowT > 0 ? 0.45 : 1));
-        if (this.magnetT > 0 && !i.bad && Math.abs(i.x - this.hit.x) < 150 && i.y > 120) {
+        if (this.amberT > 0 && !i.bad && Math.abs(i.x - this.hit.x) < 150 && i.y > 120) {
           i.x = Phaser.Math.Linear(i.x, this.hit.x, Math.min(0.9, 5 * dt));
           i.setVelocityX(0);
         }

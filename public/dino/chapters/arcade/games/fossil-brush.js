@@ -1,3 +1,4 @@
+import { overlayPhotorealMaterial } from '../../../photoreal-textures.js';
 // Fossil Brush — sixty million years, one afternoon.
 // A trench in a canyon wash. Sand is a real field of depth you lift grain by
 // grain; the bone under it dries out, and a hurried hand on dry bone cracks it.
@@ -803,6 +804,7 @@ function create(scene) {
       }
     }
     sandCtx.putImageData(sandImgData, 0, 0);
+    overlayPhotorealMaterial(sandCtx,'soil',.72,'source-atop','environments');
     sandTex.refresh();
   }
 

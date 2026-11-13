@@ -21,18 +21,20 @@ const PATIENTS = [
   { sp: "trex", color: "orange", name: "Grandpa Rex", fact: "Some of the biggest T. rex bones are longer than a car." }
 ];
 const NEEDS = {
-  brush: { icon: "🪥", tool: "Soft brush", meter: "Clean", ask: "I'm all dusty! Could I have a brush?", ok: "Sparkly clean!", sound: "sparkle" },
+  brush: { icon: "🪶", tool: "Feather brush", meter: "Clean", ask: "I'm all dusty! Could I have a brush?", ok: "Sparkly clean!", sound: "sparkle" },
   water: { icon: "💧", tool: "Fresh water", meter: "Thirst", ask: "I'm so thirsty… a drink, please!", ok: "Gulp gulp, lovely!", sound: "splash" },
   fern: { icon: "🌿", tool: "Fern snack", meter: "Hunger", ask: "My tummy is rumbling. Something to eat?", ok: "Yum, crunchy ferns!", sound: "chomp" },
   cloth: { icon: "🧺", tool: "Cool cloth", meter: "Warmth", ask: "I feel a bit too warm. A cool cloth, please?", ok: "Ahh, so cool!", sound: "pop" },
-  flowers: { icon: "🌼", tool: "Flower garland", meter: "Joy", ask: "I'm feeling a bit blue. Something cheerful?", ok: "I love my garland!", sound: "good" },
+  flowers: { icon: "🌼", tool: "Bead garland", meter: "Joy", ask: "I'm feeling a bit blue. Something cheerful?", ok: "I love my garland!", sound: "good" },
   shade: { icon: "🌳", tool: "Cosy shade", meter: "Rest", ask: "I'm sleepy… a shady place to rest?", ok: "Zzz… so cosy!", sound: "note" },
   bath: { icon: "🫧", tool: "Bubble bath", meter: "Fresh", ask: "There's sticky fern all over me! Bubbles, please?", ok: "Squeaky fresh!", sound: "splash" },
-  plaster: { icon: "🩹", tool: "Little plaster", meter: "Ochie", ask: "My leg is a poorly bit. Something to cover it?", ok: "All better, thank you!", sound: "boing" },
+  plaster: { icon: "☘️", tool: "Moss plaster", meter: "Ochie", ask: "My leg is a poorly bit. Something to cover it?", ok: "All better, thank you!", sound: "boing" },
   song: { icon: "🎵", tool: "Cheerful song", meter: "Song", ask: "I'd like to sing but I've lost the tune!", ok: "La la! What a voice!", sound: "note" }
 };
 const ALL = Object.keys(NEEDS);
-const FLOWERS = ["🌼", "🌸", "🌷", "🌻", "🌺", "💐", "🍀"];
+/* Seven beads, seven different photographs — the old flower list was one
+ * picture repeated six times. */
+const BEADS = ["🌼", "🐚", "🟠", "🍒", "🌰", "☘️", "🍂"];
 /* the view from the clinic window changes with the round, and the scene theme with it */
 const SKIES = [
   { icon: "☀️", name: "a sunny morning", theme: "meadow", sk: ["#a8def2", "#eaf8dc"], clouds: 2, note: "Sunshine pours through the clinic windows!" },
@@ -68,7 +70,7 @@ export function mountDinoCare(context) {
       p.preview = needs;
       return '<button type="button" class="cc-bench" data-i="' + i + '"><span class="cc-bubble">' + needs.map(function (n) { return NEEDS[n].icon; }).join(" ") + '</span><span class="cc-pd">' + F.dinoHTML(p.sp, { color: p.color, state: i % 2 ? "sad" : "idle", size: "100%" }) + "</span><b>" + p.name + "</b></button>";
     }).join("") + "</div>" +
-      '<p class="cc-certs">📜 Certificates earned: <b>' + clinic.length + "</b>" + (bestStars ? " · Best care " + "⭐".repeat(bestStars) : "") + (queue.length > 1 ? " · Two patients today!" : "") + "</p>" +
+      '<p class="cc-certs">📜 Certificates earned: <b>' + clinic.length + "</b>" + (bestStars ? " · Best care " + window.DUICONS.stars(bestStars) : "") + (queue.length > 1 ? " · Two patients today!" : "") + "</p>" +
       '<p class="hb-deco">' + sky.note + "</p>";
     board.querySelectorAll(".cc-bench").forEach(function (b, i) {
       if (F.anim) F.anim(b, [{ opacity: 0, transform: "translateY(20px) scale(.7)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: i * 60, fill: "backwards" });
@@ -90,7 +92,13 @@ export function mountDinoCare(context) {
       '<p class="hb-deco" id="ccGarden"><b>🌱 Get-well garden:</b> every bar you fix blooms a flower</p>' +
       '<div class="cc-stage" id="ccStage"><div class="cc-pat" id="ccPat">' + F.dinoHTML(p.sp, { color: p.color, state: "sad", size: "100%" }) + '<div class="cc-dust"></div><span class="cc-garland" hidden>🌼🌸🌼🌸🌼</span><span class="cc-cool" hidden>🧺</span><span class="cc-zzz" hidden>💤</span>' +
       '<span class="cc-bath" hidden style="position:absolute;left:30%;top:16%;font-size:26px">🫧🫧🫧</span>' +
-      '<span class="cc-plaster" hidden style="position:absolute;left:58%;bottom:12%;font-size:30px">🩹</span>' +
+      /* The library photographs moss and mud, not a sticking plaster, and 🩹 is
+       * nobody's font's property — so the ochie-cover is drawn here in cloth colours. */
+      '<span class="cc-plaster" hidden style="position:absolute;left:58%;bottom:12%">' +
+      '<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true" focusable="false" style="vertical-align:middle">' +
+      '<g transform="rotate(-27 16 16)"><rect x="1.5" y="10.6" width="29" height="10.8" rx="5.4" fill="#f6c9a0" stroke="#c8874e" stroke-width="1.6"/>' +
+      '<rect x="10.6" y="10.6" width="10.8" height="10.8" rx="2.6" fill="#ffeacd" stroke="#c8874e" stroke-width="1.1"/>' +
+      '<circle cx="13.6" cy="14.4" r="1" fill="#c8874e"/><circle cx="18.4" cy="17.6" r="1" fill="#c8874e"/></g></svg></span>' +
       '<span class="cc-notes" hidden style="position:absolute;left:62%;top:26%;font-size:24px">🎵🎶🎵</span></div><div class="cc-speech" id="ccSpeech"></div></div>' +
       '<div class="cc-tools" id="ccTools"></div>' +
       '<p style="text-align:center;margin:8px 0 0"><button type="button" class="tiny-button" id="ccHelp">💡 Show me what is low</button></p>';
@@ -137,7 +145,7 @@ export function mountDinoCare(context) {
     const g = board.querySelector("#ccGarden");
     if (!g) return;
     const s = document.createElement("i");
-    s.textContent = FLOWERS[blooms % FLOWERS.length];
+    s.textContent = BEADS[blooms % BEADS.length];
     s.style.cssText = "font-style:normal;display:inline-block;margin-left:4px";
     blooms += 1;
     g.appendChild(s);
@@ -248,16 +256,18 @@ export function mountDinoCare(context) {
     if (F.burst) { F.burst(r.left + r.width / 2, r.top + 120, { kind: "hearts", n: 16 }); F.burst(r.left + r.width / 2, r.top + 120, { kind: "confetti", n: 30 }); }
     const cert = document.createElement("div");
     cert.className = "cc-cert";
-    cert.innerHTML = '<b>📜 Health certificate</b><span>' + patient.name + " is " + gave.map(function (k) { return NEEDS[k].meter.toLowerCase(); }).join(", ") + " — all better!</span><small>" + "⭐".repeat(stars) + "</small><em>Fun fact: " + pick(PREHISTORIC_CREATURES).fact + "</em>";
+    cert.innerHTML = '<b>📜 Health certificate</b><span>' + patient.name + " is " + gave.map(function (k) { return NEEDS[k].meter.toLowerCase(); }).join(", ") + " — all better!</span><small>" + window.DUICONS.stars(stars) + "</small><em>Fun fact: " + pick(PREHISTORIC_CREATURES).fact + "</em>";
     board.appendChild(cert); F.pop && F.pop(cert);
     const helpBtn = board.querySelector("#ccHelp"); if (helpBtn) helpBtn.disabled = true;
     board.querySelectorAll(".cc-tool").forEach(function (b) { b.disabled = true; });
-    play.say(patient.name + " feels wonderful! 💚", 3000);
+    play.say(patient.name + " feels wonderful! ✨", 3000);
     window.setTimeout(function () {
       const next = queue[seat + 1];
       if (next) {
         seat += 1;
-        play.say(next.name + " is next through the door! 🚪", 2600);
+        /* Spoken lines must never read a glyph, and "through the door" already
+         * says it — the 🚪 was decoration the words carry by themselves. */
+        play.say(next.name + " is next through the door!", 2600);
         if (F.sfx) F.sfx.drum(2);
         window.setTimeout(function () { treat(next); }, 1700);
       } else goHome(stars);

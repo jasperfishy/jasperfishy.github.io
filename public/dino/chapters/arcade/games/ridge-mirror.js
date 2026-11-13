@@ -1,3 +1,4 @@
+import { addMaterialLayer } from '../../../photoreal-environments.js';
 // Ridge Mirror — one bend of dawn light, thrown off wet stone onto the mist.
 // Sun -> hide mirror -> exactly ONE bounce off a wet rock face -> the stragglers.
 // Nothing here is faked: every bounce is the law of reflection against that
@@ -409,6 +410,8 @@ function create(scene) {
   /* ---- props */
   const rockG = scene.add.graphics().setDepth(9);
   const floorG = scene.add.graphics().setDepth(8);
+  addMaterialLayer(scene,rockG,'material-rock',W,M.H);
+  addMaterialLayer(scene,floorG,'material-rock',W,M.H);
   const markG = scene.add.graphics().setDepth(31);
   const beamG = scene.add.graphics().setDepth(32).setBlendMode(Phaser.BlendModes.ADD);
   const veil = scene.add.rectangle(0, 0, W, M.H, COL(PAL.mist), 0).setOrigin(0).setDepth(37);

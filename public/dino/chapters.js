@@ -35,7 +35,9 @@ export const chapters = [
     id: 'adventures',
     title: 'Dino Adventures',
     subtitle: '23 adventures · build, hatch, rescue · sticker album',
-    icon: '🎈',
+    // A balloon is rubber and helium, and this universe has neither. An adventure is something
+    // you set off with, so the tile carries the explorer's satchel from the specimen library.
+    icon: '🎒',
     url: 'chapters/adventures/index.html',
     storagePrefix: 'dinosaur-universe-player-v1',
   },
@@ -63,7 +65,9 @@ export const chapters = [
     artId: 'adventures',
     title: 'Balloon Flight',
     subtitle: 'Flap through the clouds and catch eggs',
-    icon: '🎈',
+    // Nobody flies a balloon here: this arcade is flown as Pip the pterosaur, so the tile
+    // shows the animal the game actually puts under the child's finger, mid-flap.
+    icon: window.DUFX.dinoHTML('ptero', { color: 'pink', state: 'run', size: '30px' }),
     url: 'chapters/adventures-phaser/index.html',
     storagePrefix: 'dino-adventures-phaser',
   },
@@ -88,7 +92,9 @@ export const chapters = [
 // Original quick-play activities use the same hub shell and launch directly
 // into their module. Add a new module here and in adventures/src/main.js.
 export const activities = [
-  { id: 'rescue', title: 'The Great Dino Rescue', subtitle: 'A seven-chapter quest to save Mummy and Daddy', icon: '🏇', category: 'Adventures' },
+  // The quest is not about a horse-rider glyph but about the Sky Nest Mummy and Daddy are
+  // locked in, and a nest is photographed.
+  { id: 'rescue', title: 'The Great Dino Rescue', subtitle: 'A seven-chapter quest to save Mummy and Daddy', icon: '🪹', category: 'Adventures' },
   { id: 'builder', title: 'Build a Dinosaur', subtitle: 'Fit the dinosaur parts together', icon: '🦖', category: 'Puzzles' },
   { id: 'jigsaw', title: 'Dino Picture Jigsaw', subtitle: 'Piece together a prehistoric scene', icon: '🧩', category: 'Puzzles' },
   { id: 'fossil', title: 'Fossil Explorer', subtitle: 'Brush away the earth and discover bones', icon: '🦴', category: 'Discovery' },

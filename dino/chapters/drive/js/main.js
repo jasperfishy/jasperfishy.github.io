@@ -1,11 +1,11 @@
 // App entry: shared progression, scene selection, garage, and navigation.
 
-import { CARS } from "./data-cars.js?v=du-316e7af9b57fa08e";
-import { SCENE_LIST } from "./data-scenes.js?v=du-316e7af9b57fa08e";
-import { initCustomize } from "./screens/customize.js?v=du-316e7af9b57fa08e";
-import { initDrive } from "./screens/drive.js?v=du-316e7af9b57fa08e";
-import { initGarage, unlockedCarCount } from "./screens/garage.js?v=du-316e7af9b57fa08e";
-import { renderCarSVG } from "./render-car.js?v=du-316e7af9b57fa08e";
+import { CARS } from "./data-cars.js?v=du-58e7197a7bd67562";
+import { SCENE_LIST } from "./data-scenes.js?v=du-58e7197a7bd67562";
+import { initCustomize } from "./screens/customize.js?v=du-58e7197a7bd67562";
+import { initDrive } from "./screens/drive.js?v=du-58e7197a7bd67562";
+import { initGarage, unlockedCarCount } from "./screens/garage.js?v=du-58e7197a7bd67562";
+import { renderCarSVG } from "./render-car.js?v=du-58e7197a7bd67562";
 
 const STORAGE_KEY = "dino-car-studio-v1";
 const EMBEDDED = window.self !== window.top;
@@ -77,7 +77,7 @@ function refreshHome() {
   scenePicker.innerHTML = SCENE_LIST.map(scene => {
     const unlocked = state.totalStars >= scene.unlockStars;
     const selected = state.selectedScene === scene.id;
-    return `<button class="scene-choice${selected ? " selected" : ""}${unlocked ? "" : " locked"}" data-scene="${scene.id}" ${unlocked ? "" : "aria-disabled=\"true\""} aria-label="${scene.label}${unlocked ? (selected ? ", selected" : "") : `, unlock at ${scene.unlockStars} stars`}"><span>${sceneIcon(scene.id)}</span><strong>${scene.label}</strong><small>${unlocked ? (selected ? "Ready to explore" : "Choose this world") : `🔒 ${scene.unlockStars} stars`}</small></button>`;
+    return `<button class="scene-choice${selected ? " selected" : ""}${unlocked ? "" : " locked"}" data-scene="${scene.id}" ${unlocked ? "" : "aria-disabled=\"true\""} aria-label="${scene.label}${unlocked ? (selected ? ", selected" : "") : `, unlock at ${scene.unlockStars} stars`}"><span>${sceneIcon(scene.id)}</span><strong>${scene.label}</strong><small>${unlocked ? (selected ? "Ready to explore" : "Choose this world") : `${window.DUICONS.i('lock', { size: 16 })} ${scene.unlockStars} stars`}</small></button>`;
   }).join("");
   scenePicker.querySelectorAll("[data-scene]").forEach(button => button.addEventListener("click", () => {
     const scene = SCENE_LIST.find(item => item.id === button.dataset.scene);
@@ -93,8 +93,11 @@ function refreshHome() {
   }));
 }
 
+// One photographed thing per world, the same thing the drive screen puts by the
+// road first. A skyline and a ringed planet have no photographs in this valley,
+// so Dino City is a cart and Moonbeam Circuit is the moon.
 function sceneIcon(id) {
-  return ({ island: "🌴", city: "🏙️", mountain: "⛰️", snow: "❄️", desert: "🌵", space: "🪐" })[id] || "🦕";
+  return ({ island: "🌴", city: "🚗", mountain: "⛰️", snow: "❄️", desert: "🌵", space: "🌙" })[id] || "🦕";
 }
 
 function escapeHtml(value) {

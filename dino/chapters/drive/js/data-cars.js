@@ -9,7 +9,12 @@ export const PAINTS = [
   "#8e44ad", "#2980b9", "#d35400", "#27ae60"
 ];
 
-export const STICKERS = ["⭐", "🌟", "💥", "🔥", "🦖", "🌈", "⚡", "🍕", "🎈", "👑"];
+// Stickers are the one place a child picks a picture off a tray, so every entry
+// is a specimen the photograph layer can show, and no family appears twice —
+// two glyphs of one family would print the same photograph side by side. There
+// are no pizzas, balloons or crowns in this valley, so the tray offers what the
+// valley has instead: a berry, a cactus, a crystal and a nugget of fool's gold.
+export const STICKERS = ["⭐", "💥", "🔥", "🦖", "🌈", "⚡", "🍓", "🌵", "💎", "🪙"];
 
 // Body archetypes: each is a function returning SVG inner markup.
 // They draw into a 320x160 viewBox, body center around (160, 90).

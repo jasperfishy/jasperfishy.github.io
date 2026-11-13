@@ -70,7 +70,7 @@ export function chapterArt(id) {
       <i class="ca-cloud" style="top:12%;--w:60px;--t:26s"></i><i class="ca-cloud" style="top:30%;--w:40px;--t:38s;--o:-15s"></i>
       <span class="ca-stego">${D('stego', { color: 'purple' })}</span>
       <i class="ca-bf" style="--p:0">🦋</i><i class="ca-bf" style="--p:1">🦋</i>
-      <span class="ca-flowers">${['🌼', '🌸', '🌷', '🌻', '🌼', '🌺'].map((f, i) => `<em style="--i:${i}">${f}</em>`).join('')}</span>
+      <span class="ca-flowers">${['🌼', '🪻', '🌿', '☘️', '🌾', '🍄'].map((f, i) => `<em style="--i:${i}">${f}</em>`).join('')}</span>
       <i class="ca-ground ca-ground-m"></i>
     </div>`;
   if (id === 'adventures') return `

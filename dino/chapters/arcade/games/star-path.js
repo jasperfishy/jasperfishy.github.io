@@ -3,7 +3,7 @@
 // region, a called line the herd converges on with real weight, and miles that
 // only count along the bearing you can actually see.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-316e7af9b57fa08e';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-58e7197a7bd67562';
 
 const TAU = Math.PI * 2, D2R = Math.PI / 180;
 const PAL = MOODS.night;

@@ -2,27 +2,27 @@
 import { createPlay, shuffle, dragPiece, collect, collection } from "../adv-kit.js";
 
 const SKY_ROUTES = [
-  { creature: "Pteranodon", icon: "🪽", place: "Cloud Nest", placeIcon: "☁️", parcel: "Shiny shell", parcelIcon: "🐚", clue: "I live in a fluffy cloud nest.", sky: "day" },
-  { creature: "Quetzalcoatlus", icon: "🪽", place: "High Cliff", placeIcon: "⛰️", parcel: "Fern seeds", parcelIcon: "🌱", clue: "I live high up on a rocky cliff.", sky: "day" },
+  { creature: "Pteranodon", icon: "🪽", place: "Cloud Nest", placeIcon: "🪹", parcel: "Shiny shell", parcelIcon: "🐚", clue: "I live in a fluffy cloud nest.", sky: "day" },
+  { creature: "Quetzalcoatlus", icon: "🪽", place: "High Cliff", placeIcon: "⛰️", parcel: "Tender green shoots", parcelIcon: "🌱", clue: "I live high up on a rocky cliff.", sky: "day" },
   { creature: "Microraptor", icon: "🪶", place: "Rainbow Grove", placeIcon: "🌈", parcel: "Blue berries", parcelIcon: "🫐", clue: "I love rainbows and bright colours.", sky: "storm" },
-  { creature: "Archaeopteryx", icon: "🪶", place: "Ancient Tree", placeIcon: "🌳", parcel: "Soft nest fluff", parcelIcon: "🪺", clue: "I live in a very, very old tree.", sky: "day" },
+  { creature: "Archaeopteryx", icon: "🪶", place: "Ancient Tree", placeIcon: "🌵", parcel: "Soft nest fluff", parcelIcon: "🪺", clue: "I live in a very, very old cycad tree.", sky: "day" },
   { creature: "Tapejara", icon: "🪽", place: "Sunny Lagoon", placeIcon: "🌊", parcel: "Pretty pebble", parcelIcon: "💎", clue: "I live beside the sunny water.", sky: "day" },
   { creature: "Hatzegopteryx", icon: "🪽", place: "Fern Valley", placeIcon: "🌿", parcel: "Little flower", parcelIcon: "🌼", clue: "I live in a valley full of ferns.", sky: "day" },
-  { creature: "Rhamphorhynchus", icon: "🪽", place: "Moonlit Crag", placeIcon: "🌙", parcel: "Star map", parcelIcon: "🗺️", clue: "I come out when the moon is up.", sky: "night" },
-  { creature: "Yi qi", icon: "🪶", place: "Misty Woods", placeIcon: "🌲", parcel: "Warm scarf", parcelIcon: "🧣", clue: "I live in the misty pine woods.", sky: "dusk" },
+  { creature: "Rhamphorhynchus", icon: "🪽", place: "Moonlit Crag", placeIcon: "🔮", parcel: "Star map", parcelIcon: "🗺️", clue: "I come out when the moon is up.", sky: "night" },
+  { creature: "Yi qi", icon: "🪶", place: "Misty Woods", placeIcon: "🌫️", parcel: "A pad of soft moss", parcelIcon: "☘️", clue: "I live where the mist sits between the trees.", sky: "dusk" },
   { creature: "Anhanguera", icon: "🪽", place: "Fisher's Rocks", placeIcon: "🪨", parcel: "Slippery fish", parcelIcon: "🐟", clue: "I fish from the rocks where the waves splash.", sky: "day" },
-  { creature: "Nyctosaurus", icon: "🪶", place: "Twilight Tor", placeIcon: "🌆", parcel: "Glowing mushroom", parcelIcon: "🍄", clue: "I fly out when the sun is going down.", sky: "dusk" },
+  { creature: "Nyctosaurus", icon: "🪶", place: "Twilight Tor", placeIcon: "🟧", parcel: "Glowing mushroom", parcelIcon: "🍄", clue: "I fly out when the sun is going down.", sky: "dusk" },
   { creature: "Istiodactylus", icon: "🪽", place: "Pine Ridge", placeIcon: "🌲", parcel: "Pine cone", parcelIcon: "🌰", clue: "I live on a ridge full of pine trees.", sky: "day" },
-  { creature: "Tupandactylus", icon: "🪽", place: "Cycad Grove", placeIcon: "🌴", parcel: "Sweet cycad fruit", parcelIcon: "🍑", clue: "I live in a grove of tall cycad palms.", sky: "day" },
-  { creature: "Thalassodromeus", icon: "🪽", place: "Storm Cliff", placeIcon: "⛈️", parcel: "Brave badge", parcelIcon: "🎖️", clue: "I fly highest when the storm rolls in.", sky: "storm" },
-  { creature: "Dimorphodon", icon: "🪶", place: "Dragonfly Fen", placeIcon: "🪷", parcel: "Bendy reed", parcelIcon: "🌾", clue: "I live in a fen where the dragonflies dart.", sky: "dusk" }
+  { creature: "Tupandactylus", icon: "🪽", place: "Palm Grove", placeIcon: "🌴", parcel: "A drop of golden sap", parcelIcon: "🍯", clue: "I live in a grove of tall palms.", sky: "day" },
+  { creature: "Thalassodromeus", icon: "🪽", place: "Windy Cliff", placeIcon: "🌪️", parcel: "Brave badge", parcelIcon: "🎖️", clue: "I fly highest when the storm rolls in.", sky: "storm" },
+  { creature: "Dimorphodon", icon: "🪶", place: "Dragonfly Fen", placeIcon: "🎋", parcel: "Swirly snail shell", parcelIcon: "🐌", clue: "I live in a fen where the dragonflies dart.", sky: "dusk" }
 ];
 /* the sky over the map changes with the route, so no two flights look the same */
 const SKIES = {
   day: { bg: "linear-gradient(#8fd3f4 0%, #cdeefc 55%, #eafbe7 100%)", cloud: "☁️", sun: "🌞" },
   dusk: { bg: "linear-gradient(#ffb46f 0%, #d79ad0 55%, #5b4f98 100%)", cloud: "☁️", sun: "🌇" },
   night: { bg: "linear-gradient(#16204f 0%, #3f4a86 60%, #6f7bb5 100%)", cloud: "☁️", sun: "🌙" },
-  storm: { bg: "linear-gradient(#5d7288 0%, #93a9bb 60%, #cfe0e6 100%)", cloud: "🌧️", sun: "🌥️" }
+  storm: { bg: "linear-gradient(#5d7288 0%, #93a9bb 60%, #cfe0e6 100%)", cloud: "🌧️", sun: "💨" }
 };
 function skyScenery(sky) {
   const s = SKIES[sky] || SKIES.day;
@@ -42,25 +42,25 @@ function skyScenery(sky) {
 
 const WEATHER_MISSIONS = [
   { sky: "A sunny afternoon", skyIcon: "☀️", cls: "day", need: "The young plants need water", needIcon: "🌱", answer: "Rain cloud", fact: "Rain gives thirsty plants the water they need.", also: { need: "Now the little one wants a splash!", needIcon: "💧", answer: "Rain pool", fact: "Rainwater gathers in little pools and puddles." } },
-  { sky: "A warm, bright day", skyIcon: "🌤️", cls: "day", need: "I need a cool, shady spot", needIcon: "🥵", answer: "Leafy shade", fact: "Leaves can make a cool shady place." },
-  { sky: "A breezy morning", skyIcon: "🍃", cls: "wind", need: "My nest needs shelter from the wind", needIcon: "🪺", answer: "Fern windbreak", fact: "Plants can help shelter small places from the wind." },
-  { sky: "A chilly evening", skyIcon: "🌙", cls: "chill", need: "I need a snug, warm nest", needIcon: "🥶", answer: "Soft nest leaves", fact: "A cosy nest helps a hatchling feel safe and warm.", also: { need: "And a sleepy, starry sky, please", needIcon: "😴", answer: "Quiet star glow", fact: "The night sky changes as Earth turns beneath the stars." } },
+  { sky: "A warm, bright day", skyIcon: "🌤️", cls: "day", need: "I need a cool, shady spot", needIcon: "🔥", answer: "Leafy shade", fact: "Leaves can make a cool shady place." },
+  { sky: "A breezy morning", skyIcon: "🍃", cls: "wind", need: "My nest needs shelter from the wind", needIcon: "🪺", answer: "Grass windbreak", fact: "Plants can help shelter small places from the wind." },
+  { sky: "A chilly evening", skyIcon: "🌙", cls: "chill", need: "I need a snug, warm nest", needIcon: "❄️", answer: "Soft nest leaves", fact: "A cosy nest helps a hatchling feel safe and warm.", also: { need: "And a sleepy, starry sky, please", needIcon: "😴", answer: "Quiet star glow", fact: "The night sky changes as Earth turns beneath the stars." } },
   { sky: "A rainy morning", skyIcon: "🌧️", cls: "rain", need: "I want to splash in a puddle", needIcon: "🦖", answer: "Rain pool", fact: "Rainwater gathers in little pools and puddles." },
   { sky: "A clear night", skyIcon: "🌌", cls: "night", need: "I need a calm, sleepy bedtime", needIcon: "😴", answer: "Quiet star glow", fact: "The night sky changes as Earth turns beneath the stars." },
   { sky: "A grey, cloudy day", skyIcon: "☁️", cls: "day", need: "My little plants are not getting enough light", needIcon: "🌿", answer: "Sun mirror", fact: "Plants turn their leaves towards the light to grow." },
-  { sky: "A frosty dawn", skyIcon: "❄️", cls: "chill", need: "My eggs are cold at both ends!", needIcon: "🥚", answer: "Warm moss blanket", fact: "A soft blanket of moss keeps eggs toasty." },
-  { sky: "A hot, still afternoon", skyIcon: "🔥", cls: "day", need: "There is no breeze and I am panting", needIcon: "😮‍💨", answer: "Breeze fan", fact: "Moving air helps big dinosaurs cool down." },
-  { sky: "A dark, starless night", skyIcon: "🌑", cls: "night", need: "I cannot see my way home", needIcon: "🕳️", answer: "Glow lantern", fact: "Some prehistoric friends glowed to find their family." },
-  { sky: "A rumbly storm", skyIcon: "⛈️", cls: "rain", need: "The thunder is loud and I feel scared", needIcon: "😨", answer: "Cosy cave", fact: "A cave keeps the noise of a storm far away." },
-  { sky: "A blustery, sandy day", skyIcon: "🌪️", cls: "wind", need: "My eyes are full of swirling sand", needIcon: "🏜️", answer: "Tall grass wall", fact: "Grass holds the sand down so the air stays clear." }
+  { sky: "A frosty dawn", skyIcon: "🌄", cls: "chill", need: "My eggs are cold at both ends!", needIcon: "🥚", answer: "Warm moss blanket", fact: "A soft blanket of moss keeps eggs toasty." },
+  { sky: "A hot, still afternoon", skyIcon: "🔥", cls: "day", need: "There is no breeze and I am panting", needIcon: "💨", answer: "Feather fan", fact: "Moving air helps big dinosaurs cool down." },
+  { sky: "A dark, starless night", skyIcon: "🌑", cls: "night", need: "I cannot see my way home", needIcon: "🌫️", answer: "Glow torch", fact: "Some prehistoric friends glowed to find their family." },
+  { sky: "A rumbly storm", skyIcon: "⛈️", cls: "rain", need: "The thunder is loud and I feel scared", needIcon: "⚡", answer: "Cosy cave", fact: "A cave keeps the noise of a storm far away." },
+  { sky: "A blustery, sandy day", skyIcon: "🌪️", cls: "wind", need: "My eyes are full of swirling sand", needIcon: "🟧", answer: "Wall of sprouts", fact: "Sprouting roots hold the sand down so the air stays clear." }
 ];
 const TOOLS = [
   { name: "Rain cloud", icon: "🌧️", fx: "rain" }, { name: "Leafy shade", icon: "🌿", fx: "shade" },
-  { name: "Fern windbreak", icon: "🌾", fx: "wind" }, { name: "Soft nest leaves", icon: "🍂", fx: "nest" },
+  { name: "Grass windbreak", icon: "🌾", fx: "wind" }, { name: "Soft nest leaves", icon: "🍂", fx: "nest" },
   { name: "Rain pool", icon: "💧", fx: "pool" }, { name: "Quiet star glow", icon: "✨", fx: "stars" },
-  { name: "Sun mirror", icon: "🔆", fx: "sun" }, { name: "Warm moss blanket", icon: "🧣", fx: "blanket" },
-  { name: "Breeze fan", icon: "🌀", fx: "breeze" }, { name: "Glow lantern", icon: "🏮", fx: "lantern" },
-  { name: "Cosy cave", icon: "⛰️", fx: "cave" }, { name: "Tall grass wall", icon: "🌱", fx: "grass" }
+  { name: "Sun mirror", icon: "🔆", fx: "sun" }, { name: "Warm moss blanket", icon: "☘️", fx: "blanket" },
+  { name: "Feather fan", icon: "🪶", fx: "breeze" }, { name: "Glow torch", icon: "🪔", fx: "lantern" },
+  { name: "Cosy cave", icon: "⛰️", fx: "cave" }, { name: "Wall of sprouts", icon: "🌱", fx: "grass" }
 ];
 /* a helping of extra sky colours so each mission scene looks different */
 const SKY_TINTS = { day: "", rain: "wx-rain", night: "wx-night", chill: "wx-chill", wind: "wx-wind" };
@@ -171,14 +171,14 @@ export function mountSkyMail(context) {
         const r = btn.getBoundingClientRect();
         if (F.burst) { F.burst(r.left + r.width / 2, r.top, { kind: "hearts", n: 10 }); F.burst(r.left + r.width / 2, r.top, { kind: "confetti", n: 12 }); }
         play.good(btn, { text: "Thank you!" });
-        play.say(route.creature + ": “Thank you for my " + route.parcel.toLowerCase() + "!” 💌", 3000);
+        play.say(route.creature + ": “Thank you for my " + route.parcel.toLowerCase() + "!” ✨", 3000);
         collect("postcards", { creature: route.creature, place: route.place });
         delivered += 1; n += 1;
         if (rush && delivered % 3 === 0) play.bonus();
         window.setTimeout(next, 2200);
       } else {
         mixups += 1;
-        play.miss(btn, "So close! Nobody at the " + chosen.place + " asked for this one. Your friend said: “" + route.clue + "” — try again! 💛");
+        play.miss(btn, "So close! Nobody at the " + chosen.place + " asked for this one. Your friend said: “" + route.clue + "” — try again! ✨");
         btn.classList.add("nope");
         if (F.sfx) F.sfx.thud();
         const back = mail.animate ? mail.animate([{ translate: dx + "px " + dy + "px" }, { translate: "0 0" }], { duration: 900, easing: "ease-in-out", fill: "forwards" }) : null;
@@ -306,16 +306,16 @@ export function mountWeatherWorkshop(context) {
     } else if (kind === "blanket") {
       // A soft moss blanket tucks the cold eggs in and the whole scene warms up.
       scene.classList.add("wx-warm");
-      fx.innerHTML = '<span class="wx-eggs">🥚🥚🥚</span><span class="wx-blanket">🧣</span>' + Array.from({ length: 6 }, function (_, i) { return '<i class="wx-warmth" style="left:' + (26 + i * 9) + '%;animation-delay:' + (i * 0.25) + 's"></i>'; }).join("");
+      fx.innerHTML = '<span class="wx-eggs">🥚🥚🥚</span><span class="wx-blanket">☘️</span>' + Array.from({ length: 6 }, function (_, i) { return '<i class="wx-warmth" style="left:' + (26 + i * 9) + '%;animation-delay:' + (i * 0.25) + 's"></i>'; }).join("");
       if (F2.sfx) { F2.sfx.pop(); F2.sfx.note(2, .7); }
     } else if (kind === "breeze") {
-      // A fern fan spins up a cool breeze so the panting friend can catch its breath.
-      fx.innerHTML = '<span class="wx-fan">🌀</span>' + Array.from({ length: 7 }, function (_, i) { return '<i class="wx-gust wx-cool" style="top:' + (18 + i * 9) + '%;animation-delay:' + (-i * 0.22) + 's"></i>'; }).join("");
+      // A feather fan spins up a cool breeze so the panting friend can catch its breath.
+      fx.innerHTML = '<span class="wx-fan">🪶</span>' + Array.from({ length: 7 }, function (_, i) { return '<i class="wx-gust wx-cool" style="top:' + (18 + i * 9) + '%;animation-delay:' + (-i * 0.22) + 's"></i>'; }).join("");
       if (F2.sfx) F2.sfx.whoosh();
     } else if (kind === "lantern") {
-      // A glow lantern lights the starless night so the friend can see its way home.
+      // A glow torch lights the starless night so the friend can see its way home.
       scene.classList.add("wx-lit");
-      fx.innerHTML = '<span class="wx-halo"></span><span class="wx-lantern">🏮</span>' + Array.from({ length: 8 }, function () { return '<i class="wx-firefly" style="left:' + (Math.random() * 90).toFixed(0) + '%;top:' + (30 + Math.random() * 50).toFixed(0) + '%;animation-delay:' + (-Math.random() * 2).toFixed(1) + 's"></i>'; }).join("");
+      fx.innerHTML = '<span class="wx-halo"></span><span class="wx-lantern">🪔</span>' + Array.from({ length: 8 }, function () { return '<i class="wx-firefly" style="left:' + (Math.random() * 90).toFixed(0) + '%;top:' + (30 + Math.random() * 50).toFixed(0) + '%;animation-delay:' + (-Math.random() * 2).toFixed(1) + 's"></i>'; }).join("");
       if (F2.sfx) { F2.sfx.sparkle(); F2.sfx.note(3, .7); }
     } else if (kind === "cave") {
       // A cosy cave arches over the friend and shuts the loud storm out.
@@ -323,8 +323,8 @@ export function mountWeatherWorkshop(context) {
       fx.innerHTML = '<span class="wx-caveglow"></span><span class="wx-cave">⛰️</span>' + Array.from({ length: 10 }, function (_, i) { return '<i class="wx-drop wx-far" style="left:' + (4 + i * 10) + '%;animation-delay:' + (-(i % 5) * 0.2) + 's"></i>'; }).join("");
       if (F2.sfx) { F2.sfx.pop(); F2.sfx.note(1, .8); }
     } else if (kind === "grass") {
-      // A tall grass wall rises and holds the swirling sand down so the air clears.
-      fx.innerHTML = '<span class="wx-grasswall">🌱🌾🌱🌾🌱</span>' + Array.from({ length: 12 }, function (_, i) { return '<i class="wx-sand" style="left:' + (6 + i * 8) + '%;animation-delay:' + (i * 0.1) + 's"></i>'; }).join("");
+      // A wall of sprouts rises and holds the swirling sand down so the air clears.
+      fx.innerHTML = '<span class="wx-grasswall">🌱🌱🌱🌱🌱</span>' + Array.from({ length: 12 }, function (_, i) { return '<i class="wx-sand" style="left:' + (6 + i * 8) + '%;animation-delay:' + (i * 0.1) + 's"></i>'; }).join("");
       if (F2.sfx) { F2.sfx.whoosh(); F2.sfx.pop(); }
     }
   }

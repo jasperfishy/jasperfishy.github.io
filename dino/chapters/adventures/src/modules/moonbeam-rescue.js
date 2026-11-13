@@ -9,7 +9,7 @@
  *   • THE MOON IS FADED — moonlight slowly drains (faster while the lamp is out). When it runs out the moon simply
  *     takes a breath, the stones glow again and the meter refills. Nobody loses; the night just gets dimmer and
  *     busier as the rounds grow: more stones, more hidden friends, a faster-fading moon. */
-import { createPlay, shuffle, getExtras, collect, collection } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, shuffle, getExtras, collect, collection } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
 const STARS = [["moon", "🌙"], ["fern", "🌿"], ["pawprint", "🐾"], ["flower", "🌼"], ["crystal", "💎"], ["star", "⭐"], ["leaf", "🍃"], ["pebble", "🪨"], ["glowfly", "✨"], ["shell", "🐚"]];
 const HELPERS = [["tricera", "teal", "Trixie"], ["stego", "purple", "Spike"], ["bronto", "orange", "Bronte"], ["raptor", "red", "Zippy"], ["trex", "green", "Rexy"]];
@@ -41,12 +41,15 @@ export function mountMoonbeamRescue(context) {
   board._mb = sequence.map(function (s) { return s[0]; });
   board._mbRT = roundTrip;
   board.innerHTML = '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px">' +
-    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip(pathLength + " glowing stones" + (roundTrip ? " · there AND back" : "")) + (best ? chip("Your best " + "⭐".repeat(best)) : "") +
+    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip(pathLength + " glowing stones" + (roundTrip ? " · there AND back" : "")) + (best ? chip("Your best " + window.DUICONS.stars(best)) : "") +
     chip(hiddenPicks.length + " friend" + (hiddenPicks.length === 1 ? "" : "s") + ' lost in the dark 🆘') + chip(nightRescues.length ? "Home so far: " + nightRescues.length + " 🏠" : "Rescue log empty 🏠") + "</div>" +
     '<div class="mb-moonbar" id="mbMoon" data-moon="100" data-rests="0" role="img" aria-label="How much moonlight is left" style="display:flex;align-items:center;gap:8px;justify-content:center;margin:0 auto 6px;font-weight:900;font-size:11.5px;color:#245048">' +
     '<span>🌙 moonlight</span><span class="progress-track" style="flex:1;max-width:260px"><span id="mbMoonFill" style="display:block;height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#fff3a8,#8fd6ff);transition:width .6s"></span></span></div>' +
     '<div class="mb-scene" id="mbScene" data-lamp="off" data-rescued="0"><span class="mb-moon">🌙</span><div class="mb-river"></div>' +
-    (tier >= 2 ? '<i style="position:absolute;left:16%;top:12%;font-size:22px;pointer-events:none;opacity:.85">✨</i><i style="position:absolute;left:64%;top:8%;font-size:18px;pointer-events:none;opacity:.85">✨</i><i style="position:absolute;left:84%;top:22%;font-size:20px;pointer-events:none;opacity:.85">🪲</i>' : "") +
+    /* The two ✨ are a photograph the object layer owns. The beetle is not: this
+     * universe has no beetle picture, and an emoji in the canopy is the operating
+     * system's drawing, not ours — so the night's little glow-worm is drawn here. */
+    (tier >= 2 ? '<i style="position:absolute;left:16%;top:12%;font-size:22px;pointer-events:none;opacity:.85">✨</i><i style="position:absolute;left:64%;top:8%;font-size:18px;pointer-events:none;opacity:.85">✨</i><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" style="position:absolute;left:84%;top:22%;pointer-events:none;opacity:.9"><g fill="none" stroke="#cfe0ff" stroke-width="1.4" stroke-linecap="round"><path d="M8.6 9.4 5.2 6.2M15.4 9.4 18.8 6.2"/></g><ellipse cx="12" cy="12" rx="6" ry="7.2" fill="#2b2440"/><path d="M12 5.4v13.4" stroke="#4c4069" stroke-width="1.2"/><circle cx="12" cy="17.4" r="3.1" fill="#baf06a"/></svg>' : "") +
     (tier >= 3 ? '<i style="position:absolute;left:42%;top:6%;font-size:26px;pointer-events:none">🌠</i><i style="position:absolute;left:28%;top:18%;font-size:16px;pointer-events:none;opacity:.8">✨</i>' : "") +
     '<div class="mb-island left"><div class="mb-helper">' + F.dinoHTML(helper[0], { color: helper[1], state: "idle", size: "100%" }) + '<small>' + helper[2] + '</small></div></div>' +
     '<div class="mb-stones" id="mbStones"></div><div class="mb-island right"><div class="mb-family" id="mbFamily"></div></div>' +
@@ -125,7 +128,7 @@ export function mountMoonbeamRescue(context) {
       busy = true; wrongRun += 1;
       const d = baby.querySelector(".du-dino"); F.dinoState(d, "sad", 900);
       if (F.shake) F.shake(baby);
-      play.miss(btn, "Oops, the baby wobbled! Let's watch the moonbeams again. 💛");
+      play.miss(btn, "Oops, the baby wobbled! Let's watch the moonbeams again. ✨");
       window.setTimeout(function () {
         clearStones();
         if (wrongRun >= 2) lightNext(850); // twice wrong in a row: light the next stone as a teaching nudge
@@ -295,7 +298,7 @@ export function mountMoonbeamRescue(context) {
     });
     if (F.sfx) F.sfx.sparkle();
     play.say("The moon takes a breath… and the stones light up again! 🌙", 3200);
-    nudge.textContent = "The moon rested, so the stones are glowing again. Nothing was lost! 💛";
+    nudge.textContent = "The moon rested, so the stones are glowing again. Nothing was lost! ✨";
   }
   let journeyOver = false;
   const moonTick = window.setInterval(function () {
@@ -317,7 +320,7 @@ export function mountMoonbeamRescue(context) {
     if (F.sfx) F.sfx.win();
     if (F.burst) { F.burst(r.left + r.width * 0.85, r.top + r.height * 0.6, { kind: "hearts", n: 18 }); F.burst(r.left + r.width / 2, r.top + 30, { kind: "confetti", n: 40 }); }
     F.dinoState(baby.querySelector(".du-dino"), "happy", 99999);
-    play.say("The family is together again! 💚", 3500);
+    play.say("The family is together again! ✨", 3500);
     play.bonus();
     /* the rescue log: every crossing is written on this device, hidden friends and all */
     collect("rescues", { night: level, hops: pathLength, there_and_back: roundTrip, saved: rescued, lost: lostFriends.length, rests: rests, helper: helper[2], stars: play.rating() });

@@ -388,3 +388,21 @@ body[data-tod="night"] .jy-picks b { color: #f0c46a; }
   .story-ribbon { grid-template-columns: 1fr; }
   .sr-crystals { grid-auto-flow: column; justify-content: start; }
 }
+/* Photographic environment: the terrain and plants are part of the landscape. */
+.hero-scene .hs-photo { background-image: url('assets/environments/jungle.webp'); background-position: center bottom; }
+.hero-scene[data-tod] .hs-photo { background-image: url('assets/environments/jungle.webp'); }
+.hero-scene .hs-far, .hero-scene .hs-volcano, .hero-scene .hs-hills,
+.hero-scene .hs-palms, .hero-scene .hs-fore, .hero-scene .hs-cloud,
+.hero-scene .hs-smoke { display: none; }
+.hero-scene[data-tod="night"] .hs-photo { filter: brightness(.45) saturate(.65); }
+.hero-scene[data-tod="dusk"] .hs-photo { filter: brightness(.8) sepia(.18); }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-scene .hs-photo { animation: environment-drift 28s ease-in-out infinite alternate; }
+}
+@keyframes environment-drift { from { transform: scale(1.025) translateX(-.3%); } to { transform: scale(1.06) translateX(.3%); } }
+
+.hero-scene[data-tod="night"] .hs-photo { background-image: url("assets/environments/night.webp"); filter: none; }
+.ca-park { background: url("assets/environments/volcanic.webp") center/cover; }
+.ca-meadow { background: url("assets/environments/jungle.webp") center/cover; }
+.ca-drive { background: url("assets/environments/jungle.webp") center/cover; }
+.ca-park .ca-volc, .ca-park .ca-ground { display:none; }

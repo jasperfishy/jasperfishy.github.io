@@ -31,6 +31,9 @@ export class SkyAudio {
     if (!AC) return;
     const ctx = new AC();
     this.ctx = ctx;
+    // One AudioContext per page: the bank joins this one instead of opening a
+    // second, or the sample and the synthesiser run on two different clocks.
+    if (window.DUAudio) window.DUAudio.useContext(ctx);
 
     this.master = ctx.createGain();
     this.master.gain.value = this.muted ? 0 : 0.85;
@@ -306,10 +309,24 @@ export class SkyAudio {
     src.start(t); src.stop(t + dur + 0.05);
   }
 
-  flap() { this.burst({ dur: 0.16, freq: 380 + Math.random() * 180, q: 0.9, gain: 0.05, sweep: -160 }); }
+  /* The recorded bank, when this page carries it. Every sound below is still
+   * synthesised: a sample only wins once it has actually arrived, and it plays
+   * through this engine's own buses so the mute button and the compressor still
+   * own it. */
+  sample(name, o) {
+    const A = window.DUAudio;
+    if (!A || !this.ctx) return false;
+    return A.play(name, Object.assign({ dest: this.sfxBus }, o || {}));
+  }
+
+  flap() {
+    if (this.sample('whoosh')) return;
+    this.burst({ dur: 0.16, freq: 380 + Math.random() * 180, q: 0.9, gain: 0.05, sweep: -160 });
+  }
 
   letter() {
     if (!this.ctx) return;
+    if (this.sample('chime')) return;
     const t = this.ctx.currentTime;
     this.bell(NOTE(84), t, 0.05);
     this.bell(NOTE(88), t + 0.09, 0.035);
@@ -317,12 +334,14 @@ export class SkyAudio {
   }
 
   gate() {
+    if (this.sample('scrape')) return;
     this.burst({ dur: 0.34, freq: 600, q: 1.4, gain: 0.07, sweep: 1400 });
     if (this.ctx) this.pluck(NOTE(79), this.ctx.currentTime, 0.05, 0.45);
   }
 
   deliver() {
     if (!this.ctx) return;
+    if (this.sample('good')) return;
     const t = this.ctx.currentTime;
     [72, 76, 79, 84].forEach((n, i) => this.pluck(NOTE(n), t + i * 0.11, 0.08, 1.2));
     this.bell(NOTE(96), t + 0.44, 0.04);
@@ -331,6 +350,7 @@ export class SkyAudio {
 
   hurt() {
     if (!this.ctx) return;
+    if (this.sample('hurt')) return;
     const t = this.ctx.currentTime;
     this.thump(110, t, 0.18, 0.4);
     this.burst({ dur: 0.3, freq: 700, q: 0.6, gain: 0.12, sweep: -500, type: 'lowpass' });
@@ -338,6 +358,7 @@ export class SkyAudio {
 
   thunder(delay = 0) {
     if (!this.ctx) return;
+    if (this.sample('boom', { at: delay })) return;
     const t = this.ctx.currentTime + delay;
     const ctx = this.ctx;
     const src = ctx.createBufferSource();
@@ -356,11 +377,13 @@ export class SkyAudio {
 
   ui() {
     if (!this.ctx) return;
+    if (this.sample('ui')) return;
     this.pluck(NOTE(81), this.ctx.currentTime, 0.05, 0.28);
   }
 
   routeComplete() {
     if (!this.ctx) return;
+    if (this.sample('win')) return;
     const t = this.ctx.currentTime;
     [67, 71, 74, 79, 83, 86].forEach((n, i) => this.pluck(NOTE(n), t + i * 0.13, 0.075, 1.6));
     this.bell(NOTE(98), t + 0.8, 0.03);
@@ -368,6 +391,7 @@ export class SkyAudio {
 
   fail() {
     if (!this.ctx) return;
+    if (this.sample('fail')) return;
     const t = this.ctx.currentTime;
     [72, 68, 63, 59].forEach((n, i) => this.pluck(NOTE(n), t + i * 0.16, 0.07, 0.9));
   }

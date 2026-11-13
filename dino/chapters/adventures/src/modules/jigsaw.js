@@ -4,60 +4,62 @@
  * Then it goes in two parts — Part 1 is the border, Part 2 is the middle. When the picture is whole it comes alive,
  * and a bonus "Spot it!" round asks you to find the little things hidden in it. Finished pictures go into your
  * gallery with stars and a best time. */
-import { createPlay, shuffle, enter, dragPiece, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, shuffle, enter, dragPiece, collect, collection, getExtras, escapeText } from "../adv-kit.js?v=du-58e7197a7bd67562";
+import { photoPuzzle } from './photo-puzzles.js?v=du-58e7197a7bd67562';
 
 const SKY = (id, a, b) => '<linearGradient id="' + id + '" x2="0" y2="1"><stop stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient>';
 const E = (ch, x, y, size, extra) => '<text x="' + x + '" y="' + y + '" font-size="' + size + '" text-anchor="middle" ' + (extra || "") + '>' + ch + '</text>';
-const F2 = (ch, x, y, size) => ({ ch: ch, x: x / 360, y: (y - size * 0.32) / 240 });
+const F2 = (ch, x, y, size, name) => ({ ch: ch, x: x / 360, y: (y - size * 0.32) / 240, name: name || ch });
 
 export const SCENES = [
-  { name: "Dino Meadow", theme: "meadow", alive: ["🦋", "🐝"], finds: [F2("🦋", 70, 70, 26), F2("🌼", 40, 215, 30), F2("🌸", 322, 214, 30), F2("🐞", 200, 232, 26)], svg: () =>
+  { name: "Dino Meadow", theme: "meadow", alive: ["🦋", "☁️"], finds: [F2("🌼", 40, 215, 30, "a flower"), F2("🌿", 322, 214, 30, "a fern"), F2("🐌", 150, 224, 26, "a snail"), F2("🦕", 200, 232, 26, "a little dinosaur")], svg: () =>
     '<defs>' + SKY("s", "#bce5ee", "#fff0c7") + '</defs><rect width="360" height="240" fill="url(#s)"/><circle cx="300" cy="49" r="26" fill="#ffd36d"/>' +
     '<path d="M0 157q74-67 148-4t120-10 92 6v91H0z" fill="#79bd82"/><path d="M0 197q84-50 176 0t184-9v52H0z" fill="#45896d"/>' +
     '<path d="M91 145c0-38 29-63 66-63h44c32 0 52 18 52 39 0 17-11 28-29 32v37h-19v-29h-23v29h-20v-30h-27c-27 0-44-6-44-15z" fill="#49a67d" stroke="#245f52" stroke-width="5"/>' +
     '<path d="m92 145-39-18 6 17 35 15" fill="#49a67d" stroke="#245f52" stroke-width="5"/><path d="m126 88 11-23 15 24m18-26 16-25 16 29" fill="#e98a62" stroke="#245f52" stroke-width="4"/>' +
     '<circle cx="240" cy="108" r="5" fill="#183e40"/><path d="M245 126q-11 9-21 0" fill="none" stroke="#183e40" stroke-width="3" stroke-linecap="round"/>' +
-    E("🌼", 40, 215, 30) + E("🌸", 322, 214, 30) + E("🦋", 70, 70, 26) + E("🐞", 200, 232, 26) },
-  { name: "Volcano Island", theme: "dig", alive: ["🔥", "🐦"], finds: [F2("🌴", 56, 192, 54), F2("🦕", 292, 190, 64), F2("☁️", 300, 42, 40), F2("🐦", 330, 96, 26)], svg: () =>
+    E("🌼", 40, 215, 30) + E("🌿", 322, 214, 30) + E("🐌", 150, 224, 26) + E("🦕", 200, 232, 26) },
+  { name: "Volcano Island", theme: "dig", alive: ["🔥", "💨"], finds: [F2("🌴", 56, 192, 54, "a palm tree"), F2("🦕", 292, 190, 64, "a brontosaurus"), F2("☁️", 300, 42, 40, "a cloud of ash"), F2("🪽", 330, 96, 26, "a feather")], svg: () =>
     '<defs>' + SKY("s", "#ffb199", "#ffe6a8") + '</defs><rect width="360" height="240" fill="url(#s)"/><circle cx="60" cy="52" r="22" fill="#fff3b0"/>' +
     '<path d="M110 190 170 70h30l60 120z" fill="#8a5a4d"/><path d="M168 74q17 12 34 0l-6-14h-22z" fill="#ff7b3a"/><path d="M183 74q-6 40 6 60t-4 56" stroke="#ff9a3a" stroke-width="9" fill="none" stroke-linecap="round"/>' +
-    '<path d="M0 190q90-20 180-4t180-8v62H0z" fill="#3fa1b8"/><path d="M0 214q90-18 180 0t180-4v30H0z" fill="#2c7f9e"/>' + E("🌴", 56, 192, 54) + E("🦕", 292, 190, 64) + E("☁️", 300, 42, 40) + E("🐦", 330, 96, 26) },
-  { name: "Starry Night", theme: "night", alive: ["⭐", "🌙"], finds: [F2("🦉", 276, 168, 26), F2("✨", 220, 130, 30), F2("🌲", 40, 200, 50), F2("🦕", 130, 196, 80)], svg: () =>
+    '<path d="M0 190q90-20 180-4t180-8v62H0z" fill="#3fa1b8"/><path d="M0 214q90-18 180 0t180-4v30H0z" fill="#2c7f9e"/>' + E("🌴", 56, 192, 54) + E("🦕", 292, 190, 64) + E("☁️", 300, 42, 40) + E("🪽", 330, 96, 26) },
+  { name: "Starry Night", theme: "night", alive: ["⭐", "🌙"], finds: [F2("🔮", 276, 168, 26, "a moonstone"), F2("🌠", 220, 130, 30, "the northern lights"), F2("🌲", 40, 200, 50, "a pine tree"), F2("🦕", 130, 196, 80, "a brontosaurus")], svg: () =>
     '<defs>' + SKY("s", "#141a4d", "#5a4b97") + '</defs><rect width="360" height="240" fill="url(#s)"/><circle cx="288" cy="52" r="28" fill="#fff6c9"/><circle cx="300" cy="46" r="24" fill="#3d3a82"/>' +
     '<g fill="#fffbd0"><circle cx="40" cy="40" r="3"/><circle cx="96" cy="76" r="2.4"/><circle cx="170" cy="30" r="3"/><circle cx="220" cy="84" r="2"/><circle cx="330" cy="120" r="2.6"/><circle cx="130" cy="120" r="2"/></g>' +
-    '<path d="M0 170q90-50 180-10t180-14v94H0z" fill="#2b2f6a"/><path d="M0 206q100-40 190-4t170-6v44H0z" fill="#1f2457"/>' + E("🦕", 130, 196, 80) + E("🌲", 40, 200, 50) + E("🌲", 320, 204, 56) + E("✨", 220, 130, 30) + E("🦉", 276, 168, 26) },
-  { name: "Under the Sea", theme: "water", alive: ["🫧", "🐟"], finds: [F2("🐠", 250, 130, 44), F2("🦀", 140, 224, 28), F2("🐚", 210, 224, 26), F2("🦈", 180, 90, 62)], svg: () =>
+    '<path d="M0 170q90-50 180-10t180-14v94H0z" fill="#2b2f6a"/><path d="M0 206q100-40 190-4t170-6v44H0z" fill="#1f2457"/>' + E("🦕", 130, 196, 80) + E("🌲", 40, 200, 50) + E("🌵", 320, 204, 56) + E("🌠", 220, 130, 30) + E("🔮", 276, 168, 26) },
+  { name: "The Old Sea", theme: "water", alive: ["🫧", "🐢"], finds: [F2("🐟", 250, 130, 44, "a fish"), F2("🥌", 140, 224, 28, "a round stone"), F2("🐚", 210, 224, 26, "a shell"), F2("🦈", 180, 90, 62, "a shark")], svg: () =>
     '<defs>' + SKY("s", "#7fd8f0", "#2f7fb0") + '</defs><rect width="360" height="240" fill="url(#s)"/>' +
     '<path d="M0 214q60-22 120 0t120 0 120-6v32H0z" fill="#e9cf93"/><path d="M40 214q-16-40 6-70m6 70q8-34-6-58m276 58q14-38-8-66" stroke="#2f9a63" stroke-width="7" fill="none" stroke-linecap="round"/>' +
-    '<g fill="none" stroke="#fff" stroke-width="2.4" opacity=".8"><circle cx="90" cy="60" r="9"/><circle cx="108" cy="36" r="6"/><circle cx="260" cy="70" r="8"/><circle cx="300" cy="40" r="5"/></g>' + E("🐙", 76, 205, 60) + E("🐠", 250, 130, 44) + E("🦈", 180, 90, 62) + E("🐢", 306, 205, 50) + E("🐚", 210, 224, 26) + E("🦀", 140, 224, 28) },
-  { name: "Egg Nest", theme: "meadow", alive: ["🐣", "💛"], finds: [F2("🐣", 232, 190, 50), F2("🍃", 316, 160, 30), F2("🌿", 30, 200, 30), F2("🥚", 150, 190, 46)], svg: () =>
+    '<g fill="none" stroke="#fff" stroke-width="2.4" opacity=".8"><circle cx="90" cy="60" r="9"/><circle cx="108" cy="36" r="6"/><circle cx="260" cy="70" r="8"/><circle cx="300" cy="40" r="5"/></g>' + E("🌀", 76, 205, 60) + E("🐟", 250, 130, 44) + E("🦈", 180, 90, 62) + E("🐢", 306, 205, 50) + E("🐚", 210, 224, 26) + E("🥌", 140, 224, 28) },
+  { name: "Egg Nest", theme: "meadow", alive: ["🦋", "🐔"], finds: [F2("🍳", 192, 196, 52, "a clutch of eggs"), F2("🌿", 316, 160, 30, "a fern"), F2("🌰", 30, 200, 30, "a seed cone"), F2("🦕", 86, 168, 78, "mama dinosaur")], svg: () =>
     '<defs>' + SKY("s", "#ffd8a6", "#fff4d8") + '</defs><rect width="360" height="240" fill="url(#s)"/><circle cx="70" cy="56" r="30" fill="#ffc15e"/>' +
     '<path d="M0 168q90-40 180-6t180-10v88H0z" fill="#a8d57f"/><path d="M0 204q100-30 190 0t170-8v44H0z" fill="#7bb85f"/>' +
-    '<ellipse cx="190" cy="186" rx="100" ry="30" fill="#b57b45"/><ellipse cx="190" cy="178" rx="84" ry="22" fill="#d9a066"/>' + E("🥚", 150, 190, 46) + E("🥚", 192, 196, 52) + E("🐣", 232, 190, 50) + E("🦕", 86, 168, 78) + E("🍃", 316, 160, 30) + E("🌿", 30, 200, 30) },
-  { name: "Jungle Waterfall", theme: "meadow", alive: ["🦋", "💧"], finds: [F2("🦜", 300, 80, 36), F2("🐸", 190, 222, 28), F2("🌺", 250, 215, 28), F2("🦋", 320, 150, 24)], svg: () =>
+    '<ellipse cx="190" cy="186" rx="100" ry="30" fill="#b57b45"/><ellipse cx="190" cy="178" rx="84" ry="22" fill="#d9a066"/>' + E("🥚", 150, 190, 46) + E("🍳", 192, 196, 52) + E("🐔", 232, 190, 50) + E("🦕", 86, 168, 78) + E("🌿", 316, 160, 30) + E("🌰", 30, 200, 30) },
+  { name: "Jungle Waterfall", theme: "meadow", alive: ["🌈", "💧"], finds: [F2("🪶", 300, 80, 36, "a feather"), F2("🌿", 190, 222, 28, "a fern"), F2("🌺", 250, 215, 28, "a flower"), F2("🦋", 320, 150, 24, "a dragonfly")], svg: () =>
     '<defs>' + SKY("s", "#9fe3b5", "#e8fbd0") + '</defs><rect width="360" height="240" fill="url(#s)"/>' +
     '<path d="M0 90q60-50 120-20v170H0z" fill="#3d9a5f"/><path d="M240 60q60-30 120 10v170H240z" fill="#2e8451"/><rect x="150" y="30" width="60" height="150" rx="10" fill="#d9f4ff"/><g stroke="#fff" stroke-width="4" opacity=".9"><path d="M165 34v140M180 30v146M195 36v138"/></g>' +
-    '<path d="M0 184q90-20 180 0t180-6v62H0z" fill="#4eb7d6"/><path d="M0 214q90-16 180 0t180-4v30H0z" fill="#3c9cc0"/>' + E("🌴", 36, 170, 64) + E("🦕", 110, 200, 70) + E("🦜", 300, 80, 36) + E("🌺", 250, 215, 28) + E("🐸", 190, 222, 28) + E("🦋", 320, 150, 24) },
-  { name: "Snowy Mountains", theme: "sky", alive: ["❄️", "🐧"], finds: [F2("🐧", 220, 205, 40), F2("⛄", 300, 200, 50), F2("❄️", 60, 60, 30), F2("🌲", 30, 200, 46)], svg: () =>
+    '<path d="M0 184q90-20 180 0t180-6v62H0z" fill="#4eb7d6"/><path d="M0 214q90-16 180 0t180-4v30H0z" fill="#3c9cc0"/>' + E("🌴", 36, 170, 64) + E("🦕", 110, 200, 70) + E("🪶", 300, 80, 36) + E("🌺", 250, 215, 28) + E("🌿", 190, 222, 28) + E("🦋", 320, 150, 24) },
+  { name: "Snowy Mountains", theme: "sky", alive: ["💨", "🌫️"], finds: [F2("🦴", 220, 205, 40, "an old bone"), F2("⛄", 300, 200, 50, "a snowman"), F2("🌠", 60, 60, 30, "the northern lights"), F2("🌲", 30, 200, 46, "a pine tree")], svg: () =>
     '<defs>' + SKY("s", "#bfe3f7", "#f4fbff") + '</defs><rect width="360" height="240" fill="url(#s)"/>' +
     '<path d="M20 190 110 50l90 140z" fill="#8fb1c9"/><path d="M150 190 250 30l110 160z" fill="#7ba0ba"/><path d="M110 50l-24 36 14-6 10 12 10-12 14 6z M250 30l-28 42 16-8 12 14 12-14 16 8z" fill="#fff"/>' +
-    '<path d="M0 190q90-16 180 0t180-6v56H0z" fill="#ffffff"/><path d="M0 220q90-12 180 0t180-4v24H0z" fill="#e3f1fa"/>' + E("🦖", 110, 205, 70) + E("🐧", 220, 205, 40) + E("⛄", 300, 200, 50) + E("❄️", 60, 60, 30) + E("🌲", 30, 200, 46) },
-  { name: "Birthday Party", theme: "party", alive: ["🎈", "🎉"], finds: [F2("🎁", 150, 222, 30), F2("🎈", 40, 70, 40), F2("🎈", 320, 70, 40), F2("🎂", 180, 172, 56)], svg: () =>
+    '<path d="M0 190q90-16 180 0t180-6v56H0z" fill="#ffffff"/><path d="M0 220q90-12 180 0t180-4v24H0z" fill="#e3f1fa"/>' + E("🦖", 110, 205, 70) + E("🦴", 220, 205, 40) + E("⛄", 300, 200, 50) + E("🌠", 60, 60, 30) + E("🌲", 30, 200, 46) },
+  { name: "The Valley Feast", theme: "party", alive: ["🎊", "🌈"], finds: [F2("🍓", 180, 172, 56, "a bowl of berries"), F2("🎁", 150, 222, 30, "a gift"), F2("🫧", 40, 70, 40, "a bubble"), F2("✨", 320, 70, 40, "a sparkle")], svg: () =>
     '<defs>' + SKY("s", "#ffd4e6", "#fff3c7") + '</defs><rect width="360" height="240" fill="url(#s)"/>' +
     '<path d="M0 20q90 30 180 0t180 0" stroke="#d98aa8" stroke-width="3" fill="none"/><g><path d="M30 28l12 22 12-18z" fill="#ff8f8f"/><path d="M80 34l12 22 12-18z" fill="#ffd45e"/><path d="M130 36l12 22 12-18z" fill="#7bd0a0"/><path d="M200 36l12 22 12-18z" fill="#8cc3ee"/><path d="M250 34l12 22 12-18z" fill="#c9a0f0"/><path d="M300 28l12 22 12-18z" fill="#ff8f8f"/></g>' +
-    '<rect x="0" y="196" width="360" height="44" fill="#f7a8b8"/><rect x="120" y="170" width="120" height="34" rx="6" fill="#fff" stroke="#d98aa8" stroke-width="3"/>' + E("🎂", 180, 172, 56) + E("🦖", 70, 205, 70) + E("🦕", 290, 205, 70) + E("🎈", 40, 70, 40) + E("🎈", 320, 70, 40) + E("🎁", 150, 222, 30) + E("🎉", 215, 224, 28) }
+    '<rect x="0" y="196" width="360" height="44" fill="#f7a8b8"/><rect x="120" y="170" width="120" height="34" rx="6" fill="#fff" stroke="#d98aa8" stroke-width="3"/>' + E("🍓", 180, 172, 56) + E("🦖", 70, 205, 70) + E("🐢", 290, 205, 70) + E("🫧", 40, 70, 40) + E("✨", 320, 70, 40) + E("🎁", 150, 222, 30) + E("🪘", 215, 224, 28) }
 ];
 const GRIDS = [[3, 2], [4, 3], [5, 3], [6, 4]];
 const toImage = (scene) => "data:image/svg+xml;base64," + window.btoa(unescape(encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" width="720" height="480">' + scene.svg() + "</svg>")));
 
-function openGallery(F) {
+async function openGallery(F) {
   const list = collection("gallery");
   const best = {};
   list.forEach(function (g) { best[g.scene] = Math.max(best[g.scene] || 0, g.stars || 1); });
+  const photos=await Promise.all(SCENES.map((scene,i)=>best[i]?photoPuzzle(scene,i).catch(()=>toImage(scene)):null));
   const o = document.createElement("div");
   o.className = "bd-museum";
   o.innerHTML = '<div class="bd-museum-card"><button type="button" class="dialog-close" aria-label="Close">×</button><h2>🖼️ My puzzle gallery</h2><p>' + Object.keys(best).length + " of " + SCENES.length + ' pictures finished. Finish them all!</p><div class="bd-museum-grid">' +
-    SCENES.map(function (s, i) { return best[i] ? '<figure class="bd-exhibit"><img class="jg-gal" src="' + toImage(s) + '" alt="' + s.name + '"><figcaption><b>' + s.name + "</b><span>" + "⭐".repeat(best[i]) + "</span></figcaption></figure>" : '<figure class="bd-exhibit jg-locked"><div class="jg-q">?</div><figcaption><b>Not yet!</b></figcaption></figure>'; }).join("") + "</div></div>";
+    SCENES.map(function (s, i) { return best[i] ? '<figure class="bd-exhibit"><img class="jg-gal" src="' + photos[i] + '" alt="' + s.name + '"><figcaption><b>' + s.name + "</b><span>" + window.DUICONS.stars(best[i]) + "</span></figcaption></figure>" : '<figure class="bd-exhibit jg-locked"><div class="jg-q">?</div><figcaption><b>Not yet!</b></figcaption></figure>'; }).join("") + "</div></div>";
   document.body.appendChild(o);
   o.addEventListener("click", function (e) { if (e.target === o || e.target.closest(".dialog-close")) o.remove(); });
   F.sfx && F.sfx.pop();
@@ -65,9 +67,9 @@ function openGallery(F) {
 
 /* The two branch choices, and what each one really changes about the build. */
 const MODES = [
-  { id: "clue", name: "Clue In The Frame", icon: "🩞", note: "The picture shows in the frame while you build.", guide: true, rotate: false, shrink: 0 },
+  { id: "clue", name: "Clue In The Frame", icon: "🧩", note: "The picture shows in the frame while you build.", guide: true, rotate: false, shrink: 0 },
   { id: "turned", name: "Turned Pieces", icon: "🔄", note: "Every piece starts on its side — tap it to spin.", guide: true, rotate: true, shrink: 0 },
-  { id: "blind", name: "No Clue!", icon: "🙈", note: "A blank frame, but one size easier. Peek any time.", guide: false, rotate: false, shrink: 1 }
+  { id: "blind", name: "No Clue!", icon: "👀", note: "A blank frame, but one size easier. Peek any time.", guide: false, rotate: false, shrink: 1 }
 ];
 const TIMES = [
   { id: "morning", name: "Morning", icon: "🌅", veil: ["rgba(255,236,170,.24)", "rgba(255,255,255,0)"], drift: ["☁️", "🪽"] },
@@ -118,7 +120,7 @@ export function mountJigsaw(context) {
         return '<button type="button" class="pk-btn jg-time" data-time="' + t.id + '" style="padding:8px 12px"><span style="font-size:22px">' + t.icon + "</span> <b>" + t.name + "</b></button>";
       }).join("") + '</div><div style="text-align:center;margin-top:12px"><button type="button" class="pk-btn jg-go" disabled style="padding:12px 26px">▶ Start the puzzle</button></div>' +
       '<p class="fx-shelf-note" style="text-align:center;font-size:12px;font-weight:800;margin:10px 0 0">' +
-      (bestStars ? "Your best here: " + "⭐".repeat(bestStars) : "No puzzle finished here yet!") + (bestTime ? " · fastest build " + fmt(bestTime) : "") +
+      (bestStars ? "Your best here: " + window.DUICONS.stars(bestStars) : "No puzzle finished here yet!") + (bestTime ? " · fastest build " + fmt(bestTime) : "") +
       " · <b>" + finished + "</b> of " + SCENES.length + " pictures in your gallery</p></div>";
     const go = board.querySelector(".jg-go");
     let mode = null, time = null;
@@ -146,7 +148,7 @@ export function mountJigsaw(context) {
 
   function fmt(sec) { return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
 
-  function build(mode, time) {
+  async function build(mode, time) {
     picked = { mode: mode.id, time: time.id, modeName: mode.name, timeName: time.name };
     const gi = Math.max(0, (mode.shrink ? 1 : 0) + (context.challenge <= 2 ? 0 : context.challenge <= 4 ? 1 : context.challenge <= 6 ? 2 : 3));
     const grid = GRIDS[Math.min(GRIDS.length - 1, gi)];
@@ -154,7 +156,8 @@ export function mountJigsaw(context) {
     const rotating = mode.rotate || context.challenge >= 4;
     const guide = mode.guide;
     const cellR = (360 / cols) / (240 / rows);
-    const image = toImage(scene);
+    const image = await photoPuzzle(scene,SCENES.indexOf(scene)).catch(()=>toImage(scene));
+    if(!play.scene.isConnected) return;
     const bg = "url('" + image + "')";
     board.innerHTML = '<div class="jg-top"><figure class="jg-clue"><img src="' + image + '" alt="The finished picture: ' + scene.name + '"><figcaption>Picture clue</figcaption></figure>' +
       '<div class="jg-btns"><span class="jg-clock" style="padding:5px 11px;border-radius:99px;background:#fff3c9;font-weight:900">⏱ 0:00</span>' +
@@ -286,7 +289,7 @@ export function mountJigsaw(context) {
         if (rot % 360 !== 0) {
           rots.set(b, rot + 90); b.style.transition = "rotate .25s cubic-bezier(.3,1.5,.5,1)"; b.style.rotate = (rot + 90) + "deg";
           if (F.sfx) F.sfx.pop();
-          if ((rot + 90) % 360 === 0) play.say("Right way up! Now put it in the frame. 👍", 2200);
+          if ((rot + 90) % 360 === 0) play.say("Right way up! Now put it in the frame. ✅", 2200);
         }
         pieces.forEach(function (x) { x.classList.toggle("sel", x === b && !x.classList.contains("sel")); x.classList.remove("jg-hinted"); });
         selected = b.classList.contains("sel") ? b : null;
@@ -344,8 +347,8 @@ export function mountJigsaw(context) {
       function ask() {
         if (n >= finds.length) return end();
         const f = finds[n];
-        bar.innerHTML = '<span>Bonus: can you spot the <b class="jg-want">' + f.ch + "</b> in the picture?</span><i>" + (n + 1) + "/" + finds.length + "</i>";
-        play.say("Bonus round! Spot the " + f.ch + " hiding in the picture!", 3500);
+        bar.innerHTML = '<span>Bonus: can you spot the <b class="jg-want">' + f.ch + '</b> ' + escapeText(f.name) + " in the picture?</span><i>" + (n + 1) + "/" + finds.length + "</i>";
+        play.say("Bonus round! Spot " + f.name + " hiding in the picture!", 3500);
         wrong = 0;
       }
       function onTap(e) {

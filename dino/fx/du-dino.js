@@ -13,7 +13,7 @@
 
   const PHOTO_BASE = new URL('../assets/prehistoric/', document.currentScript.src).href;
   const PHOTO_SPECIES = new Set(['allosaurus', 'amargasaurus', 'ankylosaurus', 'archaeopteryx', 'baryonyx', 'brachiosaurus', 'bronto', 'carnotaurus', 'coelophysis', 'compsognathus', 'corythosaurus', 'deinonychus', 'dimetrodon', 'diplodocus', 'edmontosaurus', 'ichthyosaurus', 'iguanodon', 'maiasaura', 'mamenchisaurus', 'mosasaurus', 'oviraptor', 'pachycephalosaurus', 'parasaurolophus', 'plesiosaurus', 'ptero', 'quetzalcoatlus', 'raptor', 'raptor-hang', 'raptor-rear', 'spinosaurus', 'stego', 'styracosaurus', 'therizinosaurus', 'trex', 'trex-head', 'trex-head-rear', 'trex-walk', 'tricera']);
-  DUFX.dinoPhotoURL = species => PHOTO_SPECIES.has(species) ? PHOTO_BASE + species + '.png' : null;
+  DUFX.dinoPhotoURL = species => PHOTO_SPECIES.has(species) ? PHOTO_BASE + species + '.webp' : null;
   const OUT = '#236455';
   const PALETTES = {
     green:  { c1: '#91d09c', c2: '#d8f2c8', c3: '#6fb67f', c4: '#f2a46e' },
@@ -253,6 +253,12 @@
     const state = opts.state || 'idle';
     const delay = (-Math.random() * 6).toFixed(2);
     const size = opts.size ? `width:${typeof opts.size === 'number' ? opts.size + 'px' : opts.size};` : '';
+    /* A photograph wears the animal when one exists and the caller does not need the drawn art's
+     * paintable paths, its head swaps or its mixer templates. */
+    const photoURL = !opts.paint && !opts.head && !opts.template && opts.photoreal !== false ? DUFX.dinoPhotoURL(r.species) : null;
+    if (photoURL) {
+      return `<span class="du-dino du-dino-photo" data-species="${r.species}" data-state="${state}" style="${size}--d-delay:${delay}s;--d-photo:url('${photoURL}')"><i class="dp-shadow"></i><i class="dp-body"></i></span>`;
+    }
     return `<span class="du-dino" data-species="${r.species}" data-state="${state}" style="${size}--d-delay:${delay}s;--d-blink:${(2.6 + Math.random() * 3).toFixed(2)}s">${DUFX.dinoSVG(r.species, opts)}</span>`;
   };
   DUFX.dino = function (species, opts) {

@@ -225,7 +225,9 @@
 .ss-river { position: absolute; left: 0; right: 0; bottom: 10%; height: 10%; background: linear-gradient(90deg, rgba(110,190,230,.55), rgba(150,215,240,.7), rgba(110,190,230,.55)); transform: skewY(-3deg); }
 .ss-item { position: absolute; border: 0; background: none; padding: 2px; line-height: 1; cursor: pointer; z-index: 2; filter: drop-shadow(0 4px 2px rgba(0,60,40,.25)); animation: ss-bob 3.4s ease-in-out infinite; animation-delay: var(--d, 0s); transition: transform .15s; }
 .ss-item:hover { transform: scale(1.15) rotate(-5deg); }
-.ss-item.peek::after { content: "🌿"; position: absolute; left: -4px; right: -4px; bottom: -6px; font-size: .9em; text-align: center; pointer-events: none; filter: none; }
+/* A peek hint is a sprig of real fern, not a typed glyph: nothing can ever swap
+ * `content:` for a picture, so the photograph is painted as the mark itself. */
+.ss-item.peek::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 1.2em; height: 1.2em; transform: translateX(-50%); background: url("../../../assets/objects/fern.webp") center / contain no-repeat; pointer-events: none; filter: none; }
 .ss-item.got { animation: none; transform: scale(0); opacity: 0; transition: transform .5s, opacity .5s; pointer-events: none; }
 .ss-item.nope { animation: pn-nope .45s; }
 @keyframes ss-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px) rotate(2deg); } }
@@ -236,7 +238,10 @@
 .bd-steps li { padding: 4px 10px; border-radius: 99px; background: rgba(255,255,255,.7); font-weight: 800; font-size: 12px; color: var(--muted); transition: transform .3s cubic-bezier(.3,1.6,.5,1), background .3s; }
 .bd-steps li.on { background: #ffd45e; color: #17403a; transform: scale(1.1); }
 .bd-steps li.done, .bd-steps.all li { background: #d8f5df; color: var(--forest); }
-.bd-steps li.done::after, .bd-steps.all li::after { content: " ✓"; }
+/* A tick drawn from two borders. It used to be `content: " ✓"`, and no DOM
+ * watcher can reach a pseudo-element, so that mark was one thing the layers
+ * on this page could never replace. */
+.bd-steps li.done::after, .bd-steps.all li::after { content: ""; display: inline-block; width: 8px; height: 4px; margin-left: 6px; border-left: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: rotate(-45deg) translateY(-2px); }
 .bd-mini { padding: 5px 12px; font-size: .85rem; }
 .bd-mini b { background: #ffd45e; border-radius: 99px; padding: 0 7px; margin-left: 2px; }
 .bd-dino.bd-bones { width: min(100%, 460px); filter: drop-shadow(0 10px 8px rgba(40,20,0,.25)); }

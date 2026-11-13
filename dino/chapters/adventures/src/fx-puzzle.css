@@ -124,7 +124,13 @@
 .ds-card { position: relative; border: 0; border-radius: 18px; background: #fff; padding: 8px 4px 6px; display: grid; gap: 1px; justify-items: center; cursor: pointer; box-shadow: 0 4px 0 rgba(24,62,64,.14); transition: transform .15s cubic-bezier(.3,1.5,.5,1); }
 .ds-card:hover { transform: translateY(-3px) rotate(-2deg); }
 .ds-card.met { background: #eaf8ee; }
-.ds-ico { font-size: 34px; line-height: 1.1; }
+/* The card thumbnail is the specimen photograph itself now, so it gets a
+ * frame: every one of the thirty animals fills the same window, snout and tail
+ * intact, instead of four emoji shapes standing in for thirty different beasts. */
+.ds-ico { width: 66px; height: 44px; object-fit: contain; border-radius: 10px; background: #f4f0ea; }
+.ds-rib { width: 30px; height: 20px; object-fit: contain; border-radius: 5px; background: rgba(255,255,255,.75); }
+.ds-bar { align-items: center; }
+.ds-rib-empty { font-size: 12px; color: var(--muted); }
 .ds-card strong { font-size: 12px; text-align: center; } .ds-card small { font-size: 10px; color: var(--muted); text-align: center; }
 .ds-stamp { position: absolute; top: 4px; right: 6px; font-style: normal; font-size: 12px; color: #fff; background: #3fa66a; border-radius: 50%; width: 18px; height: 18px; display: grid; place-items: center; }
 .ds-finish { display: block; margin: 12px auto 0; }
@@ -132,10 +138,16 @@
 .ds-detail > .pk-btn:first-child { float: left; padding: 5px 12px; font-size: .85rem; }
 .ds-stage { position: relative; min-height: 150px; display: grid; place-items: center; }
 .ds-dino { width: min(260px, 70%); filter: drop-shadow(0 8px 5px rgba(0,60,40,.25)); cursor: pointer; }
-.ds-emoji { font-size: 100px; line-height: 1.1; animation: hs-hop 2.2s ease-in-out infinite; }
 .ds-new { position: absolute; top: 4px; right: 0; background: #ffd45e; border-radius: 99px; padding: 3px 12px; font-weight: 800; font-size: 12px; animation: du-pop-in .6s cubic-bezier(.3,1.7,.5,1); transform: rotate(4deg); }
 .ds-detail h3 { margin: 4px 0; font-size: 22px; }
 .ds-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; } .ds-chips span { background: #eef7ee; border-radius: 99px; padding: 3px 12px; font-size: 12px; font-weight: 800; color: var(--forest); }
+/* Specimen labels: the field name sits above the value in small caps, the way
+ * a museum card reads, instead of four emoji standing in for words the chip
+ * already contained. */
+.ds-chip { display: grid; gap: 1px; justify-items: center; }
+.ds-chip b, .ds-tally b { text-transform: uppercase; letter-spacing: .6px; font-size: 9px; font-weight: 900; color: #7c6f52; }
+.ds-tally { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; align-items: center; text-align: center; }
+.ds-tally span { display: grid; gap: 1px; justify-items: center; font-weight: 800; font-size: 13px; }
 .ds-fact { margin: 8px 0; line-height: 1.55; }
 .ds-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; } .ds-actions .pk-btn { padding: 6px 14px; font-size: .88rem; }
 .ds-quiz { margin-top: 12px; padding: 10px; border-radius: 16px; background: #fff3c9; }
@@ -348,3 +360,10 @@
 
 /* free-roaming butterfly (activities without a kit scene) */
 .pk-bonus-free { position: absolute; left: 0; z-index: 40; }
+.hb-land,.wx-scene { background: url('../../../assets/environments/jungle.webp') center / cover; }
+.hb-coast,.hb-lagoon { background-image: url('../../../assets/environments/coast.webp'); }
+.hb-valley { background-image: url('../../../assets/environments/canyon.webp'); }
+.hb-night,.wx-night,.wx-rain,.mb-scene { background: url('../../../assets/environments/night.webp') center / cover; }
+.wx-chill { background-image: url('../../../assets/environments/ice.webp'); }
+.wx-wind { background-image: url('../../../assets/environments/canyon.webp'); }
+.hb-sky,.hb-ground,.hb-sun,.wx-scene::after,.pd-world::after,.mb-moon { display:none; }

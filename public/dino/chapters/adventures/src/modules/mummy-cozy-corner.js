@@ -1,11 +1,11 @@
 // Mummy's Cozy Corner — a little story game.
 // Mummy comes home very tired. The player sends a dinosaur helper to fetch things so she can
-// relax in the living room (a comfy chair, a cup of tea, some cake, a feather fan), then it is bedtime:
+// relax in the living room (a comfy armchair, a clay cup of leaf tea, a bowl of berries, a feather fan), then it is bedtime:
 // she is tucked in, her pillow is fluffed, a bedtime story is read, a lullaby is played, a goodnight
 // nuzzle is given and finally the light goes out. Wrong choices are funny, never punished.
 // Now a real two-part story with choices that change what happens: the weather outside (which brings
 // an extra job), the order of the jobs, which settle-down comes first, who stars in the story and
-// which tune is played — plus three hidden hearts in each room and a shelf that remembers the
+// which tune is played — plus three hidden gems in each room and a shelf that remembers the
 // cosiest evenings so far.
 import { attachBonus, collect, collection } from "../adv-kit.js";
 const FX = window.DUFX;
@@ -17,30 +17,43 @@ const HELPERS = [
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+/* A glyph written inside an SVG <text> is a font drawing for the life of that
+ * picture: no hydrator walks inside SVG text, so nothing can ever put a real
+ * specimen there afterwards. These shelf toys are blitted from the object
+ * library now, at the same place and size, and the emoji stays only as the
+ * fallback for a specimen this valley has no photograph of. */
+const specimen = (glyph, x, y, size, cls) => {
+  const tag = cls ? ` class="${cls}"` : '';
+  const O = FX.objects;
+  if (!O || !O.has(glyph)) return `<text x="${x}" y="${y}" font-size="${size}"${tag}>${glyph}</text>`;
+  const s = Math.round(size * 1.1);
+  return `<image href="${O.url(glyph)}"${tag} x="${x}" y="${Math.round(y - s * 0.82)}" width="${s}" height="${s}"/>`;
+};
 
 /* ---------------------------------------------------------------- the evening choices */
 // The weather is not decoration: it changes which extra job Mummy asks for, what falls past the
 // window and what she says, so one evening is not the same story as the last.
 const WEATHERS = [
   { id: 'rain', name: 'Wet and rainy', e: '🌧️', fall: '💧', ambient: 'rain', line: 'It is pitter-patter rain outside, so something warm to sip would be perfect.', job: 'soup' },
-  { id: 'wind', name: 'Blustery', e: '💨', fall: '🍃', ambient: 'meadow', line: 'The wind is banging about, so let’s keep the draught off Mummy’s neck.', job: 'shawl' },
+  { id: 'wind', name: 'Blustery', e: '💨', fall: '🍃', ambient: 'meadow', line: 'The wind is banging about, so let’s hang something across the doorway.', job: 'curtain' },
   { id: 'snow', name: 'Snowy', e: '❄️', fall: '❄', ambient: 'night', line: 'Snow is falling softly. Mummy needs something extra behind her back.', job: 'cushion' },
-  { id: 'clear', name: 'Warm and clear', e: '🌙', fall: '✨', ambient: 'meadow', line: 'A warm, starry evening. Mummy could do with a cool drink by the window.', job: 'lemonade' },
+  { id: 'clear', name: 'Warm and clear', e: '🌙', fall: '✨', ambient: 'meadow', line: 'A warm, starry evening. Mummy could do with a cool drink by the window.', job: 'drink' },
 ];
 const STARS = [{ id: 'stego', name: 'Stego', color: 'purple' }, { id: 'tricera', name: 'Tricky', color: 'teal' }, { id: 'bronto', name: 'Bronto', color: 'orange' }, { id: 'raptor', name: 'Zippy', color: 'red' }];
 const TUNES = [
-  { name: 'Twinkly Stars', seq: [0, 0, 3, 3, 4, 4, 3] },
-  { name: 'Sleepy Bells', seq: [4, 3, 0, 0, 3, 4, 3] },
-  { name: 'Mummy’s Waltz', seq: [0, 2, 4, 2, 0, 2, 4] },
+  { name: 'Twinkly Stars', icon: '🌟', seq: [0, 0, 3, 3, 4, 4, 3] },
+  { name: 'Sleepy Log Drum', icon: '🪘', seq: [4, 3, 0, 0, 3, 4, 3] },
+  { name: 'Stone Chime Waltz', icon: '🎹', seq: [0, 2, 4, 2, 0, 2, 4] },
 ];
 // Extra jobs the weather brings along — more content in the same cosy shape.
+// Every one of them is filled with something this valley can grow, make or find.
 const WEATHER_JOBS = {
-  soup: { id: 'soup', menu: '🍲 Soup', from: 'left', prompt: 'All that rain deserves a warm bowl of soup. Shall we?', thought: '🍲?', dest: { x: 470, y: 452, ix: 560, iy: 398 }, size: 56, hint: 'Something warm you can sip from a bowl.', options: [{ e: '🍲', label: 'Tomato soup', right: true }, { e: '🧊', label: 'An ice lolly', quip: 'Brr! Cold soup makes me shiver!' }, { e: '🪛', label: 'A spanner', quip: 'Spanners are for wobbly shelves!' }] },
-  shawl: { id: 'shawl', menu: '🧣 Shawl', from: 'right', prompt: 'A draught is sneaking round Mummy’s shoulders.', thought: '🧣?', dest: { x: 430, y: 452, ix: 610, iy: 420 }, size: 56, hint: 'Something knitty and long to wrap round a neck.', options: [{ e: '🧣', label: 'A soft shawl', right: true }, { e: '🎒', label: 'A school bag', quip: 'My school bag is full of rocks!' }, { e: '🩹', label: 'A plaster', quip: 'I am not scratched, thank you!' }] },
-  cushion: { id: 'cushion', menu: '🟠 Cushion', from: 'right', prompt: 'Snowy days need a squishy cushion behind the back.', thought: '🛋️?', dest: { x: 470, y: 452, ix: 470, iy: 400 }, size: 58, hint: 'Something soft you put behind your back on a chair.', options: [{ e: '🟠', label: 'A squishy cushion', right: true }, { e: '🧱', label: 'A brick', quip: 'A brick would give me a sore back!' }, { e: '🍞', label: 'A loaf of bread', quip: 'Bread gets mouldy, silly!' }] },
-  lemonade: { id: 'lemonade', menu: '🍋 Lemonade', from: 'left', prompt: 'A sunny evening wants a cold drink with a straw.', thought: '🍋?', dest: { x: 470, y: 452, ix: 505, iy: 352 }, size: 54, hint: 'Something cold and yellow with a straw in it.', options: [{ e: '🍋', label: 'Lemonade', right: true }, { e: '🍯', label: 'A jar of honey', quip: 'Honey is sticky, not drinky!' }, { e: '🥣', label: 'An empty bowl', quip: 'A bowl with nothing in it?' }] },
+  soup: { id: 'soup', menu: '🍄 Broth', from: 'left', prompt: 'All that rain makes the mushrooms come up. A warm bowl of broth, shall we?', thought: '🍄?', dest: { x: 470, y: 452, ix: 560, iy: 398 }, size: 56, hint: 'Something warm you can sip from a bowl.', options: [{ e: '🍄', label: 'Mushroom broth', right: true }, { e: '🧊', label: 'A cold icicle', quip: 'Brr! Cold broth makes me shiver!' }, { e: '🥌', label: 'A round stone', quip: 'Stones are for skipping, not for soup!' }] },
+  curtain: { id: 'curtain', menu: '🎋 Reeds', from: 'right', prompt: 'A draught is sneaking in past the door. Let’s hang something across it.', thought: '🎋?', dest: { x: 430, y: 452, ix: 610, iy: 420 }, size: 56, hint: 'Something long and leafy to shut the doorway with.', options: [{ e: '🎋', label: 'A bundle of reeds', right: true }, { e: '🎒', label: 'A school bag', quip: 'My school bag is full of rocks!' }, { e: '🦴', label: 'An old bone', quip: 'A bone won’t keep the wind out!' }] },
+  cushion: { id: 'cushion', menu: '🟠 Cushion', from: 'right', prompt: 'Snowy days need a squishy cushion behind the back.', thought: '🟠?', dest: { x: 470, y: 452, ix: 470, iy: 400 }, size: 58, hint: 'Something soft you put behind your back on a chair.', options: [{ e: '🟠', label: 'A squishy amber cushion', right: true }, { e: '⬛', label: 'A slab of obsidian', quip: 'A stone slab would give me a sore back!' }, { e: '🌰', label: 'A seed cone', quip: 'A cone would go flat and prickly!' }] },
+  drink: { id: 'drink', menu: '💧 Drink', from: 'left', prompt: 'A sunny evening wants a cool drink with a straw of reed.', thought: '💧?', dest: { x: 470, y: 452, ix: 505, iy: 352 }, size: 54, hint: 'Something cold to sip on a warm evening.', options: [{ e: '💧', label: 'A jar of cool water', right: true }, { e: '🍯', label: 'A pot of honey', quip: 'Honey is sticky, not drinky!' }, { e: '🪣', label: 'An empty bucket', quip: 'A bucket with nothing in it?' }] },
 };
-// Hearts are hidden in the rooms — spot them and the evening gets cosier. `w` is what the
+// Gems are hidden in the rooms — spot them and the evening gets cosier. `w` is what the
 // free hint says, so a stuck child always gets an exact, useful answer.
 const HIDES = {
   living: [{ x: 96, y: 300, w: 'behind the plant on your left' }, { x: 640, y: 252, w: 'on top of the book shelf' }, { x: 250, y: 470, w: 'down by the edge of the rug' }],
@@ -78,12 +91,12 @@ function livingRoom() {
       <rect x="470" y="86" width="64" height="64" rx="32" fill="#fff" stroke="#c98f58" stroke-width="6"/><path d="M502 118V100M502 118L516 126" stroke="#3b3b3b" stroke-width="4" stroke-linecap="round" class="mc-clock"/></g>
     <g><rect x="650" y="64" width="130" height="250" rx="6" fill="#a8683a"/><g fill="#8a4f28"><rect x="656" y="130" width="118" height="8"/><rect x="656" y="196" width="118" height="8"/><rect x="656" y="262" width="118" height="8"/></g>
       <g><rect x="662" y="86" width="14" height="44" fill="#e05a5a"/><rect x="678" y="94" width="12" height="36" fill="#4d96ff"/><rect x="692" y="80" width="16" height="50" fill="#ffd45e"/><rect x="710" y="92" width="12" height="38" fill="#6bcb77"/><rect x="724" y="86" width="14" height="44" fill="#9b6fe0"/>
-      <rect x="664" y="156" width="16" height="40" fill="#ff9f43"/><rect x="684" y="150" width="12" height="46" fill="#2ec4b6"/><rect x="700" y="160" width="18" height="36" fill="#e05a5a"/><text x="740" y="190" font-size="30">🦖</text>
-      <text x="670" y="256" font-size="28">🪴</text><text x="710" y="258" font-size="28">🧸</text></g></g>
+      <rect x="664" y="156" width="16" height="40" fill="#ff9f43"/><rect x="684" y="150" width="12" height="46" fill="#2ec4b6"/><rect x="700" y="160" width="18" height="36" fill="#e05a5a"/>${specimen('🦖', 740, 190, 30)}
+      ${specimen('🪴', 670, 256, 28)}${specimen('🐚', 710, 258, 28)}</g></g>
     <g class="mc-lamp"><ellipse cx="590" cy="150" rx="120" ry="120" fill="url(#lg)" class="mc-glow"/><path d="M590 190V340M570 340H610" stroke="#8a5a30" stroke-width="8" stroke-linecap="round"/><path d="M552 190 L568 130 H612 L628 190Z" fill="#ffe08a" stroke="#e0b64a" stroke-width="4"/></g>
     <ellipse cx="400" cy="432" rx="260" ry="52" fill="#e58b8b"/><ellipse cx="400" cy="432" rx="210" ry="40" fill="none" stroke="#f7c6c6" stroke-width="6"/><ellipse cx="400" cy="432" rx="150" ry="27" fill="none" stroke="#f7c6c6" stroke-width="4"/>
     <g><rect x="500" y="352" width="112" height="14" rx="5" fill="#a8683a"/><rect x="512" y="366" width="12" height="62" fill="#8a4f28"/><rect x="588" y="366" width="12" height="62" fill="#8a4f28"/></g>
-    <g><rect x="0" y="130" width="46" height="190" rx="6" fill="#d9eaf5" opacity=".0"/><text x="8" y="300" font-size="46" class="mc-doorsign">🍳</text></g>
+    <g><rect x="0" y="130" width="46" height="190" rx="6" fill="#d9eaf5" opacity=".0"/>${specimen('🍳', 8, 300, 46, 'mc-doorsign')}</g>
   </svg>`;
 }
 function bedroom() {
@@ -98,7 +111,7 @@ function bedroom() {
       <circle cx="200" cy="105" r="26" fill="#fff6c9"/><circle cx="190" cy="98" r="5" fill="#e6dca8" opacity=".6"/><circle cx="208" cy="114" r="4" fill="#e6dca8" opacity=".6"/>
       <path d="M58 54 C90 96 90 196 58 256 L40 256 L40 54Z" fill="#7d6fb8" class="mc-curtain"/><path d="M272 54 C240 96 240 196 272 256 L290 256 L290 54Z" fill="#7d6fb8" class="mc-curtain mc-curtain2"/></g>
     <g><rect x="620" y="70" width="150" height="230" rx="6" fill="#6b4a33"/><g fill="#53381f"><rect x="626" y="130" width="138" height="8"/><rect x="626" y="196" width="138" height="8"/></g>
-      <g><rect x="636" y="92" width="14" height="38" fill="#ff9f43"/><rect x="652" y="100" width="12" height="30" fill="#6bcb77"/><rect x="668" y="88" width="16" height="42" fill="#ff7aa8"/><rect x="686" y="96" width="14" height="34" fill="#4d96ff"/><text x="712" y="128" font-size="30">🦕</text><text x="640" y="190" font-size="28">🧸</text><text x="696" y="192" font-size="28">🚀</text></g></g>
+      <g><rect x="636" y="92" width="14" height="38" fill="#ff9f43"/><rect x="652" y="100" width="12" height="30" fill="#6bcb77"/><rect x="668" y="88" width="16" height="42" fill="#ff7aa8"/><rect x="686" y="96" width="14" height="34" fill="#4d96ff"/>${specimen('🦕', 712, 128, 30)}${specimen('🌀', 640, 190, 28)}${specimen('🥚', 696, 192, 28)}</g></g>
     <g><rect x="296" y="196" width="26" height="40" rx="6" fill="#fff" stroke="#c5cee8" stroke-width="3" class="mc-switch-plate"/><rect x="304" y="204" width="10" height="24" rx="4" fill="#ffd45e" class="mc-switch-knob"/></g>
     <g><rect x="330" y="360" width="440" height="70" rx="12" fill="#9c6b3f"/><rect x="330" y="300" width="440" height="68" rx="16" fill="#f3f0ff"/><rect x="330" y="300" width="440" height="68" rx="16" fill="none" stroke="#d6cff0" stroke-width="3"/>
       <rect x="738" y="250" width="40" height="186" rx="12" fill="#8a5a30"/><rect x="340" y="428" width="16" height="30" fill="#8a5a30"/><rect x="744" y="428" width="16" height="30" fill="#8a5a30"/>
@@ -138,12 +151,12 @@ export function mountMummyCozyCorner(context) {
 
   // ------------------------------------------------------------ choose a helper and the weather
   root.innerHTML = `<div class="mc-pick"><div class="mc-pick-mum">${FX.personHTML('mummy', { state: 'tired', size: .55 })}</div>
-    <div><h2>Mummy’s Cozy Corner</h2><p>Mummy has had a very long day and she is <b>so</b> tired. Pick a dinosaur helper <b>and</b> the weather outside, then look after her all evening — <b>${needJobs(level)} jobs</b> in the living room, then bedtime. There are <b>hearts hidden</b> in every room, too!</p></div></div>
+    <div><h2>Mummy’s Cozy Corner</h2><p>Mummy has had a very long day and she is <b>so</b> tired. Pick a dinosaur helper <b>and</b> the weather outside, then look after her all evening — <b>${needJobs(level)} jobs</b> in the living room, then bedtime. There are <b>gems hidden</b> in every room, too!</p></div></div>
     <div class="mc-helpers">${helperPool.map((h, i) => `<button class="mc-helper" data-h="${i}"><span class="mc-helper-art">${FX.dinoHTML(h.id, { color: h.color })}</span><b>${h.name}</b></button>`).join('')}</div>
     <p style="font-weight:900;margin:12px 0 4px;text-align:center">What is the weather like outside?</p>
     <div class="mc-opts" id="mcWeather">${WEATHERS.map((w, i) => `<button class="mc-opt" data-w="${i}"><span class="mc-opt-art">${w.e}</span><small>${w.name}</small></button>`).join('')}</div>
     <p id="mcShelf" style="margin:12px 0;font-weight:800;color:#5b2b52;background:#fbe6f3;border-radius:16px;padding:6px 14px;text-align:center">${shelf.runs
-      ? '🏆 Cosiest evenings so far: <b>' + shelf.hearts + ' 💛 hearts</b> spotted · <b>' + shelf.jobs + ' jobs</b> done · ' + shelf.runs + ' evening' + (shelf.runs === 1 ? '' : 's') + ' tucked in'
+      ? '🏆 Cosiest evenings so far: <b>' + shelf.hearts + ' 💎 gems</b> spotted · <b>' + shelf.jobs + ' jobs</b> done · ' + shelf.runs + ' evening' + (shelf.runs === 1 ? '' : 's') + ' tucked in'
       : '🌙 No evenings tucked in on this device yet — this is the very first one!'}</p>
     <button id="mcGo" style="margin:6px auto 0;border:0;border-radius:22px;background:#fff;padding:12px 26px;font:900 1.1rem system-ui;box-shadow:0 5px 0 rgba(0,0,0,.1);cursor:pointer;opacity:.45" disabled>Start the evening 🌙</button>
     <p class="gentle-hint" style="text-align:center;margin-top:10px">Pick a helper and a weather to start. Wrong things are only silly, never naughty — and the 💡 button always helps for free.</p>`;
@@ -165,16 +178,16 @@ export function mountMummyCozyCorner(context) {
   go.addEventListener('click', () => { if (go.disabled) return; FX.sfx.win(); run.started = Date.now(); begin().catch((e) => { if (e.message !== 'left') console.error(e); }); });
 
   // ------------------------------------------------------------ scene plumbing
-  let area, layer, bg, mum, mumWrap, dinoWrap, dino, items, bubble, panel, comfort = 0, hearts, fit = 1, dark;
+  let area, layer, bg, mum, mumWrap, dinoWrap, dino, items, bubble, panel, comfort = 0, moodEl, fit = 1, dark;
   let hintFor = null, chips = {};
   const need = level >= 3 ? 6 : level >= 2 ? 5 : 4;
   // style.css is not ours on this pass, so the chips are inline-styled like the rest of the new UI
   const chipHTML = (id, style, text) => `<span id="${id}" style="padding:4px 10px;border-radius:14px;font-weight:900;font-size:clamp(.66rem,1.6vw,.86rem);box-shadow:0 2px 0 rgba(0,0,0,.12);${style}">${text}</span>`;
-  const setChip = (el, text) => { if (el && el.textContent !== text) { el.textContent = text; FX.pop && FX.pop(el); } };
+  const setChip = (el, text) => { if (el && el.textContent !== text) { el.textContent = text; FX.pop && FX.pop(el); } }; // du-own-text the chip only ever holds words this file wrote
   function setChips() {
     setChip(chips.part, 'Part ' + (run.parts + 1) + ' of 2 · ' + (room === 'living' ? 'Living room' : 'Bedroom'));
     setChip(chips.jobs, room === 'living' ? '🧺 Job ' + run.jobs + ' of ' + run.jobTotal : '🌙 Bedtime step ' + run.bed + ' of ' + run.jobTotal);
-    setChip(chips.spots, '💛 ' + run.hearts + ' heart' + (run.hearts === 1 ? '' : 's') + ' spotted');
+    setChip(chips.spots, '💎 ' + run.hearts + ' gem' + (run.hearts === 1 ? '' : 's') + ' spotted');
   }
   const fitScene = () => { if (area) { fit = area.clientWidth / W; layer.style.setProperty('--fit', fit); } };
   const put = (el, x, y, w, h, k = 1, extra = '') => { el.style.transform = `translate(${x - w * k / 2}px,${y - h * k}px) scale(${k}) ${extra}`; };
@@ -187,25 +200,25 @@ export function mountMummyCozyCorner(context) {
     bubble.style.left = Math.max(120, Math.min(ar.width - 120, r.left - ar.left + r.width / 2)) + 'px'; bubble.style.top = Math.max(60, r.top - ar.top + 6) + 'px';
     clearTimeout(tell.t); tell.t = setTimeout(() => bubble.classList.remove('show'), ms);
   }
-  const mood = (n) => { comfort = Math.min(5, comfort + n); hearts.innerHTML = Array.from({ length: 5 }, (_, i) => `<i class="${i < comfort ? 'on' : ''}">${i < comfort ? '💛' : '🤍'}</i>`).join(''); };
+  const mood = (n) => { comfort = Math.min(5, comfort + n); moodEl.innerHTML = window.DUICONS.stars(comfort, { max: 5, size: 22 }); };
 
   async function begin() {
     root.innerHTML = `<div class="mc-wrap"><div class="mc-area"><div class="mc-layer"><div class="mc-bgbox"></div><div class="mc-items"></div>
-      <div class="mc-mum"></div><div class="mc-dino"></div><div class="mc-dark"></div></div><div class="mc-hearts" aria-label="How cosy Mummy feels"></div><div class="mc-bubble"></div></div><div class="mc-panel"></div></div>`;
+      <div class="mc-mum"></div><div class="mc-dino"></div><div class="mc-dark"></div></div><div class="mc-mood" aria-label="How cosy Mummy feels"></div><div class="mc-bubble"></div></div><div class="mc-panel"></div></div>`;
     area = root.querySelector('.mc-area'); layer = area.querySelector('.mc-layer'); bg = layer.querySelector('.mc-bgbox'); items = layer.querySelector('.mc-items');
-    mumWrap = layer.querySelector('.mc-mum'); dinoWrap = layer.querySelector('.mc-dino'); dark = layer.querySelector('.mc-dark'); hearts = area.querySelector('.mc-hearts'); bubble = area.querySelector('.mc-bubble'); panel = root.querySelector('.mc-panel');
+    mumWrap = layer.querySelector('.mc-mum'); dinoWrap = layer.querySelector('.mc-dino'); dark = layer.querySelector('.mc-dark'); moodEl = area.querySelector('.mc-mood'); bubble = area.querySelector('.mc-bubble'); panel = root.querySelector('.mc-panel');
     bg.innerHTML = livingRoom();
     mumWrap.innerHTML = FX.personHTML('mummy', { state: 'walk', size: 1 }); mum = mumWrap.firstElementChild;
     dinoWrap.innerHTML = FX.dinoHTML(helper.id, { color: helper.color, state: 'idle', size: 150 });
     dino = dinoWrap.firstElementChild;
     panel.innerHTML = '<div class="mc-ask"><span class="mc-thought">🏠</span><b>Mummy is coming home…</b></div>';
-    // chip row above the scene: which part of the evening we are in, jobs done, hearts spotted, and the free hint
+    // chip row above the scene: which part of the evening we are in, jobs done, gems spotted, and the free hint
     root.querySelector('.mc-wrap').insertAdjacentHTML('afterbegin',
       `<div id="mcChips" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">` +
       chipHTML('mcPart', 'background:#17403a;color:#fff', 'Part 1 of 2 · Living room') +
       chipHTML('mcJobs', 'background:#fff6d8;color:#5c3b00', '🧺 Job 0 of ' + (need + 1)) +
-      chipHTML('mcSpots', 'background:#ffe9f0;color:#7a1030', '💛 0 hearts spotted') +
-      chipHTML('mcShelf', 'background:#e6f6ff;color:#08415c', shelf.hearts ? '🏆 best evening ' + shelf.hearts + ' 💛' : '🏆 first evening') +
+      chipHTML('mcSpots', 'background:#ffe9f0;color:#7a1030', '💎 0 gems spotted') +
+      chipHTML('mcShelf', 'background:#e6f6ff;color:#08415c', shelf.hearts ? window.DUICONS.i('trophy', { size: 16 }) + ' best evening ' + shelf.hearts + ' ✨' : window.DUICONS.i('trophy', { size: 16 }) + ' first evening') +
       '<button id="mcHint" style="border:0;border-radius:14px;background:#fff;padding:5px 12px;font:900 clamp(.66rem,1.6vw,.86rem) system-ui;box-shadow:0 2px 0 rgba(0,0,0,.12);cursor:pointer">💡 Hint</button></div>');
     chips = { part: root.querySelector('#mcPart'), jobs: root.querySelector('#mcJobs'), spots: root.querySelector('#mcSpots'), shelf: root.querySelector('#mcShelf') };
     root.querySelector('#mcHint').addEventListener('click', giveHint);
@@ -228,7 +241,7 @@ export function mountMummyCozyCorner(context) {
     await bedtime();
   }
 
-  // ------------------------------------------------------------ weather, hidden hearts and hints
+  // ------------------------------------------------------------ weather, hidden gems and hints
   // Weather falls past the window only, so it reads as "outside" without touching the room art.
   function dressWeather() {
     layer.querySelectorAll('.mc-weather').forEach((e) => e.remove());
@@ -240,21 +253,21 @@ export function mountMummyCozyCorner(context) {
     }
     FX.ambient(weather.ambient, { front: false });
   }
-  // Three hearts hide in every room. Finding one is never required, always cheered.
+  // Three gems hide in every room. Finding one is never required, always cheered.
   function hideHearts() {
     layer.querySelectorAll('.mc-find').forEach((e) => e.remove());
     HIDES[room].forEach((h, i) => {
-      const b = document.createElement('button'); b.className = 'mc-find'; b.textContent = '💛'; b.dataset.where = h.w;
-      b.setAttribute('aria-label', 'Hidden heart');
+      const b = document.createElement('button'); b.className = 'mc-find'; b.textContent = '💎'; b.dataset.where = h.w;
+      b.setAttribute('aria-label', 'Hidden gem');
       b.style.cssText = 'position:absolute;z-index:6;left:' + (h.x - 14) + 'px;top:' + (h.y - 14) + 'px;width:30px;height:30px;border:0;background:transparent;cursor:pointer;font-size:19px;opacity:.34;filter:saturate(.7);padding:0';
       layer.append(b);
       b.addEventListener('pointerdown', () => {
         if (b.dataset.got) return;
         b.dataset.got = '1'; run.hearts += 1; setChips();
         b.style.opacity = 1; b.style.filter = 'none'; FX.sfx.sparkle(); FX.bounce(b);
-        const r = b.getBoundingClientRect(); FX.burst(r.left + r.width / 2, r.top, { kind: 'hearts', n: 8 }); FX.floatText(r.left + r.width / 2, r.top - 8, 'found one!');
-        tell('You spotted a heart! ' + (run.hearts === 3 ? 'That is every single one in here!' : 'There is ' + (3 - run.hearts) + ' more hiding in this room.'), 'dino', 2400);
-        FX.pop(hearts);
+        const r = b.getBoundingClientRect(); FX.burst(r.left + r.width / 2, r.top, { kind: 'sparkle', n: 10, color: '#dff3ff' }); FX.floatText(r.left + r.width / 2, r.top - 8, 'found one!');
+        tell('You spotted a gem! ' + (run.hearts === 3 ? 'That is every single one in here!' : 'There is ' + (3 - run.hearts) + ' more hiding in this room.'), 'dino', 2400);
+        FX.pop(moodEl);
       });
     });
   }
@@ -262,7 +275,7 @@ export function mountMummyCozyCorner(context) {
   function giveHint() {
     const left = [...layer.querySelectorAll('.mc-find')].filter((h) => !h.dataset.got);
     const line = hintFor ? hintFor
-      : left.length ? 'One heart is hiding ' + left[0].dataset.where + '.'
+      : left.length ? 'One gem is hiding ' + left[0].dataset.where + '.'
         : 'Look at what Mummy says, then tap the thing that matches. Silly answers only make her giggle.';
     tell('💡 ' + line, 'dino', 4200); say(line); FX.sfx.note(); FX.sfx.pop();
     if (!hintFor && left.length) { left[0].style.opacity = 1; left[0].style.filter = 'drop-shadow(0 0 12px #ffe066)'; FX.pop(left[0]); }
@@ -328,17 +341,17 @@ export function mountMummyCozyCorner(context) {
   // (so the free help button always has something true to say).
   async function livingTasks() {
     const tasks = [
-      { id: 'seat', from: 'right', menu: '🪑 Seat', hint: 'Mummy needs something to sit on.', prompt: 'Could we find somewhere comfy for Mummy to sit down?', thought: '🪑', dest: { x: 500, y: 452, ix: 330, iy: 398 }, size: 130,
-        options: [{ art: armchairSVG(70), label: 'Comfy armchair', right: true }, { e: '🛁', label: 'Bathtub', quip: 'A bath? I’m not THAT tired!' }, { e: '🪣', label: 'Bucket', quip: 'A bucket? Hee hee, no thanks!' }] },
-      { id: 'tea', from: 'left', menu: '☕ Tea', hint: 'Something hot to drink from a mug.', prompt: 'Let’s make Mummy a nice hot cup of tea.', thought: '☕?', dest: { x: 470, y: 452, ix: 555, iy: 352 }, size: 56,
-        options: [{ e: '☕', label: 'A cup of tea', right: true }, { e: '🥾', label: 'A smelly boot', quip: 'Pooey! That’s a boot, not a tea!' }, { e: '🧴', label: 'Shampoo', quip: 'I can’t drink shampoo!' }] },
-      { id: 'cake', from: 'left', menu: '🍰 Cake', hint: 'Mummy is peckish — find something she can eat.', prompt: 'Perhaps Mummy is a little bit hungry. What could she nibble?', thought: '🍰?', dest: { x: 470, y: 452, ix: 520, iy: 352 }, size: 54,
-        options: [{ e: '🍰', label: 'A slice of cake', right: true }, { e: '🧅', label: 'An onion', quip: 'An onion?! That would make me cry!' }, { e: '🧦', label: 'A sock', quip: 'Socks are for feet, silly!' }] },
+      { id: 'seat', from: 'right', menu: 'Armchair', pickArt: armchairSVG(70), hint: 'Mummy needs something to sit on.', prompt: 'Could we find somewhere comfy for Mummy to sit down?', thought: armchairSVG(34), dest: { x: 500, y: 452, ix: 330, iy: 398 }, size: 130,
+        options: [{ art: armchairSVG(70), label: 'Comfy armchair', right: true }, { e: '🪨', label: 'A boulder', quip: 'A boulder? I’m not THAT tired!' }, { e: '🪣', label: 'Bucket', quip: 'A bucket? Hee hee, no thanks!' }] },
+      { id: 'tea', from: 'left', menu: '🏺 Tea', hint: 'Something hot to sip from a clay cup.', prompt: 'Let’s make Mummy a nice hot cup of leaf tea.', thought: '🏺?', dest: { x: 470, y: 452, ix: 555, iy: 352 }, size: 56,
+        options: [{ e: '🏺', label: 'A clay cup of tea', right: true }, { e: '🦴', label: 'A smelly old bone', quip: 'Pooey! That’s a bone, not a drink!' }, { e: '🕯️', label: 'A waxy candle', quip: 'I can’t drink candlelight!' }] },
+      { id: 'berries', from: 'left', menu: '🍓 Nibble', hint: 'Mummy is peckish — find something she can eat.', prompt: 'Perhaps Mummy is a little bit hungry. What could she nibble?', thought: '🍓?', dest: { x: 470, y: 452, ix: 520, iy: 352 }, size: 54,
+        options: [{ e: '🍓', label: 'A bowl of berries', right: true }, { e: '🪨', label: 'A river stone', quip: 'A stone would crack my teeth!' }, { e: '🍂', label: 'A dry leaf', quip: 'Leaves are for the nest, silly!' }] },
       { id: 'fan', from: 'right', menu: '🪶 Breeze', hint: 'Something soft and light to wave the air with.', prompt: 'It is warm in here. Mummy needs a cooling breeze.', thought: '💨?', dest: { x: 500, y: 452, ix: 620, iy: 430 }, size: 84,
-        options: [{ e: '🪶', label: 'A big soft feather', right: true }, { e: '🧹', label: 'A broom', quip: 'A broom? That’s for sweeping!' }, { e: '🔨', label: 'A hammer', quip: 'Bonk! Not a hammer please!' }] },
+        options: [{ e: '🪶', label: 'A big soft feather', right: true }, { e: '🪵', label: 'A heavy branch', quip: 'A branch? That’s for the fire!' }, { e: '🪓', label: 'A flint axe', quip: 'Bonk! Not a flint axe please!' }] },
     ];
-    if (need >= 5) tasks.push({ id: 'flowers', from: 'right', menu: '💐 Flowers', hint: 'Something that smells lovely in a vase.', prompt: 'Something pretty would make Mummy smile.', thought: '💐?', dest: { x: 470, y: 452, ix: 590, iy: 352 }, size: 52, options: [{ e: '💐', label: 'Pretty flowers', right: true }, { e: '🌵', label: 'A prickly cactus', quip: 'Ouch, prickly! Not that one!' }, { e: '🥔', label: 'A potato', quip: 'A potato? I can’t smell a potato!' }] });
-    if (need >= 6) tasks.push({ id: 'slippers', from: 'left', menu: '🥿 Slippers', hint: 'Something cosy for her tired feet.', prompt: 'Her feet are tired. What would be cosy?', thought: '🥿?', dest: { x: 400, y: 452, ix: 300, iy: 462 }, size: 50, options: [{ e: '🥿', label: 'Soft slippers', right: true }, { e: '🩴', label: 'Flip flops', quip: 'Flip flops? In this weather?' }, { e: '🥾', label: 'Heavy boots', quip: 'Boots? No, no, no, my toes!' }] });
+    if (need >= 5) tasks.push({ id: 'flowers', from: 'right', menu: '💐 Flowers', hint: 'Something that smells lovely in a vase.', prompt: 'Something pretty would make Mummy smile.', thought: '💐?', dest: { x: 470, y: 452, ix: 590, iy: 352 }, size: 52, options: [{ e: '💐', label: 'Pretty flowers', right: true }, { e: '🌵', label: 'A prickly cycad', quip: 'Ouch, prickly! Not that one!' }, { e: '🐟', label: 'A smelly fish', quip: 'Fish belongs in a pool, not a vase!' }] });
+    if (need >= 6) tasks.push({ id: 'slippers', from: 'left', menu: '☘ Slippers', hint: 'Something cosy and mossy for her tired feet.', prompt: 'Her feet are tired. What would be cosy?', thought: '☘?', dest: { x: 400, y: 452, ix: 300, iy: 462 }, size: 50, options: [{ e: '☘', label: 'Moss slippers', right: true }, { e: '🐚', label: 'Two sea shells', quip: 'Shells are hard, my love!' }, { e: '🧊', label: 'A block of ice', quip: 'Ice? No, no, no, my toes!' }] });
     tasks.push(WEATHER_JOBS[weather.job]);   // the weather always brings one extra job
     run.jobTotal = tasks.length; setChips();
     await doJob(tasks.shift()); A();        // Mummy sits down before anything else
@@ -355,7 +368,7 @@ export function mountMummyCozyCorner(context) {
   // The child reads the job list and decides what comes next — same jobs, different evening.
   async function pickJob(list) {
     hintFor = 'Any of these would make Mummy happy. Tap the one you would like to fetch first.';
-    panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">🧺</span><b>${esc(context.message('What shall we fetch for Mummy next? You choose the order!'))}</b></div><div class="mc-opts">${list.map((t, i) => `<button class="mc-opt" data-i="${i}"><span class="mc-opt-art">${esc(t.menu.split(' ')[0])}</span><small>${esc(t.menu)}</small></button>`).join('')}</div>`;
+    panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">🧺</span><b>${esc(context.message('What shall we fetch for Mummy next? You choose the order!'))}</b></div><div class="mc-opts">${list.map((t, i) => `<button class="mc-opt" data-i="${i}"><span class="mc-opt-art">${t.pickArt || esc(t.menu.split(' ')[0])}</span><small>${esc(t.menu)}</small></button>`).join('')}</div>`;
     panel.classList.remove('busy');
     return new Promise((res) => panel.querySelectorAll('.mc-opt').forEach((b) => b.addEventListener('click', () => {
       hintFor = null; FX.sfx.tap(); FX.pop(b); res(list[Number(b.dataset.i)]);
@@ -369,15 +382,15 @@ export function mountMummyCozyCorner(context) {
       mumWrap.style.transition = 'transform .5s'; putMum(330, 428); FX.personState(mum, 'sit'); mum.setAttribute('data-base', 'sit'); FX.sfx.thud();
       placed.style.zIndex = 1; mumWrap.style.zIndex = 3;
       await happy('Ahhh, that’s so comfy. Thank you!', 2200);
-    } else if (t.id === 'tea') { placed.insertAdjacentHTML('beforeend', '<i class="mc-steam"></i><i class="mc-steam s2"></i>'); await happy('Mmm, a lovely cup of tea. Just what I needed!', 2600); }
-    else if (t.id === 'cake') { FX.personState(mum, 'happy', 1400); FX.sfx.chomp(); await wait(500); placed.style.opacity = .3; FX.burst(...mumHead(), { kind: 'sparkle', n: 14 }); await happy('Yum! Delicious cake. You’re so kind!', 2600); placed.remove(); }
+    } else if (t.id === 'tea') { placed.insertAdjacentHTML('beforeend', '<i class="mc-steam"></i><i class="mc-steam s2"></i>'); await happy('Mmm, a lovely clay cup of tea. Just what I needed!', 2600); }
+    else if (t.id === 'berries') { FX.personState(mum, 'happy', 1400); FX.sfx.chomp(); await wait(500); placed.style.opacity = .3; FX.burst(...mumHead(), { kind: 'sparkle', n: 14 }); await happy('Yum! Sweet berries. You’re so kind!', 2600); placed.remove(); }
     else if (t.id === 'fan') { await waft(placed); }
     else if (t.id === 'flowers') { await happy('Oh, flowers! They smell wonderful!', 2400); }
-    else if (t.id === 'slippers') { await happy('Cosy toes! Ahh, thank you!', 2400); }
-    else if (t.id === 'soup') { FX.sfx.chomp(); placed.insertAdjacentHTML('beforeend', '<i class="mc-steam"></i>'); await happy('Warm tomato soup! That is exactly what rain needs.', 2600); }
-    else if (t.id === 'shawl') { FX.sfx.whoosh(); await happy('A shawl! The draught has gone straight out of the window.', 2400); }
+    else if (t.id === 'slippers') { await happy('Cosy mossy toes! Ahh, thank you!', 2400); }
+    else if (t.id === 'soup') { FX.sfx.chomp(); placed.insertAdjacentHTML('beforeend', '<i class="mc-steam"></i>'); await happy('Warm mushroom broth! That is exactly what rain needs.', 2600); }
+    else if (t.id === 'curtain') { FX.sfx.whoosh(); await happy('Reeds in the doorway! The draught has gone straight out of the window.', 2400); }
     else if (t.id === 'cushion') { FX.sfx.boing(); await happy('What a squishy cushion. My back says thank you!', 2400); }
-    else if (t.id === 'lemonade') { FX.sfx.splash(); await happy('Cold lemonade with a straw! Perfect on a starry evening.', 2600); }
+    else if (t.id === 'drink') { FX.sfx.splash(); await happy('Cool water with a reed straw! Perfect on a starry evening.', 2600); }
   }
 
   async function waft(feather) {
@@ -410,8 +423,8 @@ export function mountMummyCozyCorner(context) {
     mumWrap.style.transform = `translate(458px,252px)`; mumWrap.style.zIndex = 2; mumWrap.style.setProperty('--lk', 1);
     mum.style.setProperty('--k', .78); FX.sfx.thud(); await wait(600);
     // blanket
-    const b = await ask({ id: 'blanket', from: 'left', hint: 'Something warm to pull up over her toes.', prompt: 'A warm, cosy blanket would be perfect for Mummy.', thought: '🛏️?', dest: { x: 330, y: 452, ix: 540, iy: 372 }, size: 10,
-      options: [{ e: '🛌', label: 'A warm blanket', right: true }, { e: '🪣', label: 'A bucket', quip: 'A bucket won’t keep me warm!' }, { e: '📰', label: 'A newspaper', quip: 'A newspaper? It’s all rustly!' }] });
+    const b = await ask({ id: 'blanket', from: 'left', hint: 'Something warm to pull up over her toes.', prompt: 'A warm, woven blanket would be perfect for Mummy.', thought: '🧶?', dest: { x: 330, y: 452, ix: 540, iy: 372 }, size: 10,
+      options: [{ e: '🧶', label: 'A warm woven blanket', right: true }, { e: '🪣', label: 'A bucket', quip: 'A bucket won’t keep me warm!' }, { e: '📰', label: 'A newspaper', quip: 'A newspaper? It’s all rustly!' }] });
     b.placed.remove(); mumWrap.insertAdjacentHTML('afterend', '<div class="mc-bedblanket"></div>'); FX.sfx.pop(); const bl = layer.querySelector('.mc-bedblanket'); FX.pop(bl);
     await happy('Ohh, so warm and snuggly. Thank you, my love!', 2600); step();
     // pillow
@@ -425,7 +438,7 @@ export function mountMummyCozyCorner(context) {
     if (first === 'story') { await storyPart(); await songPart(); } else { await songPart(); await storyPart(); }
     // goodnight nuzzle
     hintFor = 'Your dinosaur is the shiny one by the bed. Tap it for a goodnight nuzzle.';
-    panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">💋</span><b>${esc(context.message('Let’s give Mummy a goodnight nuzzle. Tap your dinosaur!'))}</b></div>`;
+    panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">⭐</span><b>${esc(context.message('Let’s give Mummy a goodnight nuzzle. Tap your dinosaur!'))}</b></div>`;
     panel.classList.remove('busy');
     dinoWrap.style.transition = 'transform 1.2s ease-in-out'; putDino(720, 480, 1, true); await wait(1300); A();
     await new Promise((res) => { const handler = () => { dinoWrap.removeEventListener('pointerdown', handler); hintFor = null; res(); }; dinoWrap.style.pointerEvents = 'auto'; dinoWrap.classList.add('tap-me'); dinoWrap.addEventListener('pointerdown', handler); });
@@ -438,14 +451,18 @@ export function mountMummyCozyCorner(context) {
   // Two ways to settle down, and the evening goes in the order the child chooses.
   async function settleOrder() {
     hintFor = 'Either one is lovely. Choose what you would do first.';
-    panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">🤔</span><b>${esc(context.message('What should we do first, a story or a song? You decide!'))}</b></div><div class="mc-opts">` +
-      [{ k: 'story', e: '📖', l: 'A story first' }, { k: 'song', e: '🎵', l: 'A song first' }].map((o) => `<button class="mc-opt" data-k="${o.k}"><span class="mc-opt-art">${o.e}</span><small>${o.l}</small></button>`).join('') + '</div>';
+    const picks = [{ k: 'story', e: '📖', l: 'A story first' }, { k: 'song', e: '🎵', l: 'A song first' }];
+    panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">❓</span><b>${esc(context.message('What should we do first, a story or a song? You decide!'))}</b></div><div class="mc-opts">` +
+      picks.map((o) => `<button class="mc-opt" data-k="${o.k}"><span class="mc-opt-art">${o.e}</span><small>${o.l}</small></button>`).join('') + '</div>';
     panel.classList.remove('busy');
-    return new Promise((res) => panel.querySelectorAll('.mc-opt').forEach((b) => b.addEventListener('click', () => { hintFor = null; FX.sfx.tap(); FX.pop(b); tell('Good plan — ' + b.textContent.toLowerCase() + '!', 'mum', 1800); res(b.dataset.k); }, { once: true })));
+    /* Mummy repeats the child's own words, taken from the choice list rather
+     * than the button: the layer that paints these buttons has already turned
+     * the label into a picture by the time it is tapped. */
+    return new Promise((res) => panel.querySelectorAll('.mc-opt').forEach((b) => b.addEventListener('click', () => { hintFor = null; FX.sfx.tap(); FX.pop(b); const o = picks.find((p) => p.k === b.dataset.k); tell('Good plan — ' + ((o && o.l) || 'that') + '!', 'mum', 1800); res(b.dataset.k); }, { once: true })));
   }
   async function storyPart() {
     const book = await ask({ id: 'book', from: 'right', hint: 'Something with pages to read out loud.', prompt: 'A bedtime story would be lovely.', thought: '📖?', dest: { x: 420, y: 452, ix: 330, iy: 396 }, size: 56,
-      options: [{ e: '📖', label: 'A story book', right: true }, { e: '🔧', label: 'A spanner', quip: 'A spanner? That’s a boring bedtime story!' }, { e: '🧱', label: 'A brick', quip: 'A brick is too heavy to read!' }] });
+      options: [{ e: '📖', label: 'A story book', right: true }, { e: '🔧', label: 'A spanner', quip: 'A spanner? That’s a boring bedtime story!' }, { e: '🪨', label: 'A boulder', quip: 'A boulder is too heavy to read!' }] });
     // who stars in the story? the child picks, and the book is drawn with that dinosaur
     hintFor = 'Pick whichever dinosaur you would like to read about.';
     panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">🌟</span><b>${esc(context.message('Who should star in tonight’s story?'))}</b></div><div class="mc-opts">` +
@@ -460,7 +477,7 @@ export function mountMummyCozyCorner(context) {
   async function songPart() {
     hintFor = 'Any tune will do — Mummy loves them all.';
     panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">🎵</span><b>${esc(context.message('Which lullaby shall we play for Mummy?'))}</b></div><div class="mc-opts">` +
-      TUNES.map((t, i) => `<button class="mc-opt" data-i="${i}"><span class="mc-opt-art">${['🌟', '🔔', '🩰'][i]}</span><small>${t.name}</small></button>`).join('') + '</div>';
+      TUNES.map((t, i) => `<button class="mc-opt" data-i="${i}"><span class="mc-opt-art">${t.icon}</span><small>${t.name}</small></button>`).join('') + '</div>';
     panel.classList.remove('busy');
     const t = await new Promise((res) => panel.querySelectorAll('.mc-opt').forEach((b) => b.addEventListener('click', () => { hintFor = null; FX.sfx.note(2, .5); FX.pop(b); res(TUNES[Number(b.dataset.i)]); }, { once: true })));
     A(); run.tune = t; await lullaby(t); step();
@@ -507,7 +524,7 @@ export function mountMummyCozyCorner(context) {
     panel.innerHTML = `<div class="mc-ask"><span class="mc-thought">💡</span><b>${esc(context.message('Time to turn off the light. Tap the switch on the wall!'))}</b></div>`;
     panel.classList.remove('busy');
     await new Promise((res) => { const sw = document.createElement('button'); sw.className = 'mc-hotspot mc-switch'; sw.style.cssText = 'left:284px;top:184px;width:50px;height:66px'; sw.setAttribute('aria-label', 'Light switch'); layer.append(sw); sw.addEventListener('pointerdown', () => { sw.remove(); res(); }); });
-    FX.sfx.thud(); FX.sfx.tap(); layer.classList.add('lights-off'); dark.innerHTML = '<span class="gs g1">✨</span><span class="gs g2">⭐</span><span class="gs g3">✨</span><span class="gs g4">⭐</span><span class="gs g5">✨</span><i class="bk-ff" style="left:30%;top:60%"></i><i class="bk-ff f2" style="left:60%;top:70%"></i><i class="bk-ff f3" style="left:80%;top:50%"></i>';
+    FX.sfx.thud(); FX.sfx.tap(); layer.classList.add('lights-off'); dark.innerHTML = '<span class="gs g1">✨</span><span class="gs g2">✨</span><span class="gs g3">✨</span><span class="gs g4">✨</span><span class="gs g5">✨</span><i class="bk-ff" style="left:30%;top:60%"></i><i class="bk-ff f2" style="left:60%;top:70%"></i><i class="bk-ff f3" style="left:80%;top:50%"></i>';
     mum.classList.add('sleeping'); FX.sfx.sparkle();
     FX.ambient('night', { front: false });
     await wait(1800); A();
@@ -521,13 +538,13 @@ export function mountMummyCozyCorner(context) {
     collect('cozy-runs', { hearts: run.hearts, jobs, comfort, slips: run.slips, weather: weather.id, story: run.story ? run.story.name : null, tune: run.tune ? run.tune.name : null, secs: run.secs, level });
     panel.innerHTML = `<div class="mc-ask mc-end"><span class="mc-thought">💤</span><b>${esc(context.message('Goodnight, Mummy. Sweet dreams!'))}</b></div>` +
       `<p id="mcRun" style="margin:0;text-align:center;font-weight:800;color:#5b2b52;background:#fbe6f3;border-radius:16px;padding:8px 14px">` +
-      `💛 <b>${run.hearts}</b> of 6 hearts · 🧺 <b>${jobs}</b> jobs · ⏱ <b>${run.secs}s</b>` +
-      (heartsAll ? '<br>✨ Every single heart found!' : shelf.hearts > run.hearts ? '<br>Best evening so far has ' + shelf.hearts + ' 💛 — you can beat that!' : '<br>A new best for hearts!') +
+      `💎 <b>${run.hearts}</b> of 6 gems · 🧺 <b>${jobs}</b> jobs · ⏱ <b>${run.secs}s</b>` +
+      (heartsAll ? '<br>✨ Every single gem found!' : shelf.hearts > run.hearts ? '<br>Best evening so far has ' + shelf.hearts + ' 💎 — you can beat that!' : '<br>A new best for gems!') +
       `<br><small style="font-weight:700">${weather.name} outside · a story about ${run.story ? run.story.name : 'a sleepy dinosaur'} · ${run.tune ? run.tune.name : 'a lullaby'}</small></p>`;
     FX.pop(panel.querySelector('#mcRun')); FX.burst(...mumHead(), { kind: 'hearts', n: 12 });
     FX.celebrate(); await wait(3400); A();
     window.removeEventListener('resize', fitScene); mo.disconnect();
-    context.advance('You looked after Mummy through ' + jobs + ' jobs on a ' + weather.name.toLowerCase() + ' evening, spotted ' + run.hearts + ' hidden hearts, read her a story about ' +
+    context.advance('You looked after Mummy through ' + jobs + ' jobs on a ' + weather.name.toLowerCase() + ' evening, spotted ' + run.hearts + ' hidden gems, read her a story about ' +
       (run.story ? run.story.name : 'a sleepy dinosaur') + ' and played ' + (run.tune ? run.tune.name : 'a lullaby') + '. She is fast asleep — all because of you. Sweet dreams!');
   }
 }

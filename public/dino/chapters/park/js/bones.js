@@ -39,10 +39,10 @@
   const BONE_SFX = { skull: 'chomp', spine: 'thud', tail: 'boing', ribs: 'whoosh', neck: 'pop', pelvis: 'drum', legs: 'jump', legsB: 'jump', legsF: 'tap', legB: 'jump', legF: 'tap', arms: 'chirp', plates: 'sparkle', wingL: 'splash', wingR: 'splash', body: 'thud' };
   /* Four dig sites with their own light and litter: rebuilding never looks like the last time. */
   const SITES = [
-    { name: 'Sunny quarry', sky: ['#cfeaff', '#f8e6b4'], far: '#dcc189', hill: '#e3b873', dig: '#cf9f58', ink: '#8a5a2a', props: ['🌵', '🪨', '⛏️', '🦖'], litter: 6 },
+    { name: 'Sunny quarry', sky: ['#cfeaff', '#f8e6b4'], far: '#dcc189', hill: '#e3b873', dig: '#cf9f58', ink: '#8a5a2a', props: ['🌵', '🪨', '🦴', '🦖'], litter: 6 },
     { name: 'River bank', sky: ['#bfe9f2', '#eafbd9'], far: '#a8d3b8', hill: '#cfc08a', dig: '#a9b071', ink: '#5f6b3a', props: ['🪵', '🌾', '🐊', '🦴'], litter: 8 },
-    { name: 'Red desert', sky: ['#ffd0a2', '#ffe9c4'], far: '#e08a5a', hill: '#d17a4a', dig: '#b2603a', ink: '#7a3a20', props: ['🌞', '🏜️', '🦂', '🪨'], litter: 7 },
-    { name: 'Lantern site', sky: ['#2a2f6b', '#5b4a86'], far: '#3f3a6a', hill: '#4a3f63', dig: '#3a3050', ink: '#241f38', props: ['🏮', '🌙', '✨', '🦴'], litter: 9, dark: 1 },
+    { name: 'Red desert', sky: ['#ffd0a2', '#ffe9c4'], far: '#e08a5a', hill: '#d17a4a', dig: '#b2603a', ink: '#7a3a20', props: ['🌞', '🟧', '🌵', '🪨'], litter: 7 },
+    { name: 'Lantern site', sky: ['#2a2f6b', '#5b4a86'], far: '#3f3a6a', hill: '#4a3f63', dig: '#3a3050', ink: '#241f38', props: ['🕯️', '🌙', '✨', '🦴'], litter: 9, dark: 1 },
   ];
   /* Rounds 3 and 4 grow the animal: more vertebrae, more ribs, more plates. */
   let RICH = 1, boneDeck = [], siteBank = [];
@@ -251,11 +251,11 @@
       const stageBox = el('div', 'bd-stage');
       const ns = 'http://www.w3.org/2000/svg';
       const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 400 260'); svg.setAttribute('class', 'bd-svg');
-      /* Every site brings its own light, hills and litter, so the same bones never sit in the same place twice. */
+      /* Every site brings its own light, hills and photographed litter, so the same bones never sit in the same place twice. */
       const hills = (() => { let d = 'M0 182'; for (let x = 0; x < 400; x += 50) d += ` Q${x + 25} ${150 - rnd(48)} ${x + 50} ${170 + rnd(20)}`; return d + ' V260 H0Z'; })();
-      const litter = Array.from({ length: S.litter }, () => `<text x="${f0(8 + rnd(384))}" y="${f0(198 + rnd(54))}" font-size="${f0(12 + rnd(15))}" opacity="${S.dark ? .7 : .9}">${pick(S.props)}</text>`).join('');
+      const litter = Array.from({ length: S.litter }, () => { const sz = f0(15 + rnd(14)); return `<image href="${window.DUFX.objects.url(pick(S.props))}" x="${f0(8 + rnd(378))}" y="${f0(186 + rnd(54))}" width="${sz}" height="${sz}" opacity="${S.dark ? .7 : .9}"/>`; }).join('');
       const night = S.dark ? `${Array.from({ length: 20 }, () => `<circle cx="${f0(rnd(400))}" cy="${f0(rnd(150))}" r="${f1(1 + Math.random() * 1.6)}" fill="#fff" opacity="${f1(.5 + Math.random() * .5)}"/>`).join('')}
-        <circle cx="66" cy="44" r="20" fill="#fffbe0"/><circle cx="58" cy="38" r="18" fill="${S.sky[0]}"/><text x="318" y="206" font-size="26">🏮</text><circle cx="330" cy="196" r="26" fill="#ffdf8a" opacity=".2"/>`
+        <circle cx="66" cy="44" r="20" fill="#fffbe0"/><circle cx="58" cy="38" r="18" fill="${S.sky[0]}"/><g transform="translate(318 192)" stroke-linecap="round"><path d="M0 -26 V-14" stroke="#e9d69a" stroke-width="2"/><path d="M-9 -14 h18 l-3 18 h-12z" fill="#7a4a22" stroke="#e9d69a" stroke-width="2"/><circle cx="0" cy="-4" r="5" fill="#ffe6a0"/></g><circle cx="330" cy="196" r="26" fill="#ffdf8a" opacity=".2"/>`
         : `<circle cx="350" cy="40" r="22" fill="#ffd45a"/><circle cx="350" cy="40" r="32" fill="#ffd45a" opacity=".3"/>`;
       const stakes = R >= 2 ? `<g fill="none" stroke-linecap="round"><path d="M20 238 V212 M380 238 V212" stroke="#6b4a22" stroke-width="4"/><path d="M20 214 Q200 ${196 + rnd(14)} 380 214" stroke="#e9d69a" stroke-width="2.5" stroke-dasharray="6 5"/></g>` : '';
       svg.innerHTML = `<defs><linearGradient id="bdsky${R}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.sky[0]}"/><stop offset="1" stop-color="${S.sky[1]}"/></linearGradient></defs>
@@ -442,8 +442,8 @@
         const dio = el('div', 'bd-dio');
         dio.style.background = `linear-gradient(${S.sky[0]}, ${S.sky[1]} 70%)`;
         dio.innerHTML = S.dark
-          ? '<i class="bd-sun">🌙</i><i class="bd-cloud c1">⭐</i><i class="bd-cloud c2">✨</i><div class="bd-hills"></div><div class="bd-trees"><span>🌲</span><span>🏮</span><span>🌲</span><span>🌵</span><span>🏮</span></div><div class="bd-flowers">✨ 🌼 ✨ 🌼 ✨ 🌼</div><div class="bd-ground" style="background:linear-gradient(#3f5f5a,#2c4a46);box-shadow:inset 0 6px 0 #4e6f66"></div>'
-          : '<i class="bd-sun">☀️</i><i class="bd-cloud c1">☁️</i><i class="bd-cloud c2">☁️</i><div class="bd-hills"></div><div class="bd-trees"><span>🌴</span><span>🌿</span><span>🌳</span><span>🌿</span><span>🌴</span></div><div class="bd-flowers">🌼 🌸 🌼 🌷 🌼 🌸</div><div class="bd-ground"></div>';
+          ? '<i class="bd-sun">🌙</i><i class="bd-cloud c1">⭐</i><i class="bd-cloud c2">🌠</i><div class="bd-hills"></div><div class="bd-trees"><span>🌲</span><span>🕯️</span><span>🌵</span><span>🪨</span><span>🦴</span></div><div class="bd-flowers">🍄 ☘️ 🌱 🪻 🍂 🌿</div><div class="bd-ground" style="background:linear-gradient(#3f5f5a,#2c4a46);box-shadow:inset 0 6px 0 #4e6f66"></div>'
+          : '<i class="bd-sun">☀️</i><i class="bd-cloud c1">☁️</i><i class="bd-cloud c2">🌈</i><div class="bd-hills"></div><div class="bd-trees"><span>🌴</span><span>🌿</span><span>🌳</span><span>🌵</span><span>🪵</span></div><div class="bd-flowers">🌼 🍄 ☘️ 🌱 🍃 🌾</div><div class="bd-ground"></div>';
         if (buddy && buddy.s !== species) {
           const far = el('div', 'bd-buddy', FX.dinoHTML(buddy.s, { color: buddy.c, state: 'idle' }));
           far.style.cssText = 'position:absolute;right:4%;bottom:24%;width:20%;opacity:.85;filter:saturate(.85)';
@@ -451,7 +451,7 @@
           FX.anim(far, [{ transform: 'translateY(0)' }, { transform: 'translateY(-7px)' }, { transform: 'translateY(0)' }], { duration: 2600, iterations: Infinity, easing: 'ease-in-out' });
         }
         const walker = el('div', 'bd-walker', FX.dinoHTML(species, { color: colour, state: 'walk' }));
-        const tag = el('div', 'bd-tag', `<b>${name}</b><span>${[1, 2, 3].map((n) => `<i class="${n <= stars ? 'on' : ''}">★</i>`).join('')}</span>`);
+        const tag = el('div', 'bd-tag', `<b>${name}</b><span>${[1, 2, 3].map((n) => `<i class="${n <= stars ? 'on' : ''}">${window.DUICONS.i('star', { size: 15, filled: n <= stars })}</i>`).join('')}</span>`);
         dio.append(walker, tag);
         stageBox.replaceWith(dio); $('.bd-tray', wrap) && tray.remove(); bar.remove(); hintBtn.remove(); peekBtn.remove(); top.remove();
         FX.celebrate(); ctx.flutter(6); FX.sfx.whoosh();
@@ -465,7 +465,6 @@
         ctx.say(`${name} the ${SP_NAME[species]} is ALIVE! You built it from ${total} bones!`);
         for (let i = 0; i < 4; i++) setTimeout(() => { if (!ctx.alive()) return; const c = centreOf(walker); FX.burst(c.x, c.y - 20, { kind: i % 2 ? 'hearts' : 'stars', n: 6 }); FX.sfx.chirp(); }, 500 + i * 800);
         ctx.bonus(stars - 1 > 0 ? stars - 1 : 0, tag, stars === 3 ? 'Perfect build!' : 'Great build!');
-        if (window.DUWONDER && DUWONDER.running && DUWONDER.running()) DUWONDER.mote(R === ctx.rounds ? 3 : 1);
         await sleep(3400);
         if (!ctx.alive()) return;
         const last = R === ctx.rounds;
@@ -473,8 +472,8 @@
           ctx.done(`${name} and a golden skeleton — ${pals.length + 1} dinosaurs live in your museum now!`, 2200);
           return;
         }
-        ctx.done(last ? `${name} is the ${pals.length + 1}th dinosaur in your museum, built bone by bone! ${'⭐'.repeat(stars)}`
-          : `${name} moved into the Dino Museum! ${'⭐'.repeat(stars)}`, 1800);
+        ctx.done(last ? `${name} is the ${pals.length + 1}th dinosaur in your museum, built bone by bone! ${window.DUICONS.stars(stars)}`
+          : `${name} moved into the Dino Museum! ${window.DUICONS.stars(stars)}`, 1800);
       }
     },
   });

@@ -1,3 +1,4 @@
+import { addMaterialLayer } from '../../../photoreal-environments.js';
 // Tide Causeway — the road the sea takes twice a day.
 // Ribbed stones, one rising tide, and a hatchling a long hop behind you.
 
@@ -282,6 +283,8 @@ function create(scene) {
   const water = scene.add.graphics().setDepth(16);
   const foam = scene.add.graphics().setDepth(17);
   const marks = scene.add.graphics().setDepth(24);
+  addMaterialLayer(scene,shore,'material-rock',W,M.H);
+  addMaterialLayer(scene,water,'material-water',W,M.H,{alpha:.7,flow:true});
   const glowG = scene.add.graphics().setDepth(18).setBlendMode(Phaser.BlendModes.ADD);
   const lightning = scene.add.graphics().setDepth(-10);
   const veil = scene.add.rectangle(0, 0, W, M.H, col('#0d2530'), 0).setOrigin(0).setDepth(34);

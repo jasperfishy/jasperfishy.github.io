@@ -5,20 +5,25 @@
  * The explorer kit is the part that grows: every round unlocks another tool (a magnifier that sweeps the grass, a
  * ghost outline to compare things against, a whistle that calls the shy golden critter), the rucksack fills up with
  * everything you found, and the meadow-watch line tells you how the weather is turning while you hunt. */
-import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-316e7af9b57fa08e";
+import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-58e7197a7bd67562";
 
+/* Every item is a thing the meadow actually has a photograph of, and no
+ * specimen is used for two shapes — otherwise a distractor tile can teach
+ * that an egg is an oval while the same egg sits in the basket as a circle.
+ * The heart lesson became a teardrop: a heart has no shape in this world,
+ * but a raindrop, a tooth and a conch shell all have exactly that one. */
 const SHAPES = {
-  circle: { name: "circle", plural: "circles", sides: "round, no corners", path: '<circle cx="20" cy="20" r="15"/>', items: ["☀️", "🏀", "🍊", "🪙", "🍪", "🔴", "🌕", "🎾", "⭕", "🧿"] },
-  triangle: { name: "triangle", plural: "triangles", sides: "3 corners", path: '<path d="M20 5 L36 34 H4Z"/>', items: ["⛺", "🌲", "🔺", "🍕", "🏔️", "📐", "⛵"] },
-  square: { name: "square", plural: "squares", sides: "4 equal sides", path: '<rect x="6" y="6" width="28" height="28" rx="2"/>', items: ["🎁", "📦", "🧊", "🟩", "🟦", "🧱", "🟨", "⬜"] },
-  star: { name: "star", plural: "stars", sides: "5 pointy points", path: '<path d="M20 4 L24.6 15 L36 15.8 L27.4 23.4 L30 35 L20 28.8 L10 35 L12.6 23.4 L4 15.8 L15.4 15Z"/>', items: ["⭐", "🌟", "🌠", "💫", "✨", "🎆"] },
-  heart: { name: "heart", plural: "hearts", sides: "two bumps and a point", path: '<path d="M20 35 C2 22 4 8 14 8 C18 8 20 11 20 13 C20 11 22 8 26 8 C36 8 38 22 20 35Z"/>', items: ["❤️", "💚", "💛", "💜", "🩷", "💙", "🤍", "🖤"] },
-  diamond: { name: "diamond", plural: "diamonds", sides: "4 sides, pointy top and bottom", path: '<path d="M20 3 L35 20 L20 37 L5 20Z"/>', items: ["💎", "🔷", "🔶", "🪁", "💠", "♦️"] },
-  crescent: { name: "crescent", plural: "crescents", sides: "a curved moon shape", path: '<path d="M26 5 A16 16 0 1 0 35 27 A13 13 0 1 1 26 5Z"/>', items: ["🌙", "🥐", "🍌", "🌜", "🌘", "🍤"] },
-  rectangle: { name: "rectangle", plural: "rectangles", sides: "4 sides, two long and two short", path: '<rect x="3" y="11" width="34" height="18" rx="2"/>', items: ["🚪", "📕", "🍫", "📗", "🧈", "📱", "📏"] },
-  oval: { name: "oval", plural: "ovals", sides: "round and stretched like an egg", path: '<ellipse cx="20" cy="20" rx="11" ry="16"/>', items: ["🥚", "🥑", "🥔", "🍆", "🫘", "🏈", "🍋"] }
+  circle: { name: "circle", plural: "circles", sides: "round, no corners", path: '<circle cx="20" cy="20" r="15"/>', items: ["☀️", "🪙", "🔴", "⚪", "🥌", "🌀"] },
+  triangle: { name: "triangle", plural: "triangles", sides: "3 corners", path: '<path d="M20 5 L36 34 H4Z"/>', items: ["🌲", "🌋", "🪓", "🗡️", "🌵", "🌰"] },
+  square: { name: "square", plural: "squares", sides: "4 equal sides", path: '<rect x="6" y="6" width="28" height="28" rx="2"/>', items: ["🟦", "⬛", "🟧", "📦", "🟨", "🪵"] },
+  star: { name: "star", plural: "stars", sides: "5 pointy points", path: '<path d="M20 4 L24.6 15 L36 15.8 L27.4 23.4 L30 35 L20 28.8 L10 35 L12.6 23.4 L4 15.8 L15.4 15Z"/>', items: ["⭐", "❄️", "🍁", "🌠", "🦋", "🪻"] },
+  teardrop: { name: "teardrop", plural: "teardrops", sides: "round at the bottom and pointy at the top", path: '<path d="M20 3 C20 3 32 17 32 24 A12 12 0 1 1 8 24 C8 17 20 3 20 3Z"/>', items: ["💧", "🐚", "🦷", "🪶", "🌷", "🐟"] },
+  diamond: { name: "diamond", plural: "diamonds", sides: "4 sides, pointy top and bottom", path: '<path d="M20 3 L35 20 L20 37 L5 20Z"/>', items: ["💎", "🪩", "🟣", "🥍", "🟢", "🟡"] },
+  crescent: { name: "crescent", plural: "crescents", sides: "a curved moon shape", path: '<path d="M26 5 A16 16 0 1 0 35 27 A13 13 0 1 1 26 5Z"/>', items: ["🌙", "🦅", "🌊", "🐌", "🌾"] },
+  rectangle: { name: "rectangle", plural: "rectangles", sides: "4 sides, two long and two short", path: '<rect x="3" y="11" width="34" height="18" rx="2"/>', items: ["📕", "🎍", "🚗", "🥁", "🗺️", "🪢"] },
+  oval: { name: "oval", plural: "ovals", sides: "round and stretched like an egg", path: '<ellipse cx="20" cy="20" rx="11" ry="16"/>', items: ["🥚", "🪨", "🍒", "🐢", "🍄", "🪹"] }
 };
-const ORDER_EASY = ["circle", "triangle", "square", "star", "heart"];
+const ORDER_EASY = ["circle", "triangle", "square", "star", "teardrop"];
 const ORDER_ALL = Object.keys(SHAPES);
 const outline = (key) => '<svg viewBox="0 0 40 40" class="ss-outline" aria-hidden="true">' + SHAPES[key].path + "</svg>";
 
@@ -49,16 +54,16 @@ export function mountShapeSafari(context) {
     const open = TOOLS.indexOf(tool) < unlocked;
     return '<button type="button" class="pk-btn ss-tool" id="' + id + '" data-tool="' + tool + '" data-open="' + (open ? "1" : "0") +
       '" aria-pressed="false"' + (open ? "" : " disabled") + ' style="font-size:13px;padding:6px 11px;min-width:112px' +
-      (open ? "" : ";opacity:.5") + '">' + (open ? emoji + " " + name : "🔒 " + name) + "</button>";
+      (open ? "" : ";opacity:.5") + '">' + (open ? emoji + " " + name : window.DUICONS.i("lock", { size: 16 }) + " " + name) + "</button>";
   };
   board.innerHTML = '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px">' +
-    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip(missions.length + " shape missions") + (best ? chip("Your best " + "⭐".repeat(best)) : chip("First safari — good luck!")) +
+    chip("Tier " + tier + " · " + TIER[tier - 1]) + chip(missions.length + " shape missions") + (best ? chip("Your best " + window.DUICONS.stars(best)) : chip("First safari — good luck!")) +
     chip("Explorer kit: " + unlocked + " of 3 tools 🧰") + (journal ? chip("Journal: " + journal + " safaris 📔") : "") + "</div>" +
     '<div class="ss-mission" id="ssMission"></div>' +
     '<div class="ss-kit" id="ssKit" data-tools="' + unlocked + '" data-lens-left="' + lensMax + '" data-alert="0" ' +
       'style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:0 auto 6px">' +
-      toolHTML("ssLensBtn", "lens", "🔍", "Magnifier") + toolHTML("ssGhostBtn", "ghost", "👻", "Shape ghost") +
-      toolHTML("ssCallBtn", "call", "🐛", "Critter whistle") +
+      toolHTML("ssLensBtn", "lens", window.DUICONS.i("search", { size: 18 }), "Magnifier") + toolHTML("ssGhostBtn", "ghost", "👻", "Shape ghost") +
+      toolHTML("ssCallBtn", "call", "🪈", "Critter whistle") +
       '<span class="ss-bag" id="ssBag" data-count="0" data-gold="0" aria-label="Your rucksack" ' +
         'style="display:inline-flex;gap:3px;align-items:center;background:rgba(255,255,255,.9);border-radius:14px;padding:4px 9px;font-size:17px;box-shadow:0 3px 0 rgba(24,62,64,.14)">🎒<b id="ssBagN" style="font-size:12.5px;color:#245048">0</b></span>' +
     "</div>" +
@@ -81,12 +86,12 @@ export function mountShapeSafari(context) {
   let teachTimer = 0, replayTimer = 0, whistleUsed = false;
 
 
-  // the meadow wears a different face each tier: bees and a rainbow, then an owl and a dusky sky
+  // the meadow wears a different face each tier: dragonflies and a rainbow, then the first stars and a dusky sky
   function scenery() {
     let s = '<span class="ss-sun">☀️</span><span class="ss-tree t1">🌳</span><span class="ss-tree t2">🌴</span><span class="ss-hill"></span><span class="ss-river"></span>';
     const abs = function (e, x, y, f) { return '<i style="position:absolute;left:' + x + '%;top:' + y + '%;font-size:' + f + 'px;opacity:.8;pointer-events:none">' + e + "</i>"; };
-    if (tier >= 2) s += abs("🌈", 40, 3, 40) + abs("🐝", 20, 18, 24) + abs("🐝", 68, 12, 22) + abs("🍄", 6, 74, 26);
-    if (tier >= 3) s += abs("🦉", 90, 8, 30) + abs("🌙", 80, 4, 30) + abs("🪨", 30, 80, 28) +
+    if (tier >= 2) s += abs("🌈", 40, 3, 40) + abs("🦋", 20, 18, 24) + abs("🦋", 68, 12, 22) + abs("🍄", 6, 74, 26);
+    if (tier >= 3) s += abs("🌌", 90, 8, 30) + abs("🌙", 80, 4, 30) + abs("🪨", 30, 80, 28) +
       '<span style="position:absolute;inset:0;background:linear-gradient(rgba(56,48,110,.24),transparent 55%);pointer-events:none"></span>';
     return s;
   }
@@ -130,7 +135,7 @@ export function mountShapeSafari(context) {
       const b = document.createElement("button");
       b.type = "button"; b.className = "ss-item"; b.dataset.shape = it.shape;
       b.textContent = it.e;
-      b.setAttribute("aria-label", "A meadow thing");
+      b.setAttribute("aria-label", "A " + F.objects.word(it.e) + " in the meadow");
       b.style.left = (1 + (cx + 0.1 + Math.random() * 0.7) / cols * 90) + "%";
       b.style.top = (1 + (cy + 0.05 + Math.random() * 0.55) / rows * 88) + "%";
       b.style.setProperty("--d", (-Math.random() * 4).toFixed(2) + "s");
@@ -208,7 +213,7 @@ export function mountShapeSafari(context) {
         clearGold();
         const br = mission.querySelector(".ss-badge").getBoundingClientRect();
         if (F.burst) F.burst(br.left + br.width / 2, br.top + br.height / 2, { kind: "stars", n: 12 });
-        window.setTimeout(function () { play.say("Mission complete! 🎉", 1800); nextMission(); }, 1300);
+        window.setTimeout(function () { play.say("Mission complete!", 1800); nextMission(); }, 1300);
       }
     } else {
       const S = SHAPES[it.shape];
@@ -216,7 +221,7 @@ export function mountShapeSafari(context) {
       window.setTimeout(function () { b.classList.remove("nope"); }, 500);
       showTeach(it);
       setAlert(alert + 1);
-      play.miss(b, "That's a " + S.name + " (" + S.sides + "). Look for " + SHAPES[target].plural + "!");
+      play.miss(b, "That's a " + F.objects.word(it.e) + " — a " + S.name + " (" + S.sides + "). Look for " + SHAPES[target].plural + "!");
     }
   }
 
@@ -270,12 +275,12 @@ export function mountShapeSafari(context) {
   function renderKit() {
     const lb = board.querySelector("#ssLensBtn");
     if (lb && isOpen("lens")) {
-      lb.innerHTML = "🔍 Magnifier ×" + lensLeft;
+      lb.innerHTML = window.DUICONS.i("search", { size: 16 }) + " Magnifier ×" + lensLeft;
       lb.disabled = lensLeft <= 0;
     }
     const cb = board.querySelector("#ssCallBtn");
     if (cb && isOpen("call")) {
-      cb.innerHTML = whistleUsed ? "🐛 Whistle resting" : "🐛 Critter whistle";
+      cb.innerHTML = whistleUsed ? "🪈 Whistle resting" : "🪈 Critter whistle";
       cb.disabled = whistleUsed || busy;
     }
     if (replayCard.dataset.step === "idle") resetReplayCard();
@@ -352,7 +357,7 @@ export function mountShapeSafari(context) {
     replayCard.innerHTML = target
       ? '<span style="font-weight:800;font-size:12.5px;color:#245048;opacity:.85">🎒 ' + bagCount +
         " in the bag · mission " + (m + 1) + " of " + missions.length +
-        " · 🔍 " + lensLeft + " look" + (lensLeft === 1 ? "" : "s") + " left" +
+        " · " + window.DUICONS.i("search", { size: 15 }) + " " + lensLeft + " look" + (lensLeft === 1 ? "" : "s") + " left" +
         (ghostOn ? " · 👻 shape print up" : "") + "</span>"
       : "";
     replayCard.dataset.bag = String(bagCount);
@@ -377,7 +382,7 @@ export function mountShapeSafari(context) {
       }
     }
     if (F.sfx && F.sfx.chirp) F.sfx.chirp();
-    play.say("Look! A " + S.name + " — " + S.sides + ". Like the " + example + "!", 2800);
+    play.say("Look! A " + S.name + " — " + S.sides + ". Like the " + F.objects.word(example) + "!", 2800);
     window.clearTimeout(replayTimer);
     replayTimer = window.setTimeout(resetReplayCard, 6500);
   }
@@ -392,11 +397,11 @@ export function mountShapeSafari(context) {
   }
   function spawnGold() {
     if ((goldEl && goldEl.isConnected) || busy || !target) return;
-    const who = ["🐞", "🦋", "🐌", "🦗", "🐛", "🪲", "🦎"][Math.floor(Math.random() * 7)];
+    const who = ["🦋", "🐌", "🦎", "🐢"][Math.floor(Math.random() * 4)];
     const b = document.createElement("button");
     b.type = "button"; b.className = "ss-gold"; b.dataset.tapped = "0"; b.dataset.critter = who;
     b.textContent = who;
-    b.setAttribute("aria-label", "A shiny golden critter — tap it!");
+    b.setAttribute("aria-label", "A shiny golden " + F.objects.word(who) + " — tap it!");
     b.style.cssText = "position:absolute;z-index:8;border:0;cursor:pointer;width:58px;height:58px;border-radius:50%;font-size:31px;" +
       "background:rgba(255,248,214,.95);box-shadow:0 0 0 4px rgba(255,212,94,.95),0 0 22px rgba(255,190,50,.85),0 6px 12px rgba(0,60,40,.3);" +
       "left:" + (8 + Math.random() * 72).toFixed(1) + "%;top:" + (12 + Math.random() * 62).toFixed(1) + "%;transition:opacity .6s, transform .6s";

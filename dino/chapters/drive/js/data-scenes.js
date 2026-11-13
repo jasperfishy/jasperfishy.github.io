@@ -1,5 +1,9 @@
-// Six hand-drawn worlds. Every scene shares the same driving rules and can be
-// extended by adding a data entry; no scene-specific game logic is required.
+// Six worlds. Every scene shares the same driving rules and can be extended by
+// adding a data entry; no scene-specific game logic is required.
+// `collectible` and `obstacle` are two DIFFERENT specimen families in every
+// scene, and neither appears in that world's roadside scenery: the drive screen
+// shows the photograph of each glyph, so a treasure and a hazard that share a
+// family would be the same picture and a child could not tell them apart.
 
 function hill(ctx, x, y, width, height, color) {
   ctx.fillStyle = color;
@@ -109,7 +113,7 @@ export const SCENES = {
   },
   city: {
     id: "city", label: "Dino City", unlockStars: 8,
-    sky: ["#79bfff", "#e6f2ff"], ground: "#74bd73", road: "#546277", roadLine: "#ffe081", collectible: "💎", obstacle: "🚧",
+    sky: ["#79bfff", "#e6f2ff"], ground: "#74bd73", road: "#546277", roadLine: "#ffe081", collectible: "💎", obstacle: "🚩",
     far: cityFar,
     mid(ctx, t, W, H) { for (let i = 0; i < 8; i++) { const x = ((i * 170 - t * 0.45) % (W + 180)) - 90; ctx.fillStyle = "#b45f48"; ctx.fillRect(x - 8, H * 0.57 - 42, 16, 42); ctx.fillStyle = "#f9d77b"; ctx.beginPath(); ctx.arc(x, H * 0.57 - 45, 18, 0, Math.PI * 2); ctx.fill(); } }
   },
@@ -121,7 +125,7 @@ export const SCENES = {
   },
   snow: {
     id: "snow", label: "Snowy Valley", unlockStars: 24,
-    sky: ["#91ddff", "#f7fdff"], ground: "#eaf8ff", road: "#9cb9ca", roadLine: "#fff", collectible: "❄️", obstacle: "⛄",
+    sky: ["#91ddff", "#f7fdff"], ground: "#eaf8ff", road: "#9cb9ca", roadLine: "#fff", collectible: "🫐", obstacle: "⬛",
     far: snowFar,
     mid(ctx, t, W, H) { for (let i = 0; i < 9; i++) { const x = ((i * 160 - t * 0.45) % (W + 180)) - 90; pine(ctx, x, H * 0.63, 54 + (i % 2) * 8, i % 2 ? "#64a99e" : "#4e968b"); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x + 22, H * 0.59, 4, 0, Math.PI * 2); ctx.fill(); } }
   },
@@ -133,7 +137,7 @@ export const SCENES = {
   },
   space: {
     id: "space", label: "Moonbeam Circuit", unlockStars: 40,
-    sky: ["#142652", "#4d387b"], ground: "#43366e", road: "#303b63", roadLine: "#91edff", collectible: "🌟", obstacle: "🪐",
+    sky: ["#142652", "#4d387b"], ground: "#43366e", road: "#303b63", roadLine: "#91edff", collectible: "🌟", obstacle: "☄️",
     far: spaceFar,
     mid(ctx, t, W, H) { for (let i = 0; i < 6; i++) { const x = ((i * 210 - t * 0.38) % (W + 220)) - 110; ctx.fillStyle = "#64deef"; ctx.beginPath(); ctx.ellipse(x, H * 0.59, 34, 12, -0.35, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#9f78de"; ctx.beginPath(); ctx.arc(x, H * 0.58, 17, 0, Math.PI * 2); ctx.fill(); } }
   }

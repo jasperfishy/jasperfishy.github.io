@@ -1,9 +1,10 @@
+import { overlayPhotorealMaterial } from '../../../photoreal-textures.js?v=du-58e7197a7bd67562';
 // Mud Wall — a storm slope and one trowel of work.
 // The lahar is a real flow: it only ever goes down, it splits when the drops are
 // equal, it cuts where it runs and pools where it is dammed. You cannot wall a
 // mountain, so you choose the two or three decisions that matter.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-316e7af9b57fa08e';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-58e7197a7bd67562';
 
 const STAR = [6, 11, 17];
 
@@ -903,6 +904,7 @@ function create(scene) {
     fctx.clearRect(0, 0, FW, FH);
     fctx.imageSmoothingEnabled = true;
     fctx.drawImage(lowCv, 0, 0, FW, FH);
+    overlayPhotorealMaterial(fctx,'soil',.5,'soft-light','environments');
 
     if (pitPat) {
       fctx.globalAlpha = 0.5;

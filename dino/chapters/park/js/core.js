@@ -125,15 +125,16 @@
     flower() {
       const p = this.path(); if (!p || this.flowers >= 16) return;
       this.flowers++;
-      const f = el('i', 'pp-flower', pick(['🌼', '🌸', '🌷', '🌻', '🍄', '🌺']));
+      const f = el('i', 'pp-flower', pick(['🌼', '🪻', '🍄', '☘️', '🌿', '🌾']));
       f.style.left = (4 + rnd(90)) + '%'; f.style.fontSize = (14 + rnd(10)) + 'px';
       p.append(f); FX.pop(f);
     },
-    /* Butterflies flutter across the whole screen. */
+    /* Critters on the wind drift across the whole screen — a dragonfly, an amber
+     * midge and a stray feather, the three things this valley actually flies. */
     flutter(n) {
       if (!FX.motionOK() || !document.body.animate) return;
       for (let i = 0; i < n; i++) {
-        const b = el('div', 'butterfly', pick(['🦋', '🦋', '🐝', '🐞']));
+        const b = el('div', 'butterfly', pick(['🦋', '🐝', '🪶']));
         b.setAttribute('aria-hidden', 'true');
         const w = innerWidth, h = innerHeight, y0 = h * (.2 + Math.random() * .5), dir = Math.random() < .5 ? 1 : -1;
         const x0 = dir > 0 ? -50 : w + 50, x1 = dir > 0 ? w + 50 : -50, frames = [];
@@ -463,7 +464,7 @@
     $('#winText').textContent = storyLine(g, got === 1 ? 'lose' : 'win') ||
       (got === 3 ? 'Perfect! Roar-some!' : got === 2 ? 'Great job!' : 'Well done!');
     const row = $('#winStars'); row.innerHTML = '';
-    for (let i = 1; i <= 3; i++) row.append(el('span', 'wstar' + (i <= got ? ' on' : ''), '★'));
+    for (let i = 1; i <= 3; i++) row.append(el('span', 'wstar' + (i <= got ? ' on' : ''), window.DUICONS.i('star', { size: 15, filled: i <= got })));
     $('#winDino').innerHTML = FX.dinoHTML(pick(SPECIES.filter((x) => x !== 'ptero')), { state: 'happy' });
     $('#winStats').innerHTML = `<span>⭐ <b>${info.bonus}</b> sparkles</span>${info.best > 1 ? `<span>🔥 best streak <b>${info.best}</b></span>` : ''}`;
     const jf = $('#jarFill'); jf.classList.remove('full'); jf.style.width = (info.jarBefore / JAR * 100) + '%'; $('#jarTxt').textContent = `Sparkle jar ${info.jarBefore}/${JAR}`;

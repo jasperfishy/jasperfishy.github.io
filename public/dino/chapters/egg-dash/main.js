@@ -1,3 +1,4 @@
+import { addEnvironment } from '../../photoreal-environments.js';
 /* Dinosaur Universe — Dino Egg Dash (original Phaser chapter).
  * A baby T-rex hops over rocks and catches sparkly eggs. Ages 3–8.
  * All art is drawn on canvas at boot (no copied assets). */
@@ -19,22 +20,34 @@ const GAME = () => window.__DD && window.__DD.game;
 // One table, one setStage() — so the backdrop, the sky and the sound always
 // change together instead of drifting apart across three places.
 const STAGES = [
-  { at: 0, name: "Sunny Meadow", emoji: "🌤️", say: "Sun first! The eggs glisten in the grass.",
+  { at: 0, name: "Sunny Meadow", emoji: "🌤️", icon: "sun", say: "Sun first! The eggs glisten in the grass.",
     veil: 0xffe9a8, alpha: 0.05, mtn: 0xffffff, hill: 0xffffff, ground: 0xffffff, cloud: 0.95,
     rain: false, night: false, flies: false, pace: 1, sfx: "chirp" },
-  { at: 1500, name: "Pitter Patter", emoji: "🌧️", say: "Rain! Slippery grass, but the eggs still shine.",
+  { at: 1500, name: "Pitter Patter", emoji: "🌧️", icon: "cloud", say: "Rain! Slippery grass, but the eggs still shine.",
     veil: 0x6f8fc4, alpha: 0.3, mtn: 0xa8c4e4, hill: 0x94b4d8, ground: 0xa8bcd0, cloud: 0.5,
     rain: true, night: false, flies: false, pace: 1.14, sfx: "splash" },
-  { at: 3400, name: "Firefly Night", emoji: "🌙", say: "Night falls — the fireflies light the eggs for you.",
+  { at: 3400, name: "Firefly Night", emoji: "🌙", icon: "moon", say: "Night falls — the fireflies light the eggs for you.",
     veil: 0x232a63, alpha: 0.55, mtn: 0x606aa8, hill: 0x4e5890, ground: 0x6c76a8, cloud: 0.22,
     rain: false, night: true, flies: true, pace: 1.22, sfx: "sparkle" },
 ];
 
+// What the glyphs in this chapter's words stand for: a label paints a
+// photograph for each of these, and drops a glyph that is not here — the map,
+// which was only ever decoration beside the row of stars.
+const GLYPHS = Object.assign(
+  { "\u{1F95C}": "egg", "\u{1F49A}": "feather", "\u2B50": "star" },
+  ...STAGES.map((s) => ({ [s.emoji]: s.icon }))
+);
+
 // The three things a baby dino can find: each one ticks down on screen.
+// They are named in words, not glyphs: Phaser paints its text straight onto a
+// canvas, which neither picture layer can reach, so a shield or an arrow here
+// would have stayed a raw emoji in front of a photoreal dinosaur. The pickup
+// art is drawn geometry — a blue shield, an "x2", a green arrow.
 const POWERS = {
-  shield: { emoji: "🛡️", word: "Shield!", say: "A bubble! One bump cannot stop you.", colour: "#5fd4ff", secs: 9 },
-  double: { emoji: "✨", word: "Double!", say: "Every egg now shines twice as bright.", colour: "#ffd76b", secs: 9 },
-  giant: { emoji: "⬆️", word: "Giant hop!", say: "Legs like springs — one big bounce.", colour: "#b6f27a", secs: 9 },
+  shield: { tag: "Shield", word: "Shield!", say: "A bubble! One bump cannot stop you.", colour: "#5fd4ff", secs: 9 },
+  double: { tag: "x2", word: "Double!", say: "Every egg now shines twice as bright.", colour: "#ffd76b", secs: 9 },
+  giant: { tag: "Big hop", word: "Giant hop!", say: "Legs like springs — one big bounce.", colour: "#b6f27a", secs: 9 },
 };
 
 // Stage callouts are asked for by the name say(); the story engine publishes the
@@ -288,7 +301,7 @@ function propsTextures() {
  * Phaser throws when a canvas texture tries to upload. It used to run after a
  * READY promise, which resolved a microtask too late — TitleScene.create() had
  * already called play("dd-dino") on an animation that did not exist yet. */
-function buildArt() {
+function buildArt(scene) {
   const g = GAME();
   if (!g) return;
   dinoFrames();
@@ -300,6 +313,21 @@ function buildArt() {
   groundTexture();
   sunTexture();
   propsTextures();
+  /* Every box above is made with createCanvas, so it has a real canvas behind
+   * it and a photograph can be pressed into it after the game drew its shapes.
+   * The photographs are chosen to be the shape of the box they go into — the
+   * wide fallen log for the wide low strip, the square stone for the rock —
+   * because forcing a 2:1 boulder into a square box fills it by slicing a
+   * straight-edged strip out of the middle of the rock. */
+  if (scene) {
+    const K = KIT();
+    K.specimen(scene, "dd-egg", "egg");
+    K.specimen(scene, "dd-golden", "egg", { wash: "rgba(255, 186, 54, .68)" });
+    K.specimen(scene, "dd-rock", "stone");
+    K.prop(scene, "dd-log", "fallen-log");
+    K.prop(scene, "dd-branch", "branch");
+    K.specimen(scene, "dd-cloud", "cloud", { cover: true });
+  }
   if (!g.anims.exists("dd-dino")) {
     g.anims.create({
       key: "dd-dino",
@@ -313,7 +341,7 @@ function buildArt() {
 class TitleScene extends Phaser.Scene {
   constructor() { super("egg-title"); }
   create() {
-    buildArt();
+    buildArt(this);
     this.add.image(36, 52, "dd-sun").setOrigin(0).setDepth(0);
     for (let i = 0; i < 4; i++) {
       const c = this.add.image(120 + i * 260, 60 + rnd(60), "dd-cloud").setDepth(1).setAlpha(0.9);
@@ -325,6 +353,7 @@ class TitleScene extends Phaser.Scene {
     this.mtn = this.add.tileSprite(0, H - 260, W, 256, "dd-mtn").setOrigin(0).setDepth(2);
     this.hill = this.add.tileSprite(0, H - 210, W, 256, "dd-hill").setOrigin(0).setDepth(3);
     this.ground = this.add.tileSprite(0, H - 90, W, 90, "dd-ground").setOrigin(0).setDepth(4);
+    addEnvironment(this,W,H,'jungle',4.1);
     this.dino = this.add.sprite(480, H - 120, "dd-dino-0").setDepth(5).setScale(1.4);
     this.dino.play("dd-dino");
     this.add.text(W / 2, 96, "DINO EGG DASH", { fontSize: "58px", fontFamily: KIT().FONT, fontStyle: "bold", color: "#ff7b39", stroke: "#fff6e8", strokeThickness: 10 }).setOrigin(0.5).setDepth(6);
@@ -339,7 +368,8 @@ class TitleScene extends Phaser.Scene {
     // The journey stars are what the campaign map keeps, so the title shows them
     // too — a child sees the same score here as they do on the map.
     if (earned > 0) record.push("🗺 " + "⭐".repeat(earned));
-    if (record.length) this.add.text(W / 2, 300, record.join("   ·   "), { fontSize: "22px", fontFamily: KIT().FONT, color: "#7a5b2f", stroke: "#fff", strokeThickness: 5 }).setOrigin(0.5).setDepth(6);
+    if (record.length) KIT().label(this, W / 2, 300, { fontSize: "22px", fontFamily: KIT().FONT, color: "#7a5b2f", stroke: "#fff", strokeThickness: 5 },
+      GLYPHS, { originX: 0.5, originY: 0.5, depth: 6 }).setText(record.join("   ·   "));
     this.input.on("pointerdown", () => { KIT().sfx("tap"); if (window.DUSTORY) DUSTORY.hush(); this.scene.start("egg-play"); });
     this.time.delayedCall(560, () => KIT().voice(this, "intro", "dash"));
     this.t = 0;
@@ -356,7 +386,7 @@ class TitleScene extends Phaser.Scene {
 class PlayScene extends Phaser.Scene {
   constructor() { super("egg-play"); }
   create() {
-    buildArt();
+    buildArt(this);
     KIT().textures(this);
     this.lives = 3; this.eggs = 0; this.hit = false; this.over = false;
     this.scrollX = 0; this.baseSpeed = 240;
@@ -383,6 +413,7 @@ class PlayScene extends Phaser.Scene {
     this.mtn = this.add.tileSprite(0, H - 260, W, 256, "dd-mtn").setOrigin(0).setDepth(2);
     this.hill = this.add.tileSprite(0, H - 210, W, 256, "dd-hill").setOrigin(0).setDepth(3);
     this.ground = this.add.tileSprite(0, H - 90, W, 90, "dd-ground").setOrigin(0).setDepth(4);
+    addEnvironment(this,W,H,'jungle',4.1);
 
     this.dino = this.physics.add.sprite(150, H - 125, "dd-dino-0").setDepth(5);
     this.dino.setCollideWorldBounds(true);
@@ -406,9 +437,17 @@ class PlayScene extends Phaser.Scene {
     this.veil = this.add.rectangle(W / 2, H / 2, W, H, STAGES[0].veil, STAGES[0].alpha).setDepth(7);
     this.bubble = this.add.image(this.dino.x, this.dino.y, "dd-bubble").setDepth(6).setVisible(false).setAlpha(0.9);
 
-    this.scoreT = this.add.text(24, 20, "", { fontSize: "30px", fontFamily: KIT().FONT, fontStyle: "bold", color: "#3c7a3c", stroke: "#fff", strokeThickness: 7 }).setDepth(8);
-    this.heartT = this.add.text(W - 24, 20, "", { fontSize: "30px", fontFamily: KIT().FONT }).setOrigin(1, 0).setDepth(8);
-    this.stageT = this.add.text(W / 2, 22, "", { fontSize: "22px", fontFamily: KIT().FONT, color: "#5b4a2f", stroke: "#fff", strokeThickness: 5 }).setOrigin(0.5, 0).setDepth(8);
+    // The HUD used to name itself with font glyphs — a clip-art egg and a
+    // clip-art heart parked in front of a photographed valley. The words are
+    // still words; the things they name are photographs now, and the lives are
+    // feathers, which is what the rest of this universe counts them in.
+    const label = (size, color, stroke, thickness, originX) => KIT().label(this, 0, 0, {
+      fontSize: size, fontFamily: KIT().FONT, fontStyle: "bold", color,
+      stroke, strokeThickness: thickness
+    }, GLYPHS, { originX, depth: 8 });
+    this.scoreT = label("30px", "#3c7a3c", "#fff", 7, 0); this.scoreT.setPosition(24, 20);
+    this.heartT = label("30px", "#3c7a3c", "#fff", 0, 1); this.heartT.setPosition(W - 24, 20);
+    this.stageT = label("22px", "#5b4a2f", "#fff", 5, 0.5); this.stageT.setPosition(W / 2, 22);
     this.powerT = this.add.text(24, 60, "", { fontSize: "21px", fontFamily: KIT().FONT, color: "#2f5a8a", stroke: "#fff", strokeThickness: 5 }).setDepth(8);
     this.bars = this.add.graphics().setDepth(8);
     this.ui();
@@ -439,7 +478,7 @@ class PlayScene extends Phaser.Scene {
   // The finds count themselves down where the child can watch them go.
   powerHud() {
     const on = Object.keys(this.power).filter((k) => this.power[k] > 0);
-    this.powerT.setText(on.length ? on.map((k) => POWERS[k].emoji + " " + this.power[k].toFixed(1) + "s").join("   ") : "");
+    this.powerT.setText(on.length ? on.map((k) => POWERS[k].tag + " " + this.power[k].toFixed(1) + "s").join("   ") : "");
     this.bars.clear();
     on.forEach((k, i) => {
       const y = 92 + i * 15, pct = Math.max(0, Math.min(1, this.power[k] / POWERS[k].secs));
@@ -471,6 +510,7 @@ class PlayScene extends Phaser.Scene {
     if (n === this.stage || n < 0 || n >= STAGES.length) return;
     const st = STAGES[n];
     this.stage = n;
+    if (st.night) addEnvironment(this,W,H,'night',4.1);
     this.pace = st.pace;
     this.veil.setFillStyle(st.veil, this.veil.fillAlpha);
     this.tweens.add({ targets: this.veil, fillAlpha: st.alpha, duration: 1400 });
@@ -480,7 +520,7 @@ class PlayScene extends Phaser.Scene {
     this.clouds.forEach((c) => c.setAlpha(st.cloud));
     if (st.rain) this.rainOn(); else this.rainOff();
     if (st.flies) this.fliesOn(); else this.fliesOff();
-    KIT().banner(this, st.emoji + " " + st.name);
+    KIT().banner(this, st.emoji + " " + st.name, null, GLYPHS);
     KIT().sfx(st.sfx);
     callout(st.say, "rex");
     this.ui();
@@ -524,7 +564,7 @@ class PlayScene extends Phaser.Scene {
     if (show) { this.bubble.setAlpha(0.9).setScale(1); }
     KIT().sfx("good");
     KIT().banner(this, p.word);
-    KIT().floatText(this, this.dino.x, this.dino.y - 74, p.emoji + " " + Math.round(s) + "s", p.colour);
+    KIT().floatText(this, this.dino.x, this.dino.y - 74, p.tag + " " + Math.round(s) + "s", p.colour);
     callout(p.say, "rex");
     this.powerHud();
   }
@@ -771,7 +811,6 @@ class PlayScene extends Phaser.Scene {
     // "egg-dash" was a key the campaign map could not read, so every egg caught
     // here stayed invisible on the journey.
     if (window.DUJourney) window.DUJourney.record("egg.dash", { stars });
-    if (window.DUWONDER) DUWONDER.mote(stars >= 3 ? 3 : 1);
     const J = window.DUJourney;
     // The line tells the story of the run: how far the weather got, and the
     // things only a long dash turns up.

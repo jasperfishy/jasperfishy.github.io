@@ -1,7 +1,7 @@
 const photoSpecies=['bronto','tricera','stego','trex','spinosaurus','edmontosaurus','ankylosaurus','parasaurolophus','compsognathus','pachycephalosaurus','oviraptor','therizinosaurus'];
 let photoId=0;
 function photoDino(type,colour,colouring){
- const id='meadow-photo-'+(++photoId),url=new URL('../../assets/prehistoric/'+photoSpecies[type%12]+'.png',import.meta.url).href;
+ const id='meadow-photo-'+(++photoId),url=new URL('../../assets/prehistoric/'+photoSpecies[type%12]+'.webp',import.meta.url).href;
  const img=`<image href="${url}" x="8" y="12" width="404" height="320" preserveAspectRatio="xMidYMax meet"/>`;
  const regions=Array.from({length:8},(_,i)=>`<path data-fill="d-photo${i}" d="M${(i%4)*105} ${Math.floor(i/4)*180}h105v180h-105Z" fill="${colouring?'#ffffff':colour}" stroke="none"/>`).join('');
  return `<defs><mask id="${id}" mask-type="alpha">${img}</mask></defs><g mask="url(#${id})">${regions}<g style="mix-blend-mode:luminosity;opacity:.8;pointer-events:none">${img}</g></g>`;
@@ -25,8 +25,17 @@ export function pageSVG(index=0,paint={}){
  if(scene===6){s+=fill('<path d="M0 350Q180 300 360 350T800 330V430Q650 380 460 430T0 430Z"/>');for(let i=0;i<4;i++)s+=fill(`<path d="M${70+i*170} 470q-25-45 10-35q35-10 20 25l-15-5Z"/>`);}
  if(scene===7||scene===9){for(let i=0;i<2;i++){let x=70+i*615;s+=fill(`<rect x="${x}" y="155" width="35" height="205" rx="10"/>`);s+=fill(`<path d="M${x-50} 190Q${x-100} 80 ${x} 64Q${x+95} 38 ${x+100} 145Q${x+108} 213 ${x-50} 190Z"/>`);if(scene===9)for(let j=0;j<3;j++)s+=fill(`<circle cx="${x-25+j*35}" cy="${125+j%2*35}" r="14"/>`);}if(scene===7)s+=fill('<path d="M495 95h100v290q-50 40-100 0Z"/>');}
  if(scene===8)s+=fill('<path d="M570 415L655 237L751 415Z"/>')+fill('<path d="M620 415L655 310L696 415Z"/>');
+ const environment=['jungle','volcanic','night','jungle','jungle','ice','coast','jungle','night','jungle'][scene];
+ const environmentURL=new URL('../../assets/environments/'+environment+'.webp',import.meta.url).href;
+ s=`<image href="${environmentURL}" width="800" height="520" preserveAspectRatio="xMidYMid slice"/><g opacity=".45" style="mix-blend-mode:color">${s.replaceAll('fill="#fff"','fill="transparent"').replaceAll(`stroke="${ink}"`,'stroke="none"')}</g>`;
  s+=`<g transform="translate(${scene===1?270:180} 140) scale(.95)">${dino(type,'white',true)}</g>`;
- for(let i=0;i<4;i++){const x=40+i*205,y=445+i%2*25;s+=fill(`<path d="M${x} ${y+40}v-35"/>`);s+=fill(`<path d="M${x} ${y}q-30-22-13-30q12-12 24 0q27-9 18 16q-2 20-29 14Z"/>`);s+=fill(`<circle cx="${x+3}" cy="${y-13}" r="7"/>`);}
+ const flowerURL=new URL('../../assets/props/flower.webp',import.meta.url).href;
+ for(let i=0;i<4;i++){
+  const x=15+i*205,y=410+i%2*20,id='paint-flower-'+(++photoId);
+  const img=`<image href="${flowerURL}" x="${x}" y="${y}" width="90" height="100" preserveAspectRatio="xMidYMax meet"/>`;
+  const regions=Array.from({length:3},(_,j)=>`<rect data-fill="s-${n++}" x="${x+j*30}" y="${y}" width="30" height="100" fill="#fff"/>`).join('');
+  s+=`<defs><mask id="${id}" mask-type="alpha">${img}</mask></defs><g mask="url(#${id})">${regions}<g style="mix-blend-mode:luminosity;opacity:.8;pointer-events:none">${img}</g></g>`;
+ }
  let result=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-label="${dinosaurs[type]} in ${scenes[scene]}">${s}</svg>`;
  for(const [key,value]of Object.entries(paint))if(/^#[0-9a-f]{6}$/i.test(value))result=result.replace(new RegExp(`data-fill="${key}"([^>]*?)fill="[^"]*"`),`data-fill="${key}"$1fill="${value}"`);
  return result;

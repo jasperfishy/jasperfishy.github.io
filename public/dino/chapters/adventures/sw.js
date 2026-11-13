@@ -34,6 +34,7 @@ const CORE_FILES = [
   "./src/modules/memory.js",
   "./src/modules/moonbeam-rescue.js",
   "./src/modules/mummy-cozy-corner.js",
+  "./src/modules/photo-puzzles.js",
   "./src/modules/picnic.js",
   "./src/modules/rescue/chapters-a.js",
   "./src/modules/rescue/chapters-b.js",

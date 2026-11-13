@@ -1,26 +1,26 @@
-import { registerModule, getModule } from "./module-registry.js?v=du-316e7af9b57fa08e";
-import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-316e7af9b57fa08e";
-import { mountBuilder } from "./modules/builder.js?v=du-316e7af9b57fa08e";
-import { mountJigsaw } from "./modules/jigsaw.js?v=du-316e7af9b57fa08e";
-import { mountFossil } from "./modules/fossil.js?v=du-316e7af9b57fa08e";
-import { mountMemory } from "./modules/memory.js?v=du-316e7af9b57fa08e";
-import { mountPicnic } from "./modules/picnic.js?v=du-316e7af9b57fa08e";
-import { mountTrail } from "./modules/trail.js?v=du-316e7af9b57fa08e";
-import { mountHatchling } from "./modules/hatchling.js?v=du-316e7af9b57fa08e";
-import { mountShapeSafari } from "./modules/shape-safari.js?v=du-316e7af9b57fa08e";
-import { mountDinoBeat } from "./modules/dino-beat.js?v=du-316e7af9b57fa08e";
-import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-316e7af9b57fa08e";
-import { mountStorybook } from "./modules/storybook.js?v=du-316e7af9b57fa08e";
-import { mountDinoDiscoveries, PREHISTORIC_CREATURES } from "./modules/dino-discoveries.js?v=du-316e7af9b57fa08e";
-import { mountDinoCare } from "./modules/dino-care.js?v=du-316e7af9b57fa08e";
-import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-316e7af9b57fa08e";
-import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-316e7af9b57fa08e";
-import { mountDinoParade } from "./modules/dino-parade.js?v=du-316e7af9b57fa08e";
-import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-316e7af9b57fa08e";
-import { mountDinoQuest } from "./modules/dino-quest.js?v=du-316e7af9b57fa08e";
-import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-316e7af9b57fa08e";
-import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-316e7af9b57fa08e";
-import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-316e7af9b57fa08e";
+import { registerModule, getModule } from "./module-registry.js?v=du-58e7197a7bd67562";
+import { awardSticker, albumHTML, getExtras, STICKERS } from "./adv-kit.js?v=du-58e7197a7bd67562";
+import { mountBuilder } from "./modules/builder.js?v=du-58e7197a7bd67562";
+import { mountJigsaw } from "./modules/jigsaw.js?v=du-58e7197a7bd67562";
+import { mountFossil } from "./modules/fossil.js?v=du-58e7197a7bd67562";
+import { mountMemory } from "./modules/memory.js?v=du-58e7197a7bd67562";
+import { mountPicnic } from "./modules/picnic.js?v=du-58e7197a7bd67562";
+import { mountTrail } from "./modules/trail.js?v=du-58e7197a7bd67562";
+import { mountHatchling } from "./modules/hatchling.js?v=du-58e7197a7bd67562";
+import { mountShapeSafari } from "./modules/shape-safari.js?v=du-58e7197a7bd67562";
+import { mountDinoBeat } from "./modules/dino-beat.js?v=du-58e7197a7bd67562";
+import { mountHabitatBuilder } from "./modules/habitat-builder.js?v=du-58e7197a7bd67562";
+import { mountStorybook } from "./modules/storybook.js?v=du-58e7197a7bd67562";
+import { mountDinoDiscoveries, PREHISTORIC_CREATURES, speciesFor } from "./modules/dino-discoveries.js?v=du-58e7197a7bd67562";
+import { mountDinoCare } from "./modules/dino-care.js?v=du-58e7197a7bd67562";
+import { mountMummyCozyCorner } from "./modules/mummy-cozy-corner.js?v=du-58e7197a7bd67562";
+import { mountMoonbeamRescue } from "./modules/moonbeam-rescue.js?v=du-58e7197a7bd67562";
+import { mountDinoParade } from "./modules/dino-parade.js?v=du-58e7197a7bd67562";
+import { mountDaddyChase } from "./modules/daddy-chase.js?v=du-58e7197a7bd67562";
+import { mountDinoQuest } from "./modules/dino-quest.js?v=du-58e7197a7bd67562";
+import { mountDinoRescue } from "./modules/dino-rescue.js?v=du-58e7197a7bd67562";
+import { mountDinoConstellations } from "./modules/dino-constellations.js?v=du-58e7197a7bd67562";
+import { mountSkyMail, mountWeatherWorkshop } from "./modules/wonder-activities.js?v=du-58e7197a7bd67562";
 
 const STORAGE_KEY = "dinosaur-universe-player-v1";
 const EMBEDDED = window.self !== window.top;
@@ -63,28 +63,28 @@ if (EMBEDDED) document.documentElement.classList.add("embedded-universe");
 const DINOSAURS = PREHISTORIC_CREATURES.filter(function (creature) { return creature.kind === "Dinosaur"; });
 
 const COLOR_PAGES = [
-  { name: "Fern Garden", dino: "T-Rex", icon: "🌿", scene: "#e4f3dc" },
-  { name: "Sunset Valley", dino: "Stegosaurus", icon: "🌅", scene: "#f8e4d5" },
-  { name: "Rainbow River", dino: "Brachiosaurus", icon: "🌈", scene: "#deeff5" },
-  { name: "Volcano Picnic", dino: "Triceratops", icon: "🌋", scene: "#f5dfd7" },
-  { name: "Starry Meadow", dino: "Velociraptor", icon: "✨", scene: "#e6e1f3" },
-  { name: "Flower Island", dino: "Pteranodon", icon: "🌼", scene: "#f5ecd0" },
-  { name: "Cloud Forest", dino: "Ankylosaurus", icon: "☁️", scene: "#e2f1ef" },
-  { name: "Berry Woods", dino: "Parasaurolophus", icon: "🍓", scene: "#f4e0e8" },
-  { name: "Moonlit Lagoon", dino: "Spinosaurus", icon: "🌙", scene: "#dfe8f4" },
-  { name: "Golden Savanna", dino: "Diplodocus", icon: "🌻", scene: "#f7ebc9" },
-  { name: "Snowy Peaks", dino: "Carnotaurus", icon: "❄️", scene: "#e3f0f2" },
-  { name: "Dino Parade", dino: "Therizinosaurus", icon: "🎈", scene: "#f4e5d7" },
-  { name: "Moonbeam Meadow", dino: "T-Rex", icon: "🌙", scene: "#e8e5f2" },
-  { name: "Citrus Canyon", dino: "Stegosaurus", icon: "🍊", scene: "#f2e9cc" },
-  { name: "Tall Fern Trail", dino: "Brachiosaurus", icon: "🌳", scene: "#dff1e4" },
-  { name: "Poppy Patch", dino: "Triceratops", icon: "🌺", scene: "#f5e2e7" },
-  { name: "Meteor Shower", dino: "Velociraptor", icon: "☄️", scene: "#e5e1f3" },
-  { name: "Seashell Shore", dino: "Pteranodon", icon: "🐚", scene: "#dff0f3" }
+  { name: "Fern Garden", dino: "T-Rex", scene: "#e4f3dc" },
+  { name: "Sunset Valley", dino: "Stegosaurus", scene: "#f8e4d5" },
+  { name: "Rainbow River", dino: "Brachiosaurus", scene: "#deeff5" },
+  { name: "Volcano Picnic", dino: "Triceratops", scene: "#f5dfd7" },
+  { name: "Starry Meadow", dino: "Velociraptor", scene: "#e6e1f3" },
+  { name: "Flower Island", dino: "Pteranodon", scene: "#f5ecd0" },
+  { name: "Cloud Forest", dino: "Ankylosaurus", scene: "#e2f1ef" },
+  { name: "Berry Woods", dino: "Parasaurolophus", scene: "#f4e0e8" },
+  { name: "Moonlit Lagoon", dino: "Spinosaurus", scene: "#dfe8f4" },
+  { name: "Golden Savanna", dino: "Diplodocus", scene: "#f7ebc9" },
+  { name: "Snowy Peaks", dino: "Carnotaurus", scene: "#e3f0f2" },
+  { name: "Dino Parade", dino: "Therizinosaurus", scene: "#f4e5d7" },
+  { name: "Moonbeam Meadow", dino: "T-Rex", scene: "#e8e5f2" },
+  { name: "Citrus Canyon", dino: "Stegosaurus", scene: "#f2e9cc" },
+  { name: "Tall Fern Trail", dino: "Brachiosaurus", scene: "#dff1e4" },
+  { name: "Poppy Patch", dino: "Triceratops", scene: "#f5e2e7" },
+  { name: "Meteor Shower", dino: "Velociraptor", scene: "#e5e1f3" },
+  { name: "Seashell Shore", dino: "Pteranodon", scene: "#dff0f3" }
 ];
 
 const ACTIVITIES = [
-  { id: "rescue", title: "The Great Dino Rescue", icon: "🏇", category: "Adventures", tint: "#ffe3b8", description: "A big seven-chapter quest! Ride a dinosaur through forest, canyon, cave, lava and sky to save Mummy and Daddy." },
+  { id: "rescue", title: "The Great Dino Rescue", dino: "trex", category: "Adventures", tint: "#ffe3b8", description: "A big seven-chapter quest! Ride a dinosaur through forest, canyon, cave, lava and sky to save Mummy and Daddy." },
   { id: "builder", title: "Build a Dinosaur", icon: "🦖", category: "Puzzles", tint: "#e4f2dc", description: "Pick up each part and drop it into its place." },
   { id: "jigsaw", title: "Dino Picture Jigsaw", icon: "🧩", category: "Puzzles", tint: "#e6e3f5", description: "Piece together a colourful prehistoric scene." },
   { id: "fossil", title: "Fossil Explorer", icon: "🦴", category: "Discovery", tint: "#f6e9d7", description: "Brush away the earth and discover a dinosaur." },
@@ -140,7 +140,7 @@ function personalized(message) {
 function speak(message) {
   if (!state.speech || !("speechSynthesis" in window)) return false;
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(message);
+  const utterance = new SpeechSynthesisUtterance(window.DUFX.objects.spoken(message));
   utterance.rate = 0.9;
   utterance.pitch = 1.08;
   window.speechSynthesis.speak(utterance);
@@ -149,6 +149,11 @@ function speak(message) {
 
 function sound(kind) {
   if (!state.sound) return;
+  // Every one of these names already exists as a recorded sound and as a
+  // synthesised voice in the effects layer, so this page asks those first and
+  // only builds its own beep when neither is loaded.
+  if (window.DUAudio && window.DUAudio.play(kind)) return;
+  if (window.DUFX && DUFX.sfx && DUFX.sfx[kind]) { DUFX.sfx[kind](); return; }
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     // A fresh AudioContext for every beep is expensive, and browsers cap how
@@ -172,7 +177,10 @@ function sound(kind) {
     gain.gain.exponentialRampToValueAtTime(0.0001, now + (kind === "roar" ? 0.62 : 0.19));
     osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
     osc.start(now); osc.stop(now + (kind === "roar" ? 0.65 : 0.21));
-    osc.onended = function () { ctx.close(); };
+    // Closing the context here killed the shared one after the first beep,
+    // which muted every later sound on the page — so only a context this
+    // function opened itself may be thrown away.
+    if (own) osc.onended = function () { ctx.close(); };
   } catch (error) { /* Audio is an optional enhancement. */ }
 }
 
@@ -184,8 +192,10 @@ function showToast(message) {
 }
 
 function updateSoundButton() {
-  soundButton.textContent = state.sound ? "♫" : "♩";
-  soundButton.setAttribute("aria-label", state.sound ? "Turn sounds off" : "Turn sounds on");
+  window.DUICONS.set(soundButton, state.sound ? "sound" : "sound-off", {
+    size: 20,
+    label: state.sound ? "Turn sounds off" : "Turn sounds on"
+  });
 }
 
 function heroDinoSvg() {
@@ -267,6 +277,15 @@ function renderFilters() {
   });
 }
 
+/* The rescue card used to type a horse-and-rider emoji, which is a creature
+ * this universe has never had. A quest you ride a dinosaur through now shows
+ * the dinosaur, in the same animated form the game itself uses. */
+function activityBadge(activity) {
+  if (!activity.dino) return activity.icon;
+  const F = window.DUFX;
+  return F && F.dinoHTML ? F.dinoHTML(activity.dino, { state: "idle", size: "44px" }) : "";
+}
+
 function renderActivityCards() {
   const grid = document.getElementById("activityGrid");
   const filtered = ACTIVITIES.filter(function (activity) {
@@ -278,7 +297,7 @@ function renderActivityCards() {
     // have already three-starred before tapping into one.
     const best = window.DUJourney ? DUJourney.stars("act." + activity.id) : 0;
     return '<button class="activity-card" data-activity="' + activity.id + '" style="--card-bg:' + activity.tint + ';--icon-bg:rgba(255,255,255,.72);--card-orb:rgba(255,255,255,.42)">' +
-      '<span class="card-top"><span class="activity-icon">' + activity.icon + '</span><span class="card-stars">' + (best ? "⭐".repeat(best) : "☆☆☆") + '</span><span class="level-pill">LEVEL ' + level + '</span></span>' +
+      '<span class="card-top"><span class="activity-icon">' + activityBadge(activity) + '</span><span class="card-stars">' + window.DUICONS.stars(best) + '</span><span class="level-pill">LEVEL ' + level + '</span></span>' +
       '<h3>' + escapeHtml(activity.title) + '</h3><p>' + escapeHtml(activity.description) + '</p>' +
       '<span class="card-footer"><span>' + escapeHtml(activity.category) + '</span><span class="level-dots">' + "✦".repeat(Math.min(5, Math.ceil(level / 2))) + '</span></span></button>';
   }).join("");
@@ -288,31 +307,38 @@ function renderActivityCards() {
 }
 
 function introMarkup() {
+  const F = window.DUFX;
   return '<section class="intro-screen"><div class="intro-stars" aria-hidden="true">✦　·　✧　·　✦</div>' +
-    '<div class="intro-scene"><div class="intro-sun"></div><div class="intro-hill hill-back"></div><div class="intro-hill hill-front"></div>' +
-    '<div class="intro-trex" id="introTrex"><span class="intro-tail"></span><span class="intro-body"></span><span class="intro-neck"></span><span class="intro-head"></span><span class="intro-eye"></span><span class="intro-jaw"></span><span class="intro-arm"></span><span class="intro-leg one"></span><span class="intro-leg two"></span></div>' +
-    '<div class="intro-leaf leaf-one">✿</div><div class="intro-leaf leaf-two">✦</div><div class="intro-roar" id="introRoar">ROAR!</div></div>' +
+    '<div class="intro-scene"><div class="intro-trex" id="introTrex">' + F.dinoHTML('trex', { state: 'idle', size: '70%' }) + '</div>' +
+    '<div class="intro-leaf leaf-one"></div><div class="intro-leaf leaf-two"></div><div class="intro-roar" id="introRoar">ROAR!</div></div>' +
     '<p class="eyebrow">A tiny hello from the prehistoric world</p><h1>Ready for a dino-sized adventure?</h1>' +
     '<p class="intro-subtitle">Meet Rex, then explore your own Dinosaur Universe.</p>' +
     '<div class="welcome-actions intro-actions"><button class="primary-button" id="meetRex">Meet Rex 🦖</button><button class="soft-button" id="skipIntro">Skip welcome</button></div></section>';
 }
 
+/* Leaving the welcome is where a deep link used to be dropped. The hub's
+ * "Play this part" arrives as ?activity=fossil, and the child was set down on
+ * the grid instead of at the game they had just asked for. */
+function leaveWelcome() {
+  state.seenIntro = true; saveState(); renderHome();
+  if (REQUESTED_ACTIVITY && getModule(REQUESTED_ACTIVITY)) openActivity(REQUESTED_ACTIVITY);
+  else if (!state.nameAsked) askName();
+}
+
 function playIntro(replay) {
   app.innerHTML = introMarkup();
-  document.getElementById("skipIntro").addEventListener("click", function () {
-    state.seenIntro = true; saveState(); renderHome(); if (!state.nameAsked) askName();
-  });
+  document.getElementById("skipIntro").addEventListener("click", leaveWelcome);
   document.getElementById("meetRex").addEventListener("click", function () {
     const trex = document.getElementById("introTrex");
     trex.classList.add("roaring");
+    const dino = trex.querySelector(".du-dino");
+    if (dino && window.DUFX && DUFX.dinoState) DUFX.dinoState(dino, "roar", 2100);
     document.getElementById("introRoar").classList.add("show");
     sound("roar");
     speak("Roar! Welcome to Dinosaur Universe!");
     const button = document.getElementById("meetRex");
-    button.textContent = "Let’s explore! ✨";
-    button.onclick = function () {
-      state.seenIntro = true; saveState(); renderHome(); if (!state.nameAsked) askName();
-    };
+    button.textContent = "Let’s explore!";
+    button.onclick = leaveWelcome;
   });
 }
 
@@ -455,7 +481,12 @@ function runRounds(context, mount, baseLevel) {
   banner.insertAdjacentElement("afterend", bar);
   function paint() {
     let dots = "";
-    for (let i = 1; i <= total; i++) dots += '<i class="rb-dot' + (i < round ? " done" : i === round ? " now" : "") + '">' + (i < round ? "⭐" : i === total ? "🏆" : i) + "</i>";
+    for (let i = 1; i <= total; i++) {
+      const mark = i < round ? window.DUICONS.i("star", { filled: true, size: 15 })
+        : i === total ? window.DUICONS.i("trophy", { size: 15 })
+        : i;
+      dots += '<i class="rb-dot' + (i < round ? " done" : i === round ? " now" : "") + '">' + mark + "</i>";
+    }
     bar.innerHTML = '<span class="rb-label">Round ' + round + " of " + total + "</span>" + dots;
   }
   paint();
@@ -481,7 +512,7 @@ function runRounds(context, mount, baseLevel) {
     const species = ["trex", "tricera", "stego", "bronto", "raptor"];
     context.stage.innerHTML = '<div class="round-interlude"><div class="ri-dino">' + (F && F.dinoHTML ? F.dinoHTML(species[round % 5], { state: "happy" }) : "🦖") + '</div>' +
       '<h2>' + words[round % 5] + '! Round ' + done + ' complete.</h2>' +
-      '<div class="ri-stars" aria-label="' + got + ' stars">' + [1, 2, 3].map(function (n) { return '<i style="--i:' + n + '" class="' + (n <= got ? "" : "off") + '">' + (n <= got ? "⭐" : "☆") + "</i>"; }).join("") + '</div>' +
+      '<div class="ri-stars" aria-label="' + got + ' stars">' + [1, 2, 3].map(function (n) { return '<i style="--i:' + n + '" class="' + (n <= got ? "" : "off") + '">' + window.DUICONS.i('star', { size: 20, filled: n <= got }) + "</i>"; }).join("") + '</div>' +
       (sticker ? '<div class="ri-sticker">New sticker <span>' + sticker + '</span></div>' : "") +
       '<p>Get ready for round ' + round + ' of ' + total + '…</p><button class="soft-button ri-skip" type="button">Go! →</button></div>';
     let gone = false;
@@ -517,7 +548,6 @@ function finishLevel(message) {
   // finishing one left the campaign map completely blank: the stars only ever
   // lived on this page. They are booked where every other world books them.
   if (window.DUJourney) DUJourney.record("act." + id, { stars: stars });
-  if (window.DUWONDER) DUWONDER.mote(stars >= 3 ? 3 : 1);
   const dino = DINOSAURS[(state.stars - 1) % DINOSAURS.length];
   speak(personalized("You did it! A new dinosaur friend is cheering for you."));
   if (state.sound) sound("good");
@@ -538,17 +568,27 @@ function friendCheer(id, stars) {
     escapeHtml(S.forGame(key, stars >= 3 ? "win" : "lose")) + '</i></span></div>';
 }
 
+/* The finish screen used to type a dinosaur emoji for the new friend, so the
+ * Stegosaurus and the Mamenchisaurus celebrated identically. Every creature in
+ * the field guide has a specimen photograph, so bring the actual animal in —
+ * breathing, blinking and all — from the same path the field guide uses. */
+function newFriendArt(dino, size) {
+  const F = window.DUFX, sp = dino && speciesFor(dino);
+  if (!F || !sp) return "";
+  return F.dinoHTML(sp, { state: "happy", size: size });
+}
+
 function celebrate(dino, message, id, stars) {
   const old = document.querySelector(".celebration");
   if (old) old.remove();
   const layer = document.createElement("div");
   layer.className = "celebration";
   if (state.calmCelebrations) layer.classList.add("calm");
-  layer.innerHTML = '<div class="celebration-dino" aria-hidden="true">' + dino.icon + '</div><div class="celebration-card" role="dialog" aria-modal="true">' +
-    '<div class="big-prize" role="img" aria-label="' + finishInfo.stars + ' of 3 stars earned">' + [1, 2, 3].map(function (n) { return '<i class="cs-star' + (n <= finishInfo.stars ? "" : " off") + '" style="--i:' + n + '">' + (n <= finishInfo.stars ? "⭐" : "☆") + "</i>"; }).join("") + '</div><h2>' + escapeHtml(personalized(finishInfo.stars === 3 ? "Perfect, wonderful work!" : "Wonderful work!")) + '</h2>' +
+  layer.innerHTML = '<div class="celebration-dino" aria-hidden="true">' + newFriendArt(dino, "clamp(72px,12vw,112px)") + '</div><div class="celebration-card" role="dialog" aria-modal="true">' +
+    '<div class="big-prize" role="img" aria-label="' + finishInfo.stars + ' of 3 stars earned">' + [1, 2, 3].map(function (n) { return '<i class="cs-star' + (n <= finishInfo.stars ? "" : " off") + '" style="--i:' + n + '">' + window.DUICONS.i('star', { size: 30, filled: n <= finishInfo.stars }) + "</i>"; }).join("") + '</div><h2>' + escapeHtml(personalized(finishInfo.stars === 3 ? "Perfect, wonderful work!" : "Wonderful work!")) + '</h2>' +
     '<p>' + escapeHtml(personalized(message || dino.name + " " + dino.cheer + "!")) + '</p>' +
     friendCheer(id, stars == null ? finishInfo.stars : stars) +
-    '<span class="reward-badge">' + dino.icon + ' New friend: ' + escapeHtml(dino.name) + ' · Level ' + levelOf(id) + '</span>' +
+    '<span class="reward-badge">' + newFriendArt(dino, "34px") + ' New friend: ' + escapeHtml(dino.name) + ' · Level ' + levelOf(id) + '</span>' +
     (finishInfo.sticker ? '<span class="reward-badge cs-sticker">New sticker: ' + finishInfo.sticker + '</span>' : "") +
     '<div class="win-actions"><button class="primary-button" id="nextLevelButton">Play next level →</button><button class="soft-button" id="chooseGameButton">Choose another game</button></div>' +
     '<p class="balloon-hint">Tap a balloon to pop it!</p></div>';
@@ -587,6 +627,15 @@ function shuffle(list) {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
+}
+
+/* The page chips used to type a weather emoji — 🍊 for Citrus Canyon, 🎈 for
+ * Dino Parade — which told you nothing about the picture and put a cartoon
+ * fruit where a photograph belongs. Each chip now shows the animal you are
+ * about to colour, in the same pose the finished picture will hold. */
+function pageChip(page) {
+  const F = window.DUFX, sp = speciesFor({ name: page.dino });
+  return F && sp ? F.dinoHTML(sp, { state: "idle", size: "42px" }) : "";
 }
 
 function svgForPage(index) {
@@ -743,7 +792,9 @@ function mountColoring(context) {
   let stamp = null, magicIdx = 0, lastRegion = null;
   const celebrated = new Set();
   const RAINBOW = ["#ef795f", "#f5b64e", "#f7d76d", "#6fb881", "#65abd2", "#9182c7", "#d6789a"];
-  const STICKERS = ["🦋", "⭐", "🌸", "🦴", "🌈", "🥚", "☀️", "💎", "🐞", "🎈"];
+  // The sticker row used to keep its own ten-item list here, separate from the
+  // album's, so the pictures you could stamp and the album you filled were two
+  // different worlds — and that list still held a ladybird and a balloon.
   function pageLimit() { return Math.min(COLOR_PAGES.length, 4 + Math.floor(state.stars / 2)); }
   function draw() {
     const unlocked = pageLimit();
@@ -754,7 +805,7 @@ function mountColoring(context) {
       '<div class="stage-controls"><button class="tiny-button" id="undoColor">Undo colour</button><button class="tiny-button secondary" id="clearColor">Start this page again</button><button class="soft-button" id="saveColor">Save picture</button><button class="soft-button" id="printColor">Print picture</button><button class="soft-button" id="galleryButton">My pictures</button></div>';
     const strip = context.stage.querySelector("#pageStrip");
     strip.innerHTML = COLOR_PAGES.slice(0, unlocked).map(function (page, index) {
-      return '<button class="page-choice" aria-pressed="' + (index === pageIndex) + '" data-page="' + index + '" title="' + escapeHtml(page.name) + '">' + page.icon + '</button>';
+      return '<button class="page-choice" aria-pressed="' + (index === pageIndex) + '" data-page="' + index + '" title="' + escapeHtml(page.name) + '">' + pageChip(page) + '</button>';
     }).join("");
     strip.querySelectorAll("[data-page]").forEach(function (button) {
       button.addEventListener("click", function () { pageIndex = Number(button.dataset.page); undo = []; draw(); });

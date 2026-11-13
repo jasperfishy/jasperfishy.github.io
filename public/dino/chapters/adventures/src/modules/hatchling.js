@@ -7,9 +7,11 @@ import { createPlay, shuffle, collect, collection, escapeText } from "../adv-kit
 const BABIES = [["trex", "green", "T. rex"], ["tricera", "teal", "Triceratops"], ["stego", "purple", "Stegosaurus"], ["bronto", "orange", "Brontosaurus"], ["raptor", "red", "Velociraptor"], ["ptero", "blue", "Pteranodon"],
   ["tricera", "yellow", "Triceratops"], ["stego", "pink", "Stegosaurus"], ["raptor", "purple", "Velociraptor"], ["bronto", "teal", "Brontosaurus"], ["trex", "orange", "T. rex"], ["ptero", "orange", "Pteranodon"]];
 const NAMES = ["Pip", "Dot", "Bean", "Pebble", "Sprout", "Mochi", "Nibbles", "Twig", "Biscuit", "Peanut", "Fern", "Button", "Clover", "Waffles", "Marbles", "Pudding"];
-const SNACKS = [["🍓", "berries"], ["🥬", "leafy greens"], ["🍎", "an apple"], ["🥕", "a carrot"], ["🍌", "a banana"], ["🐟", "a little fish"], ["🍇", "grapes"], ["🌿", "a fern top"], ["🍄", "a soft mushroom"], ["🥦", "broccoli"]];
-const DRINKS = [["💧", "cool water"], ["🥛", "a shell of milk"], ["🧃", "berry juice"], ["🍯", "honey water"]];
-const TOYS = [["⚽", "ball", "bounce"], ["🪁", "kite", "fly"], ["🧸", "teddy", "hug"], ["🎈", "balloon", "float"], ["🎺", "horn", "toot"], ["🥁", "little drum", "toot"], ["🪀", "yo-yo", "bounce"]];
+/* What a baby dinosaur is actually fed, played with and tidied up after —
+ * every one of these is a specimen the universe has a photograph of. */
+const SNACKS = [["🍓", "berries"], ["🍃", "a young leaf"], ["🌱", "a green sprout"], ["🌰", "a seed cone"], ["🐟", "a little fish"], ["🌾", "a seed head"], ["🌿", "a fern top"], ["🍄", "a soft mushroom"], ["☘️", "a moss cup"]];
+const DRINKS = [["💧", "cool water"], ["🐚", "a shell of milk"], ["🍯", "honey water"], ["🌊", "a drink from the river"]];
+const TOYS = [["🥌", "round stone", "bounce"], ["🪶", "feather", "flutter"], ["🦴", "bone", "chew"], ["🫧", "bubble", "float"], ["🎺", "bone flute", "toot"], ["🥁", "hide drum", "bang"], ["🪢", "knot on a cord", "swing"]];
 const MESS = [["🍂", "a leaf"], ["🪵", "a twig"], ["🌿", "a fern"], ["🪨", "a pebble"], ["🥚", "the empty shell"], ["🍄", "a mushroom"]];
 /* the egg's own pattern, so no two hatchings look the same */
 const PATTERNS = [
@@ -47,12 +49,12 @@ export function mountHatchling(context) {
     const best = s.reduce(function (m, b) { return Math.max(m, Number(b.stars) || 0); }, 0);
     const runs = collection("hatch-runs");
     const fastest = runs.reduce(function (m, r) { return Math.min(m, Number(r.taps) || 99); }, 99);
-    return '<span>Your nursery: <b>' + s.length + "</b> baby friends" + (best ? " · best care " + "⭐".repeat(best) : "") +
+    return '<span>Your nursery: <b>' + s.length + "</b> baby friends" + (best ? " · best care " + window.DUICONS.stars(best) : "") +
       (runs.length ? " · babies hatched <b>" + runs.length + "</b>" + (fastest < 99 ? " · warmest egg in " + fastest + " taps" : "") : "") + "</span>" +
       (s.length ? s.slice(-8).map(function (b) { return '<i title="' + escapeText(String(b.name || "")) + '">' + F.dinoHTML(b.species, { color: b.color, size: "100%" }) + "</i>"; }).join("") : "<em>Your first baby will live here!</em>");
   }
   /* the plan for this round, so a bigger child can see there is more to do */
-  const PLAN_ICONS = { feed: "🍓", drink: "💧", play: "🎈", tidy: "🧹", cuddle: "💞" };
+  const PLAN_ICONS = { feed: "🍓", drink: "💧", play: "🪶", tidy: "🧺", cuddle: "🪹" };
   function planHTML() {
     return stages.map(function (s, i) {
       return '<span data-step="' + s + '" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;background:' +
@@ -130,7 +132,7 @@ export function mountHatchling(context) {
       F.pop && F.pop(babyEl);
       F.dinoTrack && F.dinoTrack(babyEl.querySelector(".du-dino"));
       play.good(babyEl, { text: "It hatched!" });
-      play.say("A baby " + baby[2] + " came out of a " + pattern.name + " egg! Hello, little one! 💛", 3200);
+      play.say("A baby " + baby[2] + " came out of a " + pattern.name + " egg! Hello, little one! ✨", 3200);
       board.querySelector("#hnHeatLabel").textContent = "Growing";
       heat.style.width = "0%"; glowEl.classList.add("on");
       busy = false;
@@ -259,26 +261,26 @@ export function mountHatchling(context) {
         tell(left ? "Lovely! " + left + " more " + (left === 1 ? "bit" : "bits") + " to go." : "What a spic-and-span nest! ✨");
         if (!left) {
           busy = true; hintFn = null; clearGlows();
-          window.setTimeout(function () { stageDone("The nest is clean and cosy! 🧹"); }, 700);
+          window.setTimeout(function () { stageDone("The nest is clean and cosy! 🧺"); }, 700);
         } else if (hintFn) hintFn();
       });
     });
     hintFn = function () {
       const next = chips.filter(function (b) { return !b.hidden; })[0];
-      askFor(next, next ? "Tap the " + next.querySelector("small").textContent + " to tidy it away." : "All tidy! One moment…");
+      askFor(next, next ? "Tap the " + next.querySelector("small").textContent + " to tidy it away." : "All tidy! One moment…"); // du-display the label is only read aloud
     };
   }
   function cuddleStage() {
     const need = Math.min(7, 3 + Math.floor(ch / 3));
     tell("I'm sleepy… can I have " + need + " gentle cuddles?");
-    options.innerHTML = '<p class="hn-q">Tap the baby softly to cuddle it. 💞</p><div class="hn-cuddles"></div>';
+    options.innerHTML = '<p class="hn-q">Tap the baby softly to cuddle it. 🪹</p><div class="hn-cuddles"></div>';
     let n = 0;
     const meter = options.querySelector(".hn-cuddles");
-    meter.textContent = "🤍".repeat(need);
+    meter.innerHTML = window.DUICONS.stars(0, { max: need, size: 22 });
     const onTap = function () {
       if (n >= need) return;
       n += 1;
-      meter.textContent = "💚".repeat(n) + "🤍".repeat(need - n);
+      meter.innerHTML = window.DUICONS.stars(n, { max: need, size: 22 });
       if (F.sfx) { F.sfx.chirp(); if (n === need) window.setTimeout(F.sfx.star, 200); }
       sparkleOn(babyEl, "hearts", 6);
       mood("happy", 700);
@@ -288,7 +290,7 @@ export function mountHatchling(context) {
         babyEl.removeEventListener("click", onTap);
         busy = true; hintFn = null; clearGlows();
         play.good(babyEl, { text: "Cuddles!" });
-        window.setTimeout(function () { stageDone("So snuggly! The baby is big, calm and happy! 💚"); }, 900);
+        window.setTimeout(function () { stageDone("So snuggly! The baby is big, calm and happy! 🪹"); }, 900);
       }
     };
     babyEl.addEventListener("click", onTap);
@@ -326,11 +328,11 @@ export function mountHatchling(context) {
     busy = false;
     if (ch < 4) { finishNight(false); return; }
     options.dataset.stage = "offer";
-    tell(chosenName + " is not sleepy yet… shall we play peekaboo? 🙈");
+    tell(chosenName + " is not sleepy yet… shall we play peekaboo? 👀");
     options.innerHTML = '<p class="hn-q">Bonus game: find the hidden baby three times!</p><div class="hn-row"></div>' +
       '<p style="text-align:center;margin:8px 0 0"><button type="button" class="tiny-button" id="hnGoodnight">No thank you — say goodnight 🌙</button></p>';
     const row = options.querySelector(".hn-row");
-    const go = chip("🙈", "Play peekaboo");
+    const go = chip("👀", "Play peekaboo");
     row.appendChild(go);
     go.addEventListener("click", function () { if (!busy) peekaboo(); });
     options.querySelector("#hnGoodnight").addEventListener("click", function () { if (!busy) finishNight(false); });

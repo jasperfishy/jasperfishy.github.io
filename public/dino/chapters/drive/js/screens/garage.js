@@ -35,7 +35,7 @@ export function initGarage(root, state, onSelect, onBack) {
       const preview = renderCarSVG({ ...state.config, body: car.body, paint: selected ? state.config.paint : car.paint, stickers: selected ? state.config.stickers : [] });
       return `<button class="garage-car${unlocked ? "" : " locked"}${selected ? " selected" : ""}${isNew ? " is-new" : ""}" data-car-index="${index}" ${unlocked ? "" : "aria-disabled=\"true\""} aria-label="${car.name}${unlocked ? (selected ? ", selected" : ", unlocked") : `, unlock at ${carUnlockCost(index)} stars`}">
         <span class="garage-car-art">${preview}</span><strong>${car.name}</strong>
-        <span class="garage-car-meta">${unlocked ? (selected ? "🚙 Your current car" : "Tap to choose") : `🔒 ${carUnlockCost(index)} stars to unlock`}</span>
+        <span class="garage-car-meta">${unlocked ? (selected ? "🚙 Your current car" : "Tap to choose") : `${window.DUICONS.i('lock', { size: 16 })} ${carUnlockCost(index)} stars to unlock`}</span>
       </button>`;
     }).join("");
 

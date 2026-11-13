@@ -22,8 +22,11 @@ const PRINT = {
 
 /* What is lying in the way: tap it to lay a safe crossing (and bank a footprint token),
  * or step straight in and get mud, water or bark all over the tracker. */
+/* The mud line used to end "all over your boots 🥾". Nothing in the specimen
+ * library or the ink set owns a boot, and the words already say it — so the
+ * glyph is gone rather than swapped for a picture of something else. */
 const HAZARDS = {
-  mud: { icon: "🟤", fix: "🪨", word: "sticky mud", sfx: "splash", step: "Squelch! Sticky mud all over your boots 🥾" },
+  mud: { icon: "🟤", fix: "🪨", word: "sticky mud", sfx: "splash", step: "Squelch! Sticky mud all over your boots" },
   river: { icon: "🌊", fix: "🪵", word: "a cold river", sfx: "splash", step: "Splosh! Cold river water in your socks 🌊" },
   log: { icon: "🪵", fix: "🌿", word: "a fallen log", sfx: "thud", step: "Oof! You tumbled over the fallen log 🪵" }
 };
@@ -53,7 +56,7 @@ export function mountTrail(context) {
   board.innerHTML = '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 8px">' +
     chip("Tier " + tier + " · " + TIER[tier - 1]) + chip(count + " footprints") +
     chip("Hazards <b id='trHazTotal'>" + hazTotal + "</b> · Tokens 🐾<b id='trTokenTotal'>" + tokenBank.length + "</b>") +
-    (bestTime ? chip("Best time " + bestTime + "s") : "") + (best ? chip("Your best " + "⭐".repeat(best)) : "") + "</div>" +
+    (bestTime ? chip("Best time " + bestTime + "s") : "") + (best ? chip("Your best " + window.DUICONS.stars(best)) : "") + "</div>" +
     '<div id="trHaz" data-cleared="0" data-total="' + hazTotal + '" data-muddy="0" style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:0 auto 6px">' +
     '<span style="font-weight:900;font-size:12px;color:#245048">In the way: <b id="trHazLeft">' + hazTotal + "</b> to step around</span>" +
     '<span id="trTokens" aria-label="Footprint tokens" style="display:flex;gap:3px;align-items:center;min-height:22px"></span>' +
@@ -189,13 +192,17 @@ export function mountTrail(context) {
     play.say("A " + (h.def.id === "river" ? "log bridge" : h.def.id === "log" ? "mossy step" : "dry stone") + "! Footprint token 🐾 " + n + " is yours.", 2800);
     paintHaz();
     if (hazDefs.length && clearedHaz === hazDefs.length) {
-      showBadge("sure-footed", "🥾", "Sure-footed — every hazard stepped around!");
+      /* Two clean feet, drawn: the badge is about stepping around things, and the
+       * library has no boot photograph to offer. */
+      showBadge("sure-footed", window.DUICONS.i("footprints", { size: 15 }), "Sure-footed — every hazard stepped around!");
       play.bonus();
     }
   }
   function showBadge(kind, icon, words) {
     badgeEl.hidden = false; badgeEl.dataset.badge = kind;
-    badgeEl.textContent = icon + " " + words;
+    /* A badge mark is interface ink, so it has to come in as markup: written with
+     * `textContent` it would be a font glyph forever, however hard the sweep tried. */
+    badgeEl.innerHTML = icon + " " + words;
     badgeEl.style.cssText = "font-weight:900;font-size:12px;color:#245048;background:#fff8dc;border-radius:99px;padding:3px 10px;box-shadow:0 3px 0 rgba(24,62,64,.14)";
     F.pop && F.pop(badgeEl);
   }
@@ -243,7 +250,9 @@ export function mountTrail(context) {
         window.clearTimeout(hintTimer);
         hazDefs.forEach(function (h) { if (!h.cleared) h.passed = true; });
         paintHaz();
-        if (muddy >= 2) showBadge("muddy-boots", "🥾", "Muddy boots — " + muddy + " squelchy steps!");
+        /* Muddy boots is a badge about mud, which the world does photograph —
+         * the same brown earth the mud puddle is made of. */
+        if (muddy >= 2) showBadge("muddy-boots", F.objects.img("earth", 16), "Muddy boots — " + muddy + " squelchy steps!");
         else if (clearedHaz < hazDefs.length) showBadge("half-way", "👣", clearedHaz + " of " + hazDefs.length + " hazards stepped around");
         collect("trail-times", { s: Math.max(1, Math.round((Date.now() - t0) / 1000)), tokens: clearedHaz, muddy: muddy, hazards: hazDefs.length });
         window.setTimeout(mysteryTime, 900);
@@ -252,7 +261,7 @@ export function mountTrail(context) {
   });
 
   function mysteryTime() {
-    play.say("The tracks stop at the bush… who is hiding there? 🤔", 3500);
+    play.say("The tracks stop at the bush… who is hiding there? ✨", 3500);
     play.hint("Look at the footprints again. Who made them?", true);
     mystery.hidden = false;
     const bush = field.querySelector(".tr-bush");
