@@ -1,10 +1,10 @@
-import { overlayPhotorealMaterial } from '../../../photoreal-textures.js?v=du-7df8fa9b17a78b51';
+import { overlayPhotorealMaterial } from '../../../photoreal-textures.js?v=du-cd75bb4cc7df44ba';
 // Mud Wall — a storm slope and one trowel of work.
 // The lahar is a real flow: it only ever goes down, it splits when the drops are
 // equal, it cuts where it runs and pools where it is dammed. You cannot wall a
 // mountain, so you choose the two or three decisions that matter.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7df8fa9b17a78b51';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-cd75bb4cc7df44ba';
 
 const STAR = [6, 11, 17];
 

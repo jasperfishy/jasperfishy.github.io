@@ -4,7 +4,7 @@
  * silhouette of the dinosaur. Getting it right re-draws the sky; a wild star costs a star but never ends the night.
  * Every finished sky blazes, pays a star-legend and puts a collectible star-map on the shelf (saved on this device).
  * Later nights bring more stars, more wild ones, memory skies and a different moon. */
-import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-7df8fa9b17a78b51";
+import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-cd75bb4cc7df44ba";
 
 const SKIES = [
   { sp: "bronto", color: "orange", name: "The Great Long-neck", fact: "Long-necked dinosaurs could reach leaves high in the treetops.",

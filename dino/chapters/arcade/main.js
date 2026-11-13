@@ -1,9 +1,9 @@
-import { CATALOG, byId, LOADERS } from './catalog.js?v=du-7df8fa9b17a78b51';
-import { emblemFor } from './emblems.js?v=du-7df8fa9b17a78b51';
+import { CATALOG, byId, LOADERS } from './catalog.js?v=du-cd75bb4cc7df44ba';
+import { emblemFor } from './emblems.js?v=du-cd75bb4cc7df44ba';
 import {
   W, metrics, makeScene, ArcadeAudio, readSave, saveStars, shell,
   starsMarkup, bestFor
-} from './engine.js?v=du-7df8fa9b17a78b51';
+} from './engine.js?v=du-cd75bb4cc7df44ba';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);

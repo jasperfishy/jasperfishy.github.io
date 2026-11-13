@@ -1,8 +1,8 @@
 // screens/customize.js — Car customization screen logic.
 
-import { PAINTS, STICKERS, CARS } from "../data-cars.js?v=du-7df8fa9b17a78b51";
-import { renderCarSVG } from "../render-car.js?v=du-7df8fa9b17a78b51";
-import { isCarUnlocked } from "./garage.js?v=du-7df8fa9b17a78b51";
+import { PAINTS, STICKERS, CARS } from "../data-cars.js?v=du-cd75bb4cc7df44ba";
+import { renderCarSVG } from "../render-car.js?v=du-cd75bb4cc7df44ba";
+import { isCarUnlocked } from "./garage.js?v=du-cd75bb4cc7df44ba";
 
 const FX = () => window.DUFX;
 const fx = (name) => { try { const f = FX(); f && f.sfx && f.sfx[name] && f.sfx[name](); } catch (e) { /* sound is optional */ } };

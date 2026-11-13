@@ -2,10 +2,10 @@
 // escalating legs of one big chase: a fern garden, a stony ridge path and a beach. Daddy throws slippery
 // fronds and tall pots, dodges between lanes, escapes on a giant tortoise and a giggling croc, and when he is
 // finally caught there is a full cartoon "gobble, burp, sorry!" cutscene.
-import { drawEnvironment } from '../../../../photoreal-environments.js?v=du-7df8fa9b17a78b51';
-import { drawPhotoreal, drawProp } from '../../../../photoreal-textures.js?v=du-7df8fa9b17a78b51';
+import { drawEnvironment } from '../../../../photoreal-environments.js?v=du-cd75bb4cc7df44ba';
+import { drawPhotoreal, drawProp } from '../../../../photoreal-textures.js?v=du-cd75bb4cc7df44ba';
 // Everything is pretend and silly: nobody is ever really hurt, and there is no losing screen.
-import { collect as bookRun, collection } from "../adv-kit.js?v=du-7df8fa9b17a78b51";
+import { collect as bookRun, collection } from "../adv-kit.js?v=du-cd75bb4cc7df44ba";
 const FX = window.DUFX;
 const W = 800, H = 500, HORIZON = 168;
 // `obs` are low things you hop over, `block` are tall ones you must swerve round — two different lessons.
