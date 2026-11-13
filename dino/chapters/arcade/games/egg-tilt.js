@@ -2,7 +2,7 @@
 // Nobody carries the egg. You lean the whole ridge and gravity does the walking,
 // while the cold reaches for the shell and the wind keeps changing its mind.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7ebd3d49aa7fa37b';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7df8fa9b17a78b51';
 
 const STAR = [8, 15, 24];
 const GOAL = 26;

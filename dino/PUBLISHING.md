@@ -26,13 +26,20 @@ the `jasperfishy/jasperfishy.github.io` repo (`main` branch). That repo keeps:
    (`git worktree add -f -B publish-live <path> origin/main`) — the clone's local
    `main` may have no merge base with the remote, so a pull there is not safe.
    - Replace `public/dino/` with this folder, except `tests/`, and keep
-     `public/dino/games/`.
+     `public/dino/games/`. Skip build droppings too — `__pycache__`, `*.pyc`,
+     `node_modules` — because the copy is a directory walk, not a mirror, and
+     anything it writes is served to players. A `.pyc` once reached the live
+     site at `/dino/tools/__pycache__/`.
    - Convert text files to LF line endings (the website repo stores LF).
 3. `npm ci && npm run build:pages`. This stamps every file with a
    `du-<hash>` release and writes `dino/`.
 4. The build also rebuilds the landing page. Restore anything outside `dino/`
    and `public/dino/` (`git checkout -- assets fonts index.html src` and
    delete any new `assets/index-*.js`) so a game release does not touch it.
+   Then check `git status` for leftovers *inside* `dino/`: the build only
+   overwrites files that still exist in `public/dino/`, so anything deleted
+   there — or dropped from the folder between releases — survives in `dino/`
+   untouched. `git rm -r --cached` and delete those before committing.
 5. Test the built copy:
    `DINO_UNIVERSE_ROOT=<clone>/dino node tests/hub-integration.cjs`
 6. Commit both `dino/` and `public/dino/`, then push `main`. Pages deploys in

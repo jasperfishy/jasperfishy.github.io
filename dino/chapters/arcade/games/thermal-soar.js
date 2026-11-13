@@ -1,7 +1,7 @@
 // Thermal Soar — the canyon at afternoon.
 // Height is money, and the only bank in it is the warm air coming off the rock.
 
-import { canvasTex, grain, rng, clamp, lerp, MOODS, W } from '../engine.js?v=du-7ebd3d49aa7fa37b';
+import { canvasTex, grain, rng, clamp, lerp, MOODS, W } from '../engine.js?v=du-7df8fa9b17a78b51';
 
 const LEGS = 14;
 const STAR = [5, 9, 14];

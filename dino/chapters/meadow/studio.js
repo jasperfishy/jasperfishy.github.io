@@ -1,8 +1,8 @@
 // The Dino Meadow art studio: colouring pages and the free drawing pad.
 // Fill regions, draw with crayon / marker / rainbow / glitter brushes, press stamps, rub out, sparkle and finish.
-import {colours} from './catalog.js?v=du-7ebd3d49aa7fa37b';
-import {dinosaurs,scenes,pageSVG} from './art.js?v=du-7ebd3d49aa7fa37b';
-import * as E from './engine.js?v=du-7ebd3d49aa7fa37b';
+import {colours} from './catalog.js?v=du-7df8fa9b17a78b51';
+import {dinosaurs,scenes,pageSVG} from './art.js?v=du-7df8fa9b17a78b51';
+import * as E from './engine.js?v=du-7df8fa9b17a78b51';
 
 /* ---------- storage (IndexedDB, this browser only) ---------- */
 let dbPromise;

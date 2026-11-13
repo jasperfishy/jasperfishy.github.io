@@ -2,7 +2,7 @@
 // Build force behind the frill, then release it all in one horn-first dash.
 // Raiders come down three trails; the herd is behind you and nowhere to retreat.
 
-import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-7ebd3d49aa7fa37b';
+import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-7df8fa9b17a78b51';
 
 const GROUND = 470;
 const HOME = 296;

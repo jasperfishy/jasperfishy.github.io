@@ -1,9 +1,9 @@
 // The Great Dino Rescue: a seven-chapter story quest. Mummy and Daddy are trapped at the Sky Nest by
 // Grumblecloud the storm, and the player rides a dinosaur through forest, bridge, cave, lava and sky to save them.
 // Progress is saved after every chapter, so the quest can be played across many days and replayed.
-import { createEngine, writeSave, wait, MOUNTS, kidName } from './rescue/engine.js?v=du-7ebd3d49aa7fa37b';
-import { chapter1, chapter2, chapter3 } from './rescue/chapters-a.js?v=du-7ebd3d49aa7fa37b';
-import { chapter4, chapter5, chapter6, chapter7 } from './rescue/chapters-b.js?v=du-7ebd3d49aa7fa37b';
+import { createEngine, writeSave, wait, MOUNTS, kidName } from './rescue/engine.js?v=du-7df8fa9b17a78b51';
+import { chapter1, chapter2, chapter3 } from './rescue/chapters-a.js?v=du-7df8fa9b17a78b51';
+import { chapter4, chapter5, chapter6, chapter7 } from './rescue/chapters-b.js?v=du-7df8fa9b17a78b51';
 const FX = window.DUFX;
 // five bands of the post-storm rainbow arc, shared by the finished map and the bonus round
 const RAINBOW_ARC = ['M120 470A280 280 0 0 1 680 470', 'M148 470A252 252 0 0 1 652 470', 'M176 470A224 224 0 0 1 624 470', 'M204 470A196 196 0 0 1 596 470', 'M232 470A168 168 0 0 1 568 470'].map((d, i) => '<path d="' + d + '" fill="none" stroke="' + ['#ff6b6b', '#f6b273', '#f3d56b', '#6bcb77', '#4d96ff'][i] + '" stroke-width="26" stroke-linecap="round" opacity=".8"/>').join('');

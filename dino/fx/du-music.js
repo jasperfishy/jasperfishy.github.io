@@ -139,7 +139,10 @@
     // supposed to sound like — and the opening re-triggers one about every half
     // second, which is a steady high squeal rather than a harp. Three partials
     // is a plucked string; the ring time is what a low cutoff buys back.
-    lp.frequency.value = Math.max(900, Math.min(3400, freq * 3.2));
+    // The loop may ring only its fundamental and first overtone: above ~1.6 kHz a
+    // higher-pitched pluck (740-990 Hz) was left ringing at 2.2-3.0 kHz, which the
+    // ear hears as a whistle.
+    lp.frequency.value = Math.max(900, Math.min(1600, freq * 2.2));
     lp.Q.value = 0.2;
     const g = c.createGain();
     src.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(g);
@@ -230,7 +233,7 @@
      * pad that never stops, and nothing percussion-like at all, because a
      * drum under a spoken sentence is what turns a film into a trailer. */
     intro: {
-      bpm: 56, root: SEMI.D, minor: false, vol: 0.26, colour: '#ffd98a',
+      bpm: 56, root: SEMI.D, minor: false, vol: 0.14, colour: '#ffd98a',
       chords: [[0, 4, 7], [4, 7, 11], [5, 9, 12], [2, 5, 9]],
       bells: [7, null, null, null, null, null, 11, null, null, null, 12, null, null, null, null, null,
         9, null, null, null, null, null, 7, null, 4, null, null, null, null, null, null, null],
@@ -392,6 +395,8 @@
     const c = ctx();
     if (c && gainNode) { const old = gainNode; setTimeout(() => { try { old.disconnect(); } catch (e) { } }, 600); gainNode = null; }
   };
+  DUMusic.duck = function (k) { if (current) fade(current.vol * 3.4 * k, 0.35); };
+  DUMusic.unduck = function () { if (current && on()) fade(current.vol * 3.4, 0.6); };
   DUMusic.pause = function () { fade(0.0001, 0.35); };
   DUMusic.resume = function () { if (current && on()) fade(current.vol * 3.4, 0.5); };
   DUMusic.enabled = function (flag) {

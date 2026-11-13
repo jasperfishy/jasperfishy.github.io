@@ -3,7 +3,7 @@
 // in six and the wind bends in four. Tap a creature as its ring closes and its
 // voice stays in the air for good; come in late and the whole valley flinches.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7ebd3d49aa7fa37b';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7df8fa9b17a78b51';
 
 const STAR = [10, 18, 27];
 const SERIF = "'Iowan Old Style','Palatino Linotype',Georgia,serif";

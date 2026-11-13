@@ -1,7 +1,7 @@
 /* A dangling `if (cond)` with nothing on its own line means the next statement
  * silently became its body. Flag every place that happens. */
 const fs = require('fs'), path = require('path');
-const ROOT = 'D:/FlagshipUI/app/dino-universe';
+const ROOT = path.resolve(process.argv[2] || path.join(__dirname, '..'));
 const skip = new Set(['node_modules', '.git', 'assets', 'archive']);
 let hits = 0;
 (function walk(dir) {

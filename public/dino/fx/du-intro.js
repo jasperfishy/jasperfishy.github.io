@@ -41,7 +41,7 @@
   const SCENES = {
     'star-seeds': {
       plate: 'star-seeds',
-      camera: { zoom: [1.04, 1.14], pan: [[0.52, 0.48], [0.44, 0.54]] },
+      camera: { zoom: [1.04, 1.14], pan: [[0.52, 0.52], [0.44, 0.57]] },
       grade: { tint: '#0b1a33', amount: 0.14, vignette: 0.52 },
       layers: [
         { type: 'twinkle', n: 150, seed: 7 },
@@ -54,7 +54,7 @@
     },
     'valley-dawn': {
       plate: 'valley-dawn',
-      camera: { zoom: [1.02, 1.16], pan: [[0.5, 0.52], [0.46, 0.46]] },
+      camera: { zoom: [1.02, 1.16], pan: [[0.5, 0.52], [0.46, 0.58]] },
       grade: { tint: '#ffcf8a', amount: 0.07, vignette: 0.42 },
       layers: [
         { type: 'rays', seed: 2, at: [0.705, 0.245], colour: '255,226,170', n: 9, len: 1.25, spread: 0.5, pulse: 0.22 },
@@ -75,7 +75,9 @@
     },
     'rex-mist': {
       plate: 'rex-mist',
-      camera: { zoom: [1.05, 1.17], pan: [[0.56, 0.46], [0.60, 0.42]] },
+      // the plate is cover-fit to the window, so on tall or narrow screens it is
+      // taller than the window and any pan below 1 crops the top: pin the top edge
+      camera: { zoom: [1.05, 1.17], pan: [[0.56, 1.0], [0.60, 1.0]] },
       grade: { tint: '#ffd9a8', amount: 0.06, vignette: 0.46 },
       layers: [
         { type: 'rays', seed: 1, at: [0.115, 0.175], colour: '255,232,190', n: 7, len: 1.1, spread: 0.42, pulse: 0.18 },
@@ -88,7 +90,7 @@
     },
     'lagoon-home': {
       plate: 'lagoon-home',
-      camera: { zoom: [1.03, 1.13], pan: [[0.44, 0.5], [0.56, 0.5]] },
+      camera: { zoom: [1.03, 1.13], pan: [[0.44, 0.52], [0.56, 0.57]] },
       grade: { tint: '#bfe9ff', amount: 0.05, vignette: 0.38 },
       layers: [
         { type: 'shimmer', seed: 16, at: [0.06, 0.55, 0.94, 0.45], colour: '255,255,255', n: 90 },
@@ -171,6 +173,8 @@
     const a = loadBeatAudio(beat.id);
     try { a.currentTime = 0; } catch (e) { }
     a.volume = 0.95;
+    a.onended = () => { if (window.DUMusic && window.DUMusic.unduck) window.DUMusic.unduck(); };
+    if (window.DUMusic && window.DUMusic.duck) window.DUMusic.duck(0.2);
     const p = a.play();
     if (p && p.catch) p.catch(() => { /* blocked or still decoding; captions carry on */ });
     state.audio = a;

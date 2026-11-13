@@ -5,6 +5,7 @@
 const VERSION = "__DU_VERSION__";
 const ASSETS = [
   "./",
+  "./.gitignore",
   "./assets/audio/amb/desert.mp3",
   "./assets/audio/amb/fog.mp3",
   "./assets/audio/amb/meadow.mp3",

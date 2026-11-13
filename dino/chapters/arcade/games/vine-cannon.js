@@ -2,7 +2,7 @@
 // Stretch the anchor vine back, read the swing, lead the basket. Baskets hang on
 // real pendulums, the wind moves the whole arc, and the canopy never holds still.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7ebd3d49aa7fa37b';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7df8fa9b17a78b51';
 
 const STAR = [7, 13, 21];
 const GRAV = 640;

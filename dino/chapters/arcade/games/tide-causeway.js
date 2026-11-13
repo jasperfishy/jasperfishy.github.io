@@ -1,8 +1,8 @@
-import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-7ebd3d49aa7fa37b';
+import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-7df8fa9b17a78b51';
 // Tide Causeway — the road the sea takes twice a day.
 // Ribbed stones, one rising tide, and a hatchling a long hop behind you.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7ebd3d49aa7fa37b';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-7df8fa9b17a78b51';
 
 const LOW = 398, NEAR_TOP = 348, OUTER_TOP = 372, BEACH_TOP = 288, ASHORE_TOP = 280;
 const BEACH_X = 104, ASHORE_X = 898, REACH_MIN = 34, REACH_MAX = 190, SHORE_REACH = 140;
