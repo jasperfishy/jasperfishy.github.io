@@ -1,9 +1,9 @@
-import { addEnvironment } from '../../photoreal-environments.js?v=du-cd75bb4cc7df44ba';
+import { addEnvironment } from '../../photoreal-environments.js?v=du-1c099b1be40dab88';
 // Prehistoric Sky Mail — a pterosaur courier flight.
 // Phaser 3.80, procedural illustration, synthesized score, three routes.
 
-import { makeAtlas, PALETTES } from './atlas.js?v=du-cd75bb4cc7df44ba';
-import { SkyAudio } from './audio.js?v=du-cd75bb4cc7df44ba';
+import { makeAtlas, PALETTES } from './atlas.js?v=du-1c099b1be40dab88';
+import { SkyAudio } from './audio.js?v=du-1c099b1be40dab88';
 
 const W = 960;
 

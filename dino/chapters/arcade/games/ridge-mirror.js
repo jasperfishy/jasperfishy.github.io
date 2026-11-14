@@ -1,11 +1,11 @@
-import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-cd75bb4cc7df44ba';
+import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-1c099b1be40dab88';
 // Ridge Mirror — one bend of dawn light, thrown off wet stone onto the mist.
 // Sun -> hide mirror -> exactly ONE bounce off a wet rock face -> the stragglers.
 // Nothing here is faked: every bounce is the law of reflection against that
 // face's own normal, so a face that leans a little differently lands the flash
 // a long way off, and only a narrow tilt puts the light at a beast's feet.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-cd75bb4cc7df44ba';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-1c099b1be40dab88';
 
 const PAL = MOODS.dawn;
 const TAU = Math.PI * 2;

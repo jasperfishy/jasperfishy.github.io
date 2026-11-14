@@ -5,8 +5,8 @@
  *   3. Style   — pick a colour and something to wear
  *   4. Name    — name card, then the dinosaur wakes up in a living diorama and joins the museum (saved on this device)
  * A Hint button glows the next place; everything snaps with a sound and a sparkle. */
-import { createPlay, shuffle, collect, collection } from "../adv-kit.js?v=du-cd75bb4cc7df44ba";
-import { skeleton } from "./fossil.js?v=du-cd75bb4cc7df44ba";
+import { createPlay, shuffle, collect, collection } from "../adv-kit.js?v=du-1c099b1be40dab88";
+import { skeleton } from "./fossil.js?v=du-1c099b1be40dab88";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const ORDER = ["trex", "tricera", "stego", "bronto", "raptor", "ptero"];

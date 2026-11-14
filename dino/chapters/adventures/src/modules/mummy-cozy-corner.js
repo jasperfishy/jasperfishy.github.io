@@ -7,7 +7,7 @@
 // an extra job), the order of the jobs, which settle-down comes first, who stars in the story and
 // which tune is played — plus three hidden gems in each room and a shelf that remembers the
 // cosiest evenings so far.
-import { attachBonus, collect, collection } from "../adv-kit.js?v=du-cd75bb4cc7df44ba";
+import { attachBonus, collect, collection } from "../adv-kit.js?v=du-1c099b1be40dab88";
 const FX = window.DUFX;
 const W = 800, H = 500;
 const HELPERS = [

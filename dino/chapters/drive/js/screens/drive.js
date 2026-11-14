@@ -1,4 +1,4 @@
-import { drawPhotoreal, drawProp } from "../../../../photoreal-textures.js?v=du-cd75bb4cc7df44ba";
+import { drawPhotoreal, drawProp } from "../../../../photoreal-textures.js?v=du-1c099b1be40dab88";
 const worldPhotos = new Map();
 const asphalt=new Image();asphalt.src=new URL('../../../../assets/environments/asphalt.webp',import.meta.url).href;
 const roadPatterns=new WeakMap();
@@ -16,8 +16,8 @@ function worldPhoto(id) {
 // world and both play modes. The road is a loop of short segments; each frame the
 // segments in front of the camera are projected to the screen, far to near.
 
-import { SCENES } from "../data-scenes.js?v=du-cd75bb4cc7df44ba";
-import { drawCarRear } from "../render-car.js?v=du-cd75bb4cc7df44ba";
+import { SCENES } from "../data-scenes.js?v=du-1c099b1be40dab88";
+import { drawCarRear } from "../render-car.js?v=du-1c099b1be40dab88";
 
 const RACE_LAPS = 3;
 const EXPLORE_GOAL = 20;

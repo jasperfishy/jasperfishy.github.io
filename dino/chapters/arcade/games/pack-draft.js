@@ -1,9 +1,9 @@
-import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-cd75bb4cc7df44ba';
+import { addMaterialLayer } from '../../../photoreal-environments.js?v=du-1c099b1be40dab88';
 // Pack Draft — run at the back. Finish at the front.
 // Eight runners, one trail, a wind that will not hold still, and a body that only
 // gets its legs back inside somebody else's slipstream.
 
-import { W, canvasTex, grain, rng, clamp, lerp, hashSeed, MOODS } from '../engine.js?v=du-cd75bb4cc7df44ba';
+import { W, canvasTex, grain, rng, clamp, lerp, hashSeed, MOODS } from '../engine.js?v=du-1c099b1be40dab88';
 
 const COURSE = 460;                 // metres of trail
 const DROP_M = 58;                  // this far off the leader and the run is over

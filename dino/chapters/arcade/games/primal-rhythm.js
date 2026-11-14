@@ -3,7 +3,7 @@
 // as it crosses its drum and the herd answers, note by note, until the valley
 // is drumming with you.
 
-import { canvasTex, grain, clamp, W } from '../engine.js?v=du-cd75bb4cc7df44ba';
+import { canvasTex, grain, clamp, W } from '../engine.js?v=du-1c099b1be40dab88';
 
 const BPM = 112;
 const BEAT = 60 / BPM;

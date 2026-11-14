@@ -3,7 +3,7 @@
 // eggs. Turn the spiked tail toward the threat and time the sweep. Every clean
 // stand feeds the plate-sail; a full sail makes the next swing a hammer.
 
-import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-cd75bb4cc7df44ba';
+import { canvasTex, grain, rng, clamp, W } from '../engine.js?v=du-1c099b1be40dab88';
 
 const GROUND = 468;
 const FEET = 500;

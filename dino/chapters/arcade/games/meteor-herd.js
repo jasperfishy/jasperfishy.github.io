@@ -2,7 +2,7 @@
 // Six calves, one frill, and a sky that keeps falling. Stand under the shelter
 // call when the shadows bloom, and gather the strays before the rock lands.
 
-import { canvasTex, grain, rng, clamp, approach, W } from '../engine.js?v=du-cd75bb4cc7df44ba';
+import { canvasTex, grain, rng, clamp, approach, W } from '../engine.js?v=du-1c099b1be40dab88';
 
 const GROUND = 432;
 const GOAL = 40;
