@@ -5,7 +5,7 @@
  * New this version: hazards really are in the way — mud, a river and a fallen log rise up ahead of you as you walk.
  * Tap one to lay a stepping stone and bank a footprint token (saved on this device); walk straight into it and you
  * get mud on your boots instead. The last badge you earn is read out when the trail ends. */
-import { createPlay, shuffle, getExtras, collect, collection } from "../adv-kit.js?v=du-1c099b1be40dab88";
+import { createPlay, shuffle, getExtras, collect, collection } from "../adv-kit.js?v=du-276e018775e133bb";
 
 const MAKERS = [
   { sp: "trex", color: "green", name: "Tyrannosaurus", print: "toes", size: 64, fact: "Three big toes, just like a giant bird!" },

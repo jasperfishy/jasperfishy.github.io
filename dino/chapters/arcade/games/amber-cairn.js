@@ -3,7 +3,7 @@
 // builds it before dusk. Where each stone lands moves the lean of the whole
 // cairn, the wind leans back, and a cairn past its tolerance comes down.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-1c099b1be40dab88';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-276e018775e133bb';
 
 const STAR = [8, 14, 21];
 const CX = 470;

@@ -1,7 +1,7 @@
 // Frost Hollow — the frost line walks the hollow at noon.
 // Everything small must be inside a warm shadow when the white arrives.
 
-import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-1c099b1be40dab88';
+import { W, canvasTex, grain, rng, clamp, lerp, MOODS } from '../engine.js?v=du-276e018775e133bb';
 
 const STAR = [9, 16, 25];
 const TOP = 336;

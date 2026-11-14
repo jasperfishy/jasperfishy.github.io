@@ -138,24 +138,48 @@
   function mount() {
     root = document.createElement('div');
     root.className = 'du-intro';
-    // The update pill sits at the top of the stacking order on purpose, so it
-    // is taken out of the page rather than out-z-indexed.
     document.body.classList.add('du-cinema');
     root.innerHTML =
       '<canvas class="du-intro-canvas"></canvas>' +
       '<div class="du-intro-bars"><i></i><i></i></div>' +
       '<div class="du-intro-ui">' +
+        '<button id="introMute" class="du-intro-mute" type="button"></button>' +
         '<button id="introSkip" class="du-intro-skip">Skip the story ›</button>' +
         '<div class="du-intro-caption"><b id="introWho"></b><p id="introLine"></p></div>' +
       '</div>';
     document.body.appendChild(root);
+    wireMute();
     return root;
   }
+
+  /* The film covers the universe, header included, so the one control a
+   * grown-up reaches for during the opening has to live inside the film. It
+   * asks rather than decides: the hub owns the setting, saves it and tells every
+   * chapter, and this repaints from the switch it sees afterwards. */
+  function wireMute() {
+    if (!root) return;
+    const el = root.querySelector('#introMute');
+    if (el) el.onclick = (e) => { e.stopPropagation(); document.dispatchEvent(new CustomEvent('du-togglesound')); };
+    paintMute();
+  }
+  function paintMute() {
+    if (!root || !window.DUICONS) return;
+    const el = root.querySelector('#introMute');
+    if (!el) return;
+    const on = !(FX() && FX().settings && FX().settings.sound === false);
+    DUICONS.set(el, on ? 'sound' : 'sound-off', { size: 20, label: on ? 'Turn sound off' : 'Turn sound on' });
+  }
+  document.addEventListener('du-mute', (e) => {
+    paintMute();
+    // A voiceover carrying on over a muted room is the one thing a mute button
+    // must not leave behind; the captions keep telling the story.
+    if (e.detail && e.detail.muted && state) stopAll();
+  });
 
   function unmount() {
     cancelAnimationFrame(raf);
     stopAll();
-    document.body.classList.remove('du-cinema');
+    document.body.classList.remove('du-cinema', 'du-cinema-rolling');
     if (root && root.parentNode) root.parentNode.removeChild(root);
     root = null;
     state = null;
@@ -343,6 +367,7 @@
 
     const ui = holder.querySelector('.du-intro-ui');
     ui.innerHTML =
+      '<button id="introMute" class="du-intro-mute" type="button"></button>' +
       '<div class="du-intro-title"><span class="du-intro-kicker">THE DINOSAUR UNIVERSE PRESENTS</span>' +
       '<h1>' + esc(script.title || 'The First Morning') + '</h1>' +
       '<p>' + esc(script.subtitle || '') + '</p>' +
@@ -351,16 +376,20 @@
     const begin = () => {
       cancelAnimationFrame(raf);
       holder.classList.remove('du-intro-poster');
+      document.body.classList.add('du-cinema-rolling');
       holder.querySelector('.du-intro-ui').innerHTML =
+        '<button id="introMute" class="du-intro-mute" type="button"></button>' +
         '<button id="introSkip" class="du-intro-skip">Skip the story ›</button>' +
         '<div class="du-intro-caption"><b id="introWho"></b><p id="introLine"></p></div>';
       holder.querySelector('#introSkip').onclick = (e) => { e.stopPropagation(); finish(); };
+      wireMute();
       state = { script, timings, i: 0, time: 0, elapsed: 0, dur: 0, layers: null, onDone: opts.onDone, markSeen: opts.markSeen, audio: null, tokens: null };
       startBeat(0);
       raf = requestAnimationFrame(loop);
     };
     holder.querySelector('#introBegin').onclick = begin;
     holder.querySelector('#introPass').onclick = () => { music(null); finish(); };
+    wireMute();
     holder.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); begin(); }
       if (ev.key === 'Escape') finish();

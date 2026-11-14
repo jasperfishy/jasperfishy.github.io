@@ -54,6 +54,11 @@ function saveSettings() {
   if (!settings.sound) stopRexRoar();
   broadcast();
 }
+function toggleSound() {
+  settings.sound = !settings.sound;
+  saveSettings();
+  if (settings.sound) FX.sfx.good();
+}
 function broadcast() {
   if (frame && frame.contentWindow) {
     frame.contentWindow.postMessage({ type: 'du-settings', name, sound: settings.sound, difficulty: settings.difficulty, speech: settings.speech, calmCelebrations: settings.calmCelebrations }, location.origin);
@@ -114,12 +119,21 @@ function nameDialog(first = false) {
         <div class="toolbar">
           <button class="pill primary" type="submit">Let's play</button>
           <button class="pill" type="button" id="skip-name">${first ? 'Skip for now' : 'Remove name'}</button>
+          <button class="pill" type="button" id="name-sound" aria-label="${settings.sound ? 'Mute sounds' : 'Enable sounds'}">${window.DUICONS.i(settings.sound ? 'sound' : 'sound-off', { size: 18 })}</button>
         </div>
       </form>
     </div>
   </div>`;
   const input = document.querySelector('#child-name');
   input.value = name;
+  // The header speaker is behind this dialog, so the first screen a grown-up
+  // sees has to carry its own way to quiet the room.
+  document.querySelector('#name-sound').onclick = () => {
+    toggleSound();
+    window.DUICONS.set(document.querySelector('#name-sound'), settings.sound ? 'sound' : 'sound-off', {
+      size: 18, label: settings.sound ? 'Mute sounds' : 'Enable sounds'
+    });
+  };
   const apply = (n) => {
     name = n;
     try { localStorage.setItem('du-name', n); } catch {}
@@ -638,7 +652,10 @@ function closeChapter() {
 }
 
 // ---------- Boot ----------
-document.querySelector('#soundBtn').onclick = () => { settings.sound = !settings.sound; saveSettings(); if (settings.sound) FX.sfx.good(); };
+document.querySelector('#soundBtn').onclick = toggleSound;
+// The opening owns the screen and covers the header, so its own speaker button
+// asks the hub to flip the one switch everything else reads.
+document.addEventListener('du-togglesound', () => toggleSound());
 document.querySelector('#journeyBtn').onclick = journeyDialog;
 document.querySelector('#parentsBtn').onclick = parentsDialog;
 document.querySelector('#backBtn').onclick = closeChapter;

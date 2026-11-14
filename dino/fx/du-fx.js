@@ -26,13 +26,19 @@
   const mq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
   const S = DUFX.settings = { calm: false, sound: true, reduce: mq.matches, juice: true };
   if (mq.addEventListener) mq.addEventListener('change', (e) => { S.reduce = e.matches; });
+  /* Writing the switch is not the same as silencing the page: the world bed and
+   * the score are already running by the time a grown-up presses the speaker,
+   * so the setting has to reach the audio graph through DUAudio. */
+  function applySound() {
+    if (window.DUAudio && DUAudio.mute) DUAudio.mute(!S.sound);
+  }
   window.addEventListener('message', (e) => {
     const d = e.data;
     if (!d || d.type !== 'du-settings' || e.origin !== location.origin) return;
     if (typeof d.calmCelebrations === 'boolean') S.calm = d.calmCelebrations;
-    if (typeof d.sound === 'boolean') S.sound = d.sound;
+    if (typeof d.sound === 'boolean') { S.sound = d.sound; applySound(); }
   });
-  DUFX.configure = (o) => Object.assign(S, o || {});
+  DUFX.configure = (o) => { Object.assign(S, o || {}); applySound(); };
   DUFX.motionOK = () => !S.reduce;
 
   /* ---------- sound ---------- */

@@ -5,7 +5,7 @@
  * The explorer kit is the part that grows: every round unlocks another tool (a magnifier that sweeps the grass, a
  * ghost outline to compare things against, a whistle that calls the shy golden critter), the rucksack fills up with
  * everything you found, and the meadow-watch line tells you how the weather is turning while you hunt. */
-import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-1c099b1be40dab88";
+import { createPlay, shuffle, getExtras, collect, collection, escapeText } from "../adv-kit.js?v=du-276e018775e133bb";
 
 /* Every item is a thing the meadow actually has a photograph of, and no
  * specimen is used for two shapes — otherwise a distractor tile can teach

@@ -2,7 +2,7 @@
  * a toy, a tidy nest and a cuddle make it grow. Name it and it joins your nursery shelf (saved on this device).
  * Every round brings a different egg pattern, a different baby and one more thing to do; a free hint points at what the
  * baby is asking for, and a settled baby may stay for a game of peekaboo before goodnight. */
-import { createPlay, shuffle, collect, collection, escapeText } from "../adv-kit.js?v=du-1c099b1be40dab88";
+import { createPlay, shuffle, collect, collection, escapeText } from "../adv-kit.js?v=du-276e018775e133bb";
 
 const BABIES = [["trex", "green", "T. rex"], ["tricera", "teal", "Triceratops"], ["stego", "purple", "Stegosaurus"], ["bronto", "orange", "Brontosaurus"], ["raptor", "red", "Velociraptor"], ["ptero", "blue", "Pteranodon"],
   ["tricera", "yellow", "Triceratops"], ["stego", "pink", "Stegosaurus"], ["raptor", "purple", "Velociraptor"], ["bronto", "teal", "Brontosaurus"], ["trex", "orange", "T. rex"], ["ptero", "orange", "Pteranodon"]];

@@ -69,6 +69,36 @@
     return kind === 'music' ? musicBus : kind === 'ambience' ? ambBus : sfxBus;
   };
 
+  /* The parent's sound switch. Gating the next sound is not muting: the bed
+   * that started on the first frame is still running, so a grown-up who presses
+   * mute during the opening keeps hearing the wind. Everything in this context
+   * passes through `out`, so that one gain is pulled down, and the rest of the
+   * app is told through an event so the spoken lines stop mid-sentence.
+   *
+   * Nothing is built here on purpose. A page that has not made a sound yet has
+   * nothing to silence, and creating a context just to mute it is how a browser
+   * ends up logging an autoplay warning on a game that is perfectly quiet. */
+  let muted = false;
+  DUAudio.mute = function (on) {
+    muted = !!on;
+    if (ac && out) {
+      const t = ac.currentTime;
+      try {
+        out.gain.cancelScheduledValues(t);
+        out.gain.setValueAtTime(Math.max(0.0001, out.gain.value), t);
+        out.gain.linearRampToValueAtTime(muted ? 0.0001 : 1, t + 0.3);
+      } catch (e) { out.gain.value = muted ? 0.0001 : 1; }
+    }
+    const M = window.DUMusic;
+    // The synth keeps its own level, and its resume() refuses to come back while
+    // the switch is still off, so the settings have to be written before this.
+    if (M && typeof M[muted ? 'pause' : 'resume'] === 'function') { (muted ? M.pause : M.resume).call(M); }
+    if (!muted && !amb && wantAmb) DUAudio.ambience(wantAmb);
+    document.dispatchEvent(new CustomEvent('du-mute', { detail: { muted } }));
+    return muted;
+  };
+  DUAudio.isMuted = () => muted;
+
   /* A game that already owns an AudioContext should not have to share a page
    * with a second one: two contexts is two clock domains, and the sound the
    * child hears is the one that lost. Adopting theirs also re-decodes what the
@@ -375,7 +405,10 @@
     if (!d || d.type !== 'du-settings' || ev.origin !== location.origin) return;
     if (typeof d.musicLevel === 'number') DUAudio.setLevel('music', d.musicLevel);
     if (typeof d.ambienceLevel === 'number') DUAudio.setLevel('ambience', d.ambienceLevel);
-    if (d.sound === false) { DUAudio.stopMusic(0.4); DUAudio.stopAmbience(0.4); }
+    // Pulled down rather than stopped: a bed that was stopped cannot be
+    // restarted by unmuting, and a child expects the world to be where they
+    // left it.
+    if (typeof d.sound === 'boolean') DUAudio.mute(!d.sound);
   });
 
   /* ---------- taking over from the synthesizers ---------- */

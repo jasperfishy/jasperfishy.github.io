@@ -30,6 +30,7 @@ WHY EVERY CLIP IS MEASURED, NOT LISTENED TO
 """
 
 import argparse
+import ast
 import json
 import math
 import os
@@ -168,6 +169,12 @@ def cumphase(freq):
     """Phase from an instantaneous-frequency array, so sweeps and vibrato never
     break the waveform the way setValueAtTime ramps do."""
     freq = np.asarray(freq, dtype=np.float64)
+    if freq.size and float(freq.max()) >= SR * 0.45:
+        # Past Nyquist a sine does not go quiet, it folds: it comes back as
+        # spread noise, which is what the pop's 780 Hz bloop had been reduced to
+        # (measured: 53% of the shipped clip above 8 kHz). Say so at the ask.
+        raise ValueError("cumphase: %.0f Hz cannot be sampled at %d Hz"
+                         % (float(freq.max()), SR))
     return np.cumsum(freq) / SR
 
 
@@ -602,6 +609,15 @@ def modal(freq, dur, ratios, decays, seed=0, strike=0.0, strike_f=0.0,
           body=None, detune=0.0009, taper=1.0):
     """Sum of decaying inharmonic modes plus the sound of whatever hit it.
     Every bell, bar, plate, stone and token in this bank comes out of here."""
+    if freq >= SR * 0.45:
+        # Dropping a partial that runs off the top of the band is right;
+        # dropping the fundamental is not, because the body comes back as
+        # silence with only its strike transient left, which looks like an
+        # ordinary click in a level meter. Three effects shipped that way, each
+        # asking for `written_pitch + seed * 90`-style arithmetic.
+        raise ValueError("modal: %.0f Hz is above Nyquist, so every mode would "
+                         "be dropped. Vary a pitch with spread(), never the seed."
+                         % freq)
     n = max(32, int(dur * SR))
     t = np.arange(n) / SR
     rng = np.random.default_rng(seed)
@@ -957,6 +973,17 @@ def note_hz(i, oct_up=0):
     return NOTES[((i % 12) + 12) % 12] * (2.0 ** oct_up)
 
 
+def spread(base, seed, frac=0.02):
+    """`base` hertz, off by up to `frac` for this variant.
+
+    This is the only safe way to vary a pitch with the seed. Seeds here are
+    five-digit hashes, so the `2100 + seed * 90` these effects used to write
+    asks modal for 3.7 MHz, and modal drops every mode at or above 19.8 kHz in
+    silence: the tap shipped as its own strike transient with no bar under it.
+    A variant differs from its siblings by a few percent, never by a factor."""
+    return float(base) * (1.0 + np.random.default_rng(seed).uniform(-frac, frac))
+
+
 def _pad(a, n):
     if a.shape[0] >= n:
         return a[:n]
@@ -974,7 +1001,8 @@ def plink(freq, dur, seed, hard=0.5):
 # ------------------------------------------------------------ interface taps
 @effect("tap", peak=-15.0, send=0.10, variants=4)
 def sfx_tap(seed):
-    body = modal(2100 + seed * 90, 0.055, RATIOS["wood"][0], [0.05, 0.02, 0.012, 0.008, 0.005],
+    body = modal(spread(2100.0, seed, 0.015), 0.055, RATIOS["wood"][0],
+                 [0.05, 0.02, 0.012, 0.008, 0.005],
                  seed=seed, strike=0.0035, strike_f=5200,
                  body=[("peak", 2600, 2.2, 6.0), ("lp", 9000, 0.7)])
     skin = biquad(coloured_noise(0.02 * SR, "white", seed), "bp", 1500, 1.4)
@@ -1003,7 +1031,7 @@ def sfx_tick(seed):
 @effect("pop", peak=-14.0, send=0.12)
 def sfx_pop(seed):
     x = bed(0.24)
-    f = 780.0 + seed * 55
+    f = spread(780.0, seed, 0.04)
     n = int(0.10 * SR)
     t = np.arange(n) / SR
     body = np.sin(TAU * cumphase(f * np.exp(-t * 9.0))) * np.exp(-t * 26)
@@ -1031,7 +1059,7 @@ def sfx_coin(seed):
 @effect("star", peak=-15.0, send=0.34, room="hall")
 def sfx_star(seed):
     x = bed(1.5)
-    f = 1560 + seed * 70
+    f = spread(1560.0, seed, 0.02)
     lay(x, 0, v_bell(f, 1.15, seed=seed, kind="glock", bright=1.15) * 0.8)
     shimmer = grain(modal(5200, 0.05, RATIOS["metal"][0], [0.05] * 8, seed=seed + 2, strike=0.002),
                     9, 0.4, seed=seed + 3) * 0.30
@@ -1167,7 +1195,14 @@ def sfx_land(seed):
 @effect("thud", peak=-14.0, send=0.14)
 def sfx_thud(seed):
     x = bed(0.55)
-    lay(x, 0, v_kick(58 + seed * 2.5, 0.34, seed) * 0.85)
+    # 58 + seed * 2.5 was meant to spread the variants a few hertz apart, but a
+    # seed is a five-digit hash, so this reached v_kick as several hundred
+    # kilohertz and v_kick's own clip to 400 Hz turned the effect into a steady
+    # tone: measured on the shipped bytes, all three thuds peak at 398.4 Hz with
+    # every dB of them between 393 and 404, and the volcano bed, which builds
+    # its falling lava out of this effect, carries that same 374-398 Hz cluster
+    # 18 to 21 dB over the noise beside it. A kick varies by a few percent.
+    lay(x, 0, v_kick(spread(58.0, seed, 0.10), 0.34, seed) * 0.85)
     lay(x, 0.003, modal(140, 0.22, RATIOS["skin"][0], [0.20, 0.10, 0.05, 0.03, 0.02],
                         seed=seed + 1, strike=0.005, strike_f=420,
                         body=[("lp", 900, 0.8)]) * 0.6)
@@ -1700,7 +1735,12 @@ def gusts(n, T, seed=0, cycles=4, depth=0.85, floor=0.20, power=1.7):
     complete a whole number of cycles across the bed take part, so the
     envelope cannot disagree with itself at the seam."""
     rng = np.random.default_rng(seed)
-    u = np.arange(n) / T                        # measured in loop revolutions
+    # Revolutions of the bed, not seconds: divided by the bed's length the k-th
+    # term makes k swells across the whole loop. Divided by the number of
+    # seconds it makes k cycles per sample, so a "slow gust" becomes a 1.5 kHz
+    # oscillator, and multiplying the wind by that ring-modulates it into a
+    # harmonic family at multiples of SR/seconds -- a whistle, in every bed.
+    u = np.arange(n) / float(n)
     e = np.zeros(n)
     wsum = 0.0
     for k in range(1, max(1, cycles) + 1):
@@ -1723,7 +1763,11 @@ def drone(n, T, freqs, seed=0, depth=0.35, cycles=2):
         ph = rng.uniform(0, TAU)
         env = 1.0 + depth * gusts(n, T, seed + 17 + i, cycles=cycles,
                                   floor=0.35, power=1.2) - 0.5
-        out += np.sin(TAU * k * np.arange(n) / SR + ph) * env / (1.0 + 0.35 * i)
+        # k is whole cycles ACROSS the bed, so the phase must advance by
+        # k/n per sample. Dividing by SR instead reads the cycle count as
+        # hertz: a 392 Hz note arrived as 12544 Hz, and three beds shipped a
+        # pure sine nobody intended, several kHz above their own wind.
+        out += np.sin(TAU * k * np.arange(n) / float(n) + ph) * env / (1.0 + 0.35 * i)
     return out / (np.abs(out).max() + 1e-9)
 
 
@@ -1789,8 +1833,14 @@ def amb_night(n, T, seed):
     cricket = bed(0.42)
     for k in range(6):
         cricket = lay(cricket, k * 0.062, chir, 1.0)
+    # Six chirps 62 ms apart, thirty times a loop, always at the same speed: the
+    # ear reads a fixed-rate repeat as code, and the averaged spectrum keeps the
+    # 4.7 kHz ring 20 dB over the wind around it. Running each train at its own
+    # speed is the whole fix -- measured, it clears every line on its own, while
+    # dropping the level leaves one behind and narrowing the bandpass adds one.
     out = clocked(n, T, out, normalize(cricket, -3.0), 30, seed + 8,
-                  level=(0.05, 0.13), pan=(0.05, 0.95), jitter=0.55)
+                  level=(0.05, 0.13), pan=(0.05, 0.95), jitter=0.55,
+                  resample=0.12)
     owl = v_bell(392.0, 0.9, seed=seed + 12, kind="wood", bright=0.35)
     out = clocked(n, T, out, owl, 5, seed + 19, level=(0.06, 0.14),
                   pan=(0.18, 0.82), jitter=0.45)
@@ -1929,8 +1979,13 @@ def amb_rainbow(n, T, seed):
     out = clocked(n, T, out, chime, 12, seed + 115, level=(0.04, 0.11),
                   pan=(0.05, 0.95), jitter=0.6, resample=0.10)
     spark = np.asarray(SFX["sparkle"]["build"](seed + 117))
+    # The sparkle is eight glass grains written between 2.4 and 6.2 kHz. Nine
+    # copies of one fixed build on a clock land on the same frequencies every
+    # time and leave a 5.9 kHz line 22 dB over the noise beside it -- measured,
+    # this is the whole of what the bed failed on, and the chime above is not
+    # implicated. Varied speeds turn the repeat back into light catching things.
     out = clocked(n, T, out, spark, 9, seed + 119, level=(0.03, 0.08),
-                  pan=(0.15, 0.85), jitter=0.7)
+                  pan=(0.15, 0.85), jitter=0.7, resample=0.30)
     gliss = bed(2.6)
     for k, f in enumerate([523.3, 659.3, 784.0, 1046.5, 1318.5]):
         gliss = lay(gliss, k * 0.16, v_bell(f, 1.4, seed=seed + k, kind="glock"),
@@ -1964,10 +2019,19 @@ def amb_wind(n, T, seed):
     out += 0.66 * wide(n, "lp", 1500.0, 0.8, seeds=(seed + 151, seed + 152), env=big)
     out += 0.24 * wide(n, "bp", 560.0, 2.2, seeds=(seed + 153, seed + 154),
                        env=gusts(n, T, seed + 3, cycles=5, floor=0.0, power=2.6))
-    whistle = sweep_filter(bed(4.0), "bp", 700.0, 2400.0, 4.0, hop=0.05)
-    whistle = whistle * adsr(whistle.shape[0], 1.2, 1.0, 0.4, 1.4)
-    out = clocked(n, T, out, whistle[: n], 5, seed + 157, level=(0.04, 0.10),
-                  pan=(0.1, 0.9), jitter=0.6)
+    # The gust this bed was built without. The layer used to sweep a band-pass
+    # across bed(4.0), and bed() is zeros, so it never reached the encoder: the
+    # shipped wind bed keeps 0.5% of its energy above 2.6 kHz where meadow keeps
+    # 5%. Real noise through the same sweep did not fix it either, because five
+    # 4-second events arrive 17 dB under a rumble that fills the loop, and
+    # tenfold only moved the band 1.4 dB. A narrow band swelling on its own
+    # gust cycle is how the other beds carry a hoot, and the tallest band here
+    # then stands 5 dB over the noise beside it while swinging 32 dB across the
+    # loop: the tones that spoiled this game stood 18-24 dB over and swung less
+    # than 14. cycles 4 against the rumble's 7 and the low band's 5, so no two
+    # layers breathe together.
+    out += 0.55 * wide(n, "bp", 2400.0, 5.0, seeds=(seed + 155, seed + 156),
+                       env=gusts(n, T, seed + 157, cycles=4, floor=0.0, power=2.4))
     return out
 
 
@@ -1976,6 +2040,15 @@ def ambience_post(x, spec, seed):
     if spec["send"] > 0.0:
         x = verb(x, room(spec["room"]), spec["send"], ring=n)
     x = tilt(x, 0.8, -1.2, ring=n)
+    # The bed chain was the one place in this script with no dc block: effects
+    # get one at build_sfx, music gets none because it is pitched, and a bed is
+    # brown noise behind a lowpass, which holds whatever charge its longest wave
+    # happens to have. The repaired volcano bed measured -0.044 before level and
+    # -0.008 after, and the bank's audit calls anything past 0.004 a fault. It
+    # belongs before the level for the reason the helper gives in its own docstring:
+    # master_bus would otherwise set the bed's loudness off the offset instead of
+    # off the rumble, and ring=n is what keeps the block from stepping the seam.
+    x = dc_block(x, ring=n)
     return master_bus(x, rms_db=spec["rms"], ceiling_db=-3.0)
 
 
@@ -2492,6 +2565,41 @@ def selftest():
           "settled mean %.6f" % float(step[-800:].mean()))
     check("dc_block leaves a tone alone", abs(rms_of(dc_block(tone)) - rms_of(tone)) < 0.005 * rms_of(tone),
           "rms %.5f -> %.5f" % (rms_of(tone), rms_of(dc_block(tone))))
+
+    # 10d. an ask the bank cannot sample has to speak up. Both of these returned
+    #      something that looked fine in a level meter: modal dropped every mode
+    #      above Nyquist, which left the tap and the star as their own strike
+    #      transients (measured in the shipped bytes, the star put 70% of its
+    #      energy in the 3-8 kHz band and 30% above it), and cumphase folded an
+    #      ultrasonic sine into noise, which cost the pop its bloop.
+    for name, fn in (
+            ("modal", lambda: modal(2.1e6, 0.05, RATIOS["wood"][0], [0.24] * 5)),
+            ("cumphase", lambda: cumphase(np.full(256, 9.0e5)))):
+        try:
+            fn()
+            ok, detail = False, "returned without a word"
+        except ValueError as err:
+            ok, detail = True, str(err)[:46]
+        check("%s refuses an unrenderable pitch" % name, ok, detail)
+
+    # 10e. and the idiom that caused it is not allowed back. A seed here is
+    #      1009 + 7919*k + 31*hash, so multiplying it by anything above 1 turns a
+    #      written pitch into megahertz; spread() is how a variant is meant to
+    #      differ from its siblings, by a few percent. This reads the syntax tree
+    #      rather than the text, because the four sites that did it are written
+    #      down in the comments above as the reason not to.
+    tree = ast.parse(open(os.path.join(ROOT, "tools", "build-audio.py"),
+                          encoding="utf-8").read())
+    huge = []
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mult)):
+            continue
+        for a, b in ((node.left, node.right), (node.right, node.left)):
+            if isinstance(a, ast.Name) and a.id == "seed" and \
+                    isinstance(b, ast.Constant) and isinstance(b.value, (int, float)) \
+                    and not isinstance(b.value, bool) and b.value > 1.0:
+                huge.append("%d: x%s" % (node.lineno, b.value))
+    check("no seed is multiplied into a pitch", not huge, ", ".join(huge[:4]))
 
     # 11. the engine's one sustained effect really loops: the join must be no
     #     bigger than an ordinary step, and the fold must not leave a dip

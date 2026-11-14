@@ -13,16 +13,16 @@
    "duration": 34.0,
    "file": "./assets/audio/amb/desert.mp3",
    "loop": false,
-   "peak_db": -20.15,
-   "rms_db": -29.46,
-   "seam_db": -90.98
+   "peak_db": -9.02,
+   "rms_db": -29.5,
+   "seam_db": -90.93
   },
   "fog": {
    "bytes": 505094,
    "duration": 36.0,
    "file": "./assets/audio/amb/fog.mp3",
    "loop": false,
-   "peak_db": -15.82,
+   "peak_db": -18.44,
    "rms_db": -30.46,
    "seam_db": -89.98
   },
@@ -31,8 +31,8 @@
    "duration": 34.0,
    "file": "./assets/audio/amb/meadow.mp3",
    "loop": false,
-   "peak_db": -11.59,
-   "rms_db": -27.5,
+   "peak_db": -10.78,
+   "rms_db": -27.49,
    "seam_db": -92.95
   },
   "night": {
@@ -40,7 +40,7 @@
    "duration": 38.0,
    "file": "./assets/audio/amb/night.mp3",
    "loop": false,
-   "peak_db": -12.37,
+   "peak_db": -12.99,
    "rms_db": -28.48,
    "seam_db": -91.97
   },
@@ -49,16 +49,16 @@
    "duration": 32.0,
    "file": "./assets/audio/amb/ocean.mp3",
    "loop": false,
-   "peak_db": -10.01,
-   "rms_db": -26.55,
-   "seam_db": -93.92
+   "peak_db": -8.39,
+   "rms_db": -26.0,
+   "seam_db": -93.9
   },
   "rain": {
    "bytes": 392820,
    "duration": 28.0,
    "file": "./assets/audio/amb/rain.mp3",
    "loop": false,
-   "peak_db": -13.38,
+   "peak_db": -10.92,
    "rms_db": -26.48,
    "seam_db": -93.96
   },
@@ -67,44 +67,44 @@
    "duration": 30.0,
    "file": "./assets/audio/amb/rainbow.mp3",
    "loop": false,
-   "peak_db": -12.66,
+   "peak_db": -12.31,
    "rms_db": -28.48,
-   "seam_db": -91.97
+   "seam_db": -91.96
   },
   "snow": {
    "bytes": 505094,
    "duration": 36.0,
    "file": "./assets/audio/amb/snow.mp3",
    "loop": false,
-   "peak_db": -14.34,
-   "rms_db": -30.51,
-   "seam_db": -89.98
+   "peak_db": -14.65,
+   "rms_db": -30.58,
+   "seam_db": -89.97
   },
   "space": {
    "bytes": 561049,
    "duration": 40.0,
    "file": "./assets/audio/amb/space.mp3",
    "loop": false,
-   "peak_db": -18.5,
+   "peak_db": -18.14,
    "rms_db": -28.47,
-   "seam_db": -91.98
+   "seam_db": -91.97
   },
   "storm": {
    "bytes": 420980,
    "duration": 30.0,
    "file": "./assets/audio/amb/storm.mp3",
    "loop": false,
-   "peak_db": -10.64,
-   "rms_db": -24.51,
-   "seam_db": -95.93
+   "peak_db": -8.08,
+   "rms_db": -24.52,
+   "seam_db": -95.91
   },
   "sun": {
    "bytes": 448774,
    "duration": 32.0,
    "file": "./assets/audio/amb/sun.mp3",
    "loop": false,
-   "peak_db": -15.38,
-   "rms_db": -29.56,
+   "peak_db": -15.95,
+   "rms_db": -29.55,
    "seam_db": -90.98
   },
   "volcano": {
@@ -112,18 +112,18 @@
    "duration": 30.0,
    "file": "./assets/audio/amb/volcano.mp3",
    "loop": false,
-   "peak_db": -13.65,
-   "rms_db": -25.5,
-   "seam_db": -94.95
+   "peak_db": -6.3,
+   "rms_db": -25.01,
+   "seam_db": -94.83
   },
   "wind": {
    "bytes": 392820,
    "duration": 28.0,
    "file": "./assets/audio/amb/wind.mp3",
    "loop": false,
-   "peak_db": -9.83,
-   "rms_db": -26.53,
-   "seam_db": -93.92
+   "peak_db": -8.89,
+   "rms_db": -26.54,
+   "seam_db": -93.91
   }
  },
  "count": 153,
@@ -1171,24 +1171,24 @@
      "duration": 0.24,
      "file": "./assets/audio/sfx/pop-1.mp3",
      "loop": false,
-     "peak_db": -14.09,
-     "rms_db": -31.47
+     "peak_db": -14.32,
+     "rms_db": -29.24
     },
     {
      "bytes": 6313,
      "duration": 0.24,
      "file": "./assets/audio/sfx/pop-2.mp3",
      "loop": false,
-     "peak_db": -14.13,
-     "rms_db": -30.63
+     "peak_db": -14.36,
+     "rms_db": -29.32
     },
     {
      "bytes": 6313,
      "duration": 0.24,
      "file": "./assets/audio/sfx/pop-3.mp3",
      "loop": false,
-     "peak_db": -13.56,
-     "rms_db": -30.69
+     "peak_db": -14.5,
+     "rms_db": -28.95
     }
    ]
   },
@@ -1378,24 +1378,24 @@
      "duration": 1.5,
      "file": "./assets/audio/sfx/star-1.mp3",
      "loop": false,
-     "peak_db": -14.5,
-     "rms_db": -43.21
+     "peak_db": -15.36,
+     "rms_db": -31.96
     },
     {
      "bytes": 31391,
      "duration": 1.5,
      "file": "./assets/audio/sfx/star-2.mp3",
      "loop": false,
-     "peak_db": -14.14,
-     "rms_db": -43.6
+     "peak_db": -15.57,
+     "rms_db": -33.4
     },
     {
      "bytes": 31391,
      "duration": 1.5,
      "file": "./assets/audio/sfx/star-3.mp3",
      "loop": false,
-     "peak_db": -15.1,
-     "rms_db": -47.93
+     "peak_db": -14.72,
+     "rms_db": -32.06
     }
    ]
   },
@@ -1508,32 +1508,32 @@
      "duration": 0.075,
      "file": "./assets/audio/sfx/tap-1.mp3",
      "loop": false,
-     "peak_db": -15.31,
-     "rms_db": -37.73
+     "peak_db": -14.6,
+     "rms_db": -34.91
     },
     {
      "bytes": 2656,
      "duration": 0.075,
      "file": "./assets/audio/sfx/tap-2.mp3",
      "loop": false,
-     "peak_db": -14.76,
-     "rms_db": -36.76
+     "peak_db": -15.53,
+     "rms_db": -35.9
     },
     {
      "bytes": 2656,
      "duration": 0.075,
      "file": "./assets/audio/sfx/tap-3.mp3",
      "loop": false,
-     "peak_db": -15.59,
-     "rms_db": -39.27
+     "peak_db": -14.43,
+     "rms_db": -33.83
     },
     {
      "bytes": 2656,
      "duration": 0.075,
      "file": "./assets/audio/sfx/tap-4.mp3",
      "loop": false,
-     "peak_db": -15.34,
-     "rms_db": -34.37
+     "peak_db": -15.49,
+     "rms_db": -36.14
     }
    ]
   },
@@ -1549,24 +1549,24 @@
      "duration": 0.55,
      "file": "./assets/audio/sfx/thud-1.mp3",
      "loop": false,
-     "peak_db": -14.38,
-     "rms_db": -33.98
+     "peak_db": -14.53,
+     "rms_db": -31.82
     },
     {
      "bytes": 12582,
      "duration": 0.55,
      "file": "./assets/audio/sfx/thud-2.mp3",
      "loop": false,
-     "peak_db": -14.4,
-     "rms_db": -34.96
+     "peak_db": -14.44,
+     "rms_db": -35.52
     },
     {
      "bytes": 12582,
      "duration": 0.55,
      "file": "./assets/audio/sfx/thud-3.mp3",
      "loop": false,
-     "peak_db": -14.4,
-     "rms_db": -33.03
+     "peak_db": -14.47,
+     "rms_db": -32.7
     }
    ]
   },

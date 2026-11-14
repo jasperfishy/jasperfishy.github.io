@@ -14,8 +14,9 @@
 .du-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 /* The update pill is pinned above every layer in the app, and it would sit on
- * top of a film like a sticker on a cinema screen. */
-body.du-cinema #du-update-trigger, body.du-cinema #du-update-panel { display: none !important; }
+ * top of a film like a sticker on a cinema screen. Only the film: the title
+ * card is a menu, and that is where a grown-up looks for it. */
+body.du-cinema-rolling #du-update-trigger, body.du-cinema-rolling #du-update-panel { display: none !important; }
 
 /* Cinema bars: they tell a child this is a film, not a menu, before any word
  * is read. They part when the opening ends. */
@@ -31,6 +32,18 @@ body.du-cinema #du-update-trigger, body.du-cinema #du-update-panel { display: no
   backdrop-filter: blur(4px);
 }
 .du-intro-skip:hover, .du-intro-skip:focus-visible { background: rgba(11, 110, 95, .8); border-color: #fff; outline: none; }
+
+/* The other control a grown-up wants while the film is running, kept out of
+ * the grid so it cannot push the title or the captions around. */
+.du-intro-mute {
+  position: absolute; top: max(14px, env(safe-area-inset-top)); left: 14px;
+  width: 48px; min-height: 48px; display: grid; place-items: center;
+  border: 2px solid rgba(255, 255, 255, .55); border-radius: 999px;
+  background: rgba(6, 10, 18, .55); color: #fff; cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.du-intro-mute:hover, .du-intro-mute:focus-visible { background: rgba(11, 110, 95, .8); border-color: #fff; outline: none; }
+.du-intro-mute svg { display: block; }
 
 /* ---------- captions ----------
  * The voice is the star; these are the subtitles under it. Words brighten as

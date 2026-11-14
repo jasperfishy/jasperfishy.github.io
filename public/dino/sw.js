@@ -733,6 +733,20 @@ const AUDIO_ASSETS = [
     "./assets/audio/sfx/win-4.mp3"
 ];
 // END GENERATED AUDIO PRECACHE
+
+/* The bank is regenerated in place. tools/build-audio.py rewrites these same
+ * URLs with new bytes on every run, so a URL is not a version, and answering
+ * from the cache before asking the server makes every repair inaudible:
+ * tests/sw-audio-cache.cjs changes a precached bed's bytes on the server and
+ * finds the page handed the copy from before the rebuild. Ask the network
+ * first for exactly these URLs, and take the cached copy only when the network
+ * has nothing to say -- which is what keeps a bed playable offline, so this is
+ * not "switch the cache off". Match on pathname, not href: the release build
+ * stamps the precached URLs with ?v=du-<hash> while index.json asks for the
+ * plain name, and both have to land on the same rule. */
+const REGENERATED = new Set(AUDIO_ASSETS.map(
+  (u) => new URL(u, self.registration.scope).pathname));
+
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     // Existing du-vN caches predate the update control. Activate this one
@@ -774,6 +788,23 @@ self.addEventListener('fetch', (event) => {
         if (response.ok) caches.open(VERSION).then((cache) => cache.put(request, response.clone()));
         return response;
       }).catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // A regenerated bed: newer bytes exist at this exact URL the moment
+  // tools/build-audio.py has run, so the cache is the fallback here, not the
+  // answer. Everything below keeps the cache-first behaviour that makes the
+  // shell and the artwork load instantly offline.
+  if (REGENERATED.has(url.pathname)) {
+    event.respondWith(
+      fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          event.waitUntil(caches.open(VERSION).then((cache) => cache.put(request, copy)));
+        }
+        return response;
+      }).catch(() => caches.match(request, { ignoreSearch: true }))
     );
     return;
   }

@@ -3,7 +3,7 @@
  * itself grows a new dinosaur every round, and at the end of the march you have to echo the last three steps back
  * (call-and-response) to earn a bonus lap. The judges score Style, Sparkle, Smile and Rhythm, and you can take a
  * photo for the parade album (saved on this device). More dress-up items unlock as levels grow. */
-import { createPlay, shuffle, collect, collection, getExtras } from "../adv-kit.js?v=du-1c099b1be40dab88";
+import { createPlay, shuffle, collect, collection, getExtras } from "../adv-kit.js?v=du-276e018775e133bb";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 const SPECIES = [["trex", "T. rex", "green"], ["tricera", "Trike", "teal"], ["stego", "Spike", "purple"], ["bronto", "Bronte", "orange"], ["raptor", "Zippy", "red"], ["ptero", "Skye", "blue"]];

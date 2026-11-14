@@ -1,5 +1,5 @@
 // Chapters 1–3 of The Great Dino Rescue: The Call, the Whispering Forest, the Rickety Bridge.
-import { wait, rnd, tile, MOUNTS, writeSave, kidName, OWL } from './engine.js?v=du-1c099b1be40dab88';
+import { wait, rnd, tile, MOUNTS, writeSave, kidName, OWL } from './engine.js?v=du-276e018775e133bb';
 const FX = window.DUFX;
 
 const HILLS = tile('<path d="M0 100 L0 60 Q50 10 100 55 T200 50 T300 58 T400 60 L400 100Z" fill="#9ed7a6"/>', 400, 100);
@@ -217,4 +217,4 @@ export async function chapter3(E) {
   await E.finishBadge('bridge', '🪢', 'Bridge Master', 'You crossed the rickety bridge with a stomping beat!');
   E.save.next = Math.max(E.save.next, 3); writeSave(E.save);
 }
-import { drawEnvironment } from '../../../../../photoreal-environments.js?v=du-1c099b1be40dab88';
+import { drawEnvironment } from '../../../../../photoreal-environments.js?v=du-276e018775e133bb';
