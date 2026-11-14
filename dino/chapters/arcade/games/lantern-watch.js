@@ -3,7 +3,7 @@
 // you must aim, and there are always more approaches than beam. Cup the flame
 // and it gathers — while the dark walks closer.
 
-import { canvasTex, grain, rng, clamp, lerp, MOODS, W } from '../engine.js?v=du-276e018775e133bb';
+import { canvasTex, grain, rng, clamp, lerp, MOODS, W } from '../engine.js?v=du-b206df16c491b071';
 
 const STAR = [6, 11, 17];
 const GOAL = 17;

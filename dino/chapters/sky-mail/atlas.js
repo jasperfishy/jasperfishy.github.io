@@ -1,6 +1,6 @@
 // Generates every illustration the flight needs at boot, as canvas textures.
 // No external art, no placeholders: layered shapes, gradients and texture grain.
-import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-276e018775e133bb';
+import { applyPhotorealTexture } from '../../photoreal-textures.js?v=du-b206df16c491b071';
 
 /* The pines and ferns that crowd the ridges and the post stations are drawn as
  * canvas textures once, at boot — so their photographs are fetched the moment

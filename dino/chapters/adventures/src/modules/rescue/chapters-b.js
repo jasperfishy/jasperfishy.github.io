@@ -1,6 +1,6 @@
 // Chapters 4–7: the Crystal Cave, the River of Fire, the Sky Ride and Grumblecloud's Peak.
-import { wait, rnd, MOUNTS, writeSave, kidName } from './engine.js?v=du-276e018775e133bb';
-import { sing } from './chapters-a.js?v=du-276e018775e133bb';
+import { wait, rnd, MOUNTS, writeSave, kidName } from './engine.js?v=du-b206df16c491b071';
+import { sing } from './chapters-a.js?v=du-b206df16c491b071';
 const FX = window.DUFX;
 // The four keys of the crystal song are four different stones — quartz, moonstone, jade,
 // carnelian — so each photographs as itself. The green heart was the odd one out: hearts have
@@ -264,4 +264,4 @@ export async function chapter7(E) {
   // that says "top of the seven chapters" in the same ink as the buttons around it.
   await E.finishBadge('hero', window.DUICONS.i('trophy', { size: 74 }), 'Hero Dino Rider!', 'You rescued Mummy and Daddy from Grumblecloud’s Peak. The whole dino world is cheering!');
 }
-import { drawEnvironment } from '../../../../../photoreal-environments.js?v=du-276e018775e133bb';
+import { drawEnvironment } from '../../../../../photoreal-environments.js?v=du-b206df16c491b071';

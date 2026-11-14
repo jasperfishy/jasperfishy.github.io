@@ -571,7 +571,7 @@
    * picture that is still decoding leaves the ground bare for a frame rather
    * than put a drawing back. */
   let drawProp = null;
-  import('../../../photoreal-textures.js?v=du-276e018775e133bb').then((m) => { drawProp = m.drawProp; }).catch(() => {});
+  import('../../../photoreal-textures.js?v=du-b206df16c491b071').then((m) => { drawProp = m.drawProp; }).catch(() => {});
   const thing = (ctx, name, x, y, size, glow) => {
     if (glow) { ctx.shadowColor = 'rgba(255,230,120,.9)'; ctx.shadowBlur = 14; }
     window.DUFX.objects.draw(ctx, name, x, y, size);

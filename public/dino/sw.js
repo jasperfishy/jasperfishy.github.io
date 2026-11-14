@@ -799,7 +799,13 @@ self.addEventListener('fetch', (event) => {
   if (REGENERATED.has(url.pathname)) {
     event.respondWith(
       fetch(request).then((response) => {
-        if (response.ok) {
+        // Only a whole body may be written back. An <audio> element asks for a
+        // bed with a Range header and gets 206, whose ok is true, and Cache
+        // Storage refuses partial bodies -- measured live: "Partial response
+        // (status code 206) is unsupported". The rejection does not stop the
+        // play, but it fires on every one, and a browser that did accept a 206
+        // would keep a 1 KB slice as the offline copy of a 476 KB bed.
+        if (response.status === 200) {
           const copy = response.clone();
           event.waitUntil(caches.open(VERSION).then((cache) => cache.put(request, copy)));
         }
@@ -812,7 +818,9 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request, { ignoreSearch: true }).then((cached) =>
       cached || fetch(request).then((response) => {
-        if (response.ok) caches.open(VERSION).then((cache) => cache.put(request, response.clone()));
+        // Same rule as the bank above: a 206 cannot be stored, and a film
+        // asked for by <video> always arrives as one.
+        if (response.status === 200) caches.open(VERSION).then((cache) => cache.put(request, response.clone()));
         return response;
       })
     )
